@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service (internal)
+  postgres-internal:
+    image: docker.arvancloud.ir/library/postgres:16
+    container_name: tb-postgres
+    hostname: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: thingsboard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - tb-allinone-postgres:/var/lib/postgresql/data
+    networks:
+      - thingsboard-allinone-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    # No external ports - internal only
+
+  # ThingsBoard Service (configured as all-in-one)
+  thingsboard-allinone:
+    image: docker.arvancloud.ir/thingsboard/tb-node:4.2.0
+    container_name: tb-node
+    restart: unless-stopped
+    depends_on:
+      postgres-internal:
+        condition: service_healthy
+    ports:
+      - "8081:9090"    # Web UI (different port to avoid conflicts)
+      - "1884:1883"    # MQTT (different port to avoid conflicts)
+      - "8884:8883"    # MQTT SSL
+      - "7071:7070"    # Edge RPC
+      - "5689-5694:5683-5688/udp"  # CoAP (different range)
+    environment:
+      # Service Configuration
+      TB_SERVICE_ID: tb-allinone-node
+      TB_SERVICE_TYPE: monolith
+      
+      # Database Configuration (pointing to internal postgres)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://tb-postgres:5432/thingsboard
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
+      
+      # ThingsBoard Configuration
+      TB_QUEUE_TYPE: in-memory
+      
+      # Cache Configuration
+      CACHE_TYPE: caffeine
+      
+      # Demo data loading
+      #LOAD_DEMO: 'true'
+        #INSTALL_TB: 'true'
+      
+      # Memory Configuration (higher for all-in-one)
+      JAVA_OPTS: >-
+        -Xmx1536m
+        -Xms768m
+        -Dplatform=dmp
+        -Dinstall.data_dir=/tmp
+      
+      # Security Configuration
+      TB_HOST: localhost
+      HTTP_BIND_PORT: 9090
+      HTTPS_BIND_PORT: 8443
+      
+      # Logging
+      SPRING_JPA_SHOW_SQL: 'false'
+    volumes:
+      - tb-allinone-data:/data
+      - tb-allinone-logs:/var/log/thingsboard
+    networks:
+      - thingsboard-allinone-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/login || exit 1"]
+      interval: 45s
+      timeout: 15s
+      retries: 10
+      start_period: 420s  # Allow more time for initialization
+
+volumes:
+  tb-allinone-data:
+    name: tb-allinone-data
+  tb-allinone-logs:
+    name: tb-allinone-logs
+  tb-allinone-postgres:
+    name: tb-allinone-postgres
+
+networks:
+  thingsboard-allinone-net:
+    driver: bridge
+    name: tb-allinone-network
+    attachable: true
