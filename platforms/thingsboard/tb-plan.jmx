@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="base_url" elementType="Argument">
+            <stringProp name="Argument.name">base_url</stringProp>
+            <stringProp name="Argument.value">93.115.144.202</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="base_port" elementType="Argument">
+            <stringProp name="Argument.name">base_port</stringProp>
+            <stringProp name="Argument.value">8081</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="total_device" elementType="Argument">
+            <stringProp name="Argument.name">total_device</stringProp>
+            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="total_data" elementType="Argument">
+            <stringProp name="Argument.name">total_data</stringProp>
+            <stringProp name="Argument.value">1000</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Login " enabled="true"/>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Thingsboard Login" enabled="true">
+            <stringProp name="HTTPSampler.domain">${base_url}</stringProp>
+            <stringProp name="HTTPSampler.port">${base_port}</stringProp>
+            <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{&quot;username&quot;: &quot;tenant@thingsboard.org&quot;, &quot;password&quot;: &quot;tenant&quot;}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/json</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Refresh Token" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">refresh_token</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.refreshToken</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="Scope.variable"></stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">REFRESH_TOKEN_NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Access token " enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">access_token</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.token</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="49586">200</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message"></stringProp>
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">8</intProp>
+            </ResponseAssertion>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Create Multiple Devices" enabled="true">
+          <stringProp name="LoopController.loops">${__P(device_count,10)}</stringProp>
+        </LoopController>
+        <hashTree>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Device_counter" enabled="true">
+            <stringProp name="CounterConfig.start">1</stringProp>
+            <stringProp name="CounterConfig.end">${total_device}</stringProp>
+            <stringProp name="CounterConfig.incr">1</stringProp>
+            <stringProp name="CounterConfig.name">device_counter</stringProp>
+            <stringProp name="CounterConfig.format"></stringProp>
+            <boolProp name="CounterConfig.per_user">true</boolProp>
+          </CounterConfig>
+          <hashTree/>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Provision Device " enabled="true">
+            <stringProp name="HTTPSampler.domain">${base_url}</stringProp>
+            <stringProp name="HTTPSampler.port">${base_port}</stringProp>
+            <stringProp name="HTTPSampler.path">/api/device</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{&#xd;
+    &quot;name&quot;: &quot;Temperature Sensor_${device_counter}_${__time(YMDhms)}&quot;,&#xd;
+    &quot;type&quot;: &quot;sensor&quot;,&#xd;
+    &quot;label&quot;: &quot;DHT22 Temperature &amp; Humidity Sensor&quot;&#xd;
+}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/json</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">X-Authorization</stringProp>
+                  <stringProp name="Header.value">Bearer ${access_token}</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Device ID" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">device_id</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.id.id</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">DEVICE_ID_NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON Assertion" enabled="true">
+              <stringProp name="JSON_PATH">$.id.id</stringProp>
+              <stringProp name="EXPECTED_VALUE"></stringProp>
+              <boolProp name="JSONVALIDATION">false</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">true</boolProp>
+            </JSONPathAssertion>
+            <hashTree/>
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Device Credentials" enabled="true">
+            <stringProp name="HTTPSampler.domain">${base_url}</stringProp>
+            <stringProp name="HTTPSampler.port">${base_port}</stringProp>
+            <stringProp name="HTTPSampler.path">/api/device/${device_id}/credentials</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">X-Authorization</stringProp>
+                  <stringProp name="Header.value">Bearer ${access_token}</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Device Access Token" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">device_access_token</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.credentialsId</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">DEVICE_TOKEN_NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+            <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="BeanShell PostProcessor" enabled="true">
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <boolProp name="resetInterpreter">false</boolProp>
+              <stringProp name="script">// Store device tokens in global properties for parallel access
+String deviceId = vars.get(&quot;device_id&quot;);
+String deviceToken = vars.get(&quot;device_access_token&quot;);
+String counter = vars.get(&quot;device_counter&quot;);
+
+log.info(&quot;Storing device #&quot; + counter + &quot; - Token: &quot; + deviceToken + &quot;, ID: &quot; + deviceId);
+
+if (deviceToken != null &amp;&amp; !deviceToken.equals(&quot;DEVICE_TOKEN_NOT_FOUND&quot;)) {
+    // Store in properties with counter index
+    props.put(&quot;device_token_&quot; + counter, deviceToken);
+    props.put(&quot;device_id_&quot; + counter, deviceId);
+    props.put(&quot;device_name_&quot; + counter, &quot;Temperature Sensor_&quot; + counter);
+    
+    log.info(&quot;✅ Stored Device #&quot; + counter + &quot; with token: &quot; + deviceToken);
+    
+    // Keep track of total devices created - store as simple number
+    props.put(&quot;total_devices_created&quot;, counter);
+} else {
+    log.error(&quot;❌ Failed to get token for device #&quot; + counter);
+}</stringProp>
+            </BeanShellPostProcessor>
+            <hashTree/>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON Assertion" enabled="true">
+              <stringProp name="JSON_PATH">$.credentialsId</stringProp>
+              <stringProp name="EXPECTED_VALUE"></stringProp>
+              <boolProp name="JSONVALIDATION">false</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">true</boolProp>
+            </JSONPathAssertion>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <BeanShellSampler guiclass="BeanShellSamplerGui" testclass="BeanShellSampler" testname="BeanShell Sampler" enabled="true">
+          <stringProp name="BeanShellSampler.query">// Signal that device setup is complete
+props.put(&quot;device_setup_complete&quot;, &quot;true&quot;);
+String totalDevices = props.getProperty(&quot;total_devices_created&quot;, &quot;0&quot;);
+log.info(&quot;Device setup completed! Total devices created: &quot; + totalDevices);
+
+// Set response for this sampler
+SampleResult.setResponseData(&quot;Device setup completed: &quot; + totalDevices + &quot; devices ready&quot;, &quot;UTF-8&quot;);
+SampleResult.setSuccessful(true);</stringProp>
+        </BeanShellSampler>
+        <hashTree/>
+        <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler" enabled="true">
+          <boolProp name="displayJMeterProperties">false</boolProp>
+          <boolProp name="displayJMeterVariables">true</boolProp>
+          <boolProp name="displaySystemProperties">false</boolProp>
+        </DebugSampler>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Parallel Telemetry Senders" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${total_device}</stringProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${total_data}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only Controller" enabled="true"/>
+        <hashTree>
+          <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="JSR223 Sampler" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">// Device assignment for this thread
+int threadNum = ctx.getThreadNum();
+String totalDevicesStr = props.get(&quot;total_devices_created&quot;);
+
+log.info(&quot;Thread &quot; + threadNum + &quot; starting. Total devices: &quot; + totalDevicesStr);
+
+if (totalDevicesStr == null) {
+    log.error(&quot;❌ No devices found! Setup thread group must run first.&quot;);
+    SampleResult.setSuccessful(false);
+    return;
+}
+
+// Parse the total devices, handling any leading zeros
+int totalDevices = Integer.parseInt(totalDevicesStr.replaceAll(&quot;^0+&quot;, &quot;&quot;));
+if (totalDevices == 0) {
+    totalDevices = Integer.parseInt(totalDevicesStr);
+}
+
+int deviceIndex = (threadNum % totalDevices) + 1;
+
+log.info(&quot;Thread &quot; + threadNum + &quot; will use device &quot; + deviceIndex);
+
+// Retrieve from properties - try both with and without leading zeros
+String deviceToken = props.get(&quot;device_token_&quot; + deviceIndex);
+if (deviceToken == null) {
+    // Try with the formatted version if simple didn&apos;t work
+    String formattedIndex = String.format(&quot;%012d&quot;, deviceIndex);
+    deviceToken = props.get(&quot;device_token_&quot; + formattedIndex);
+}
+
+String deviceId = props.get(&quot;device_id_&quot; + deviceIndex);
+String deviceName = props.get(&quot;device_name_&quot; + deviceIndex);
+
+if (deviceToken == null) {
+    log.error(&quot;❌ No token found for device index &quot; + deviceIndex);
+    log.info(&quot;Available keys in props:&quot;);
+    props.stringPropertyNames().each { key -&gt;
+        if (key.startsWith(&quot;device_token_&quot;)) {
+            log.info(&quot;  Found: &quot; + key);
+        }
+    }
+    SampleResult.setSuccessful(false);
+    return;
+}
+
+// IMPORTANT: Set the variables for this thread
+vars.put(&quot;device_access_token&quot;, deviceToken);
+vars.put(&quot;device_id&quot;, deviceId);
+vars.put(&quot;device_name&quot;, deviceName);
+
+log.info(&quot;✅ Thread &quot; + threadNum + &quot; initialized with device #&quot; + deviceIndex);
+log.info(&quot;  Token: &quot; + deviceToken);
+log.info(&quot;  ID: &quot; + deviceId);
+
+SampleResult.setSuccessful(true);
+SampleResult.setResponseMessage(&quot;Thread &quot; + threadNum + &quot; assigned to device &quot; + deviceIndex);</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+          </JSR223Sampler>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Send data" enabled="true">
+          <stringProp name="HTTPSampler.domain">${base_url}</stringProp>
+          <stringProp name="HTTPSampler.port">${base_port}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/${device_access_token}/telemetry</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+    &quot;temperature&quot;: ${temperature},&#xd;
+    &quot;humidity&quot;: ${humidity},&#xd;
+    &quot;pressure&quot;: ${pressure}&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="BeanShell PreProcessor" enabled="true">
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <boolProp name="resetInterpreter">false</boolProp>
+            <stringProp name="script">import java.util.Random;
+import java.text.DecimalFormat;
+
+// Get device token first
+String deviceToken = vars.get(&quot;device_access_token&quot;);
+String deviceId = vars.get(&quot;device_id&quot;);
+
+// Debug info
+log.info(&quot;========== TELEMETRY REQUEST DEBUG ==========&quot;);
+log.info(&quot;Thread: &quot; + ctx.getThreadNum());
+log.info(&quot;Device Token from vars: &quot; + deviceToken);
+log.info(&quot;Device ID from vars: &quot; + deviceId);
+
+// Self-healing if token is missing
+if (deviceToken == null || deviceToken.trim().isEmpty()) {
+    log.error(&quot;❌ CRITICAL: No device token in thread variables!&quot;);
+    
+    // Try to get from props
+    int threadNum = ctx.getThreadNum();
+    String totalDevicesStr = props.get(&quot;total_devices_created&quot;);
+    if (totalDevicesStr != null) {
+        int totalDevices = Integer.parseInt(totalDevicesStr.replaceAll(&quot;^0+&quot;, &quot;&quot;));
+        int deviceIndex = (threadNum % totalDevices) + 1;
+        deviceToken = props.get(&quot;device_token_&quot; + deviceIndex);
+        
+        if (deviceToken != null) {
+            log.info(&quot;Self-healed: Retrieved token from props for device &quot; + deviceIndex);
+            vars.put(&quot;device_access_token&quot;, deviceToken);
+        } else {
+            log.error(&quot;❌ Could not self-heal: No token in props for device &quot; + deviceIndex);
+            // Set a placeholder to avoid path resolution errors
+            deviceToken = &quot;INVALID_TOKEN&quot;;
+            vars.put(&quot;device_access_token&quot;, deviceToken);
+        }
+    }
+}
+
+// Generate sensor data
+Random random = new Random();
+DecimalFormat df = new DecimalFormat(&quot;#.#&quot;);
+
+double temperature = 22.0 + (random.nextGaussian() * 5);
+double humidity = Math.max(0, Math.min(100, 55.0 + (random.nextGaussian() * 15)));
+double pressure = 1013.25 + (random.nextGaussian() * 10);
+
+// Format values  
+String tempStr = df.format(temperature);
+String humStr = df.format(humidity);
+String pressStr = df.format(pressure);
+
+// Set JMeter variables
+vars.put(&quot;temperature&quot;, tempStr);
+vars.put(&quot;humidity&quot;, humStr);
+vars.put(&quot;pressure&quot;, pressStr);
+
+// ★ CRITICAL FIX: Set the complete path in the sampler
+String fullPath = &quot;/api/v1/&quot; + deviceToken + &quot;/telemetry&quot;;
+sampler.setPath(fullPath);
+
+log.info(&quot;Telemetry values: T=&quot; + tempStr + &quot;°C, H=&quot; + humStr + &quot;%, P=&quot; + pressStr + &quot;hPa&quot;);
+log.info(&quot;Request path set to: &quot; + fullPath);</stringProp>
+          </BeanShellPreProcessor>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener">
+        <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="influxdbMetricsSender" elementType="Argument">
+              <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+              <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="influxdbUrl" elementType="Argument">
+              <stringProp name="Argument.name">influxdbUrl</stringProp>
+              <stringProp name="Argument.value">http://localhost:8086/api/v2/write?org=me&amp;bucket=me</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="application" elementType="Argument">
+              <stringProp name="Argument.name">application</stringProp>
+              <stringProp name="Argument.value">application name</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="measurement" elementType="Argument">
+              <stringProp name="Argument.name">measurement</stringProp>
+              <stringProp name="Argument.value">jmeter</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="summaryOnly" elementType="Argument">
+              <stringProp name="Argument.name">summaryOnly</stringProp>
+              <stringProp name="Argument.value">true</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="samplersRegex" elementType="Argument">
+              <stringProp name="Argument.name">samplersRegex</stringProp>
+              <stringProp name="Argument.value">.*</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="percentiles" elementType="Argument">
+              <stringProp name="Argument.name">percentiles</stringProp>
+              <stringProp name="Argument.value">50;95;99</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="testTitle" elementType="Argument">
+              <stringProp name="Argument.name">testTitle</stringProp>
+              <stringProp name="Argument.value">Test name</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="eventTags" elementType="Argument">
+              <stringProp name="Argument.name">eventTags</stringProp>
+              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="influxdbToken" elementType="Argument">
+              <stringProp name="Argument.name">influxdbToken</stringProp>
+              <stringProp name="Argument.value">1hnbWDjnhGaTNKedKGAXTsAXNeqUi3zdf5RN1OSMXEgpPRkdCtGpYcbBDOqnCfOsckCou4fkrQu2mkjA0lLNhQ==</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+      </BackendListener>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
