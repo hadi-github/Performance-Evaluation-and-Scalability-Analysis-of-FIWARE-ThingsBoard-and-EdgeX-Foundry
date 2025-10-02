@@ -1,0 +1,854 @@
+{
+  "id": null,
+  "title": "MongoDB Performance Dashboard",
+  "tags": ["mongodb", "database", "performance", "monitoring", "wiredtiger"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 0,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "MongoDB Instance Status",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "name"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_up",
+          "refId": "A",
+          "legendFormat": "MongoDB Status"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "dtdurationms"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_uptimeMillis",
+          "refId": "A",
+          "legendFormat": "Uptime"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Active Connections",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 100}
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_connections{state=\"current\"}",
+          "refId": "A",
+          "legendFormat": "Current"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Total Operations/sec",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "ops"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_total_count[5m])",
+          "refId": "A",
+          "legendFormat": "Total Ops/sec"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Memory Usage (MB)",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 512},
+              {"color": "red", "value": 1024}
+            ]
+          },
+          "unit": "MB"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_mem_resident / 1024 / 1024",
+          "refId": "A",
+          "legendFormat": "Resident Memory"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Cache Hit Ratio %",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "green", "value": 90}
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "(mongodb_ss_wt_cache_pages_read_into_cache - mongodb_ss_wt_cache_pages_read_into_cache_after_truncate) / (mongodb_ss_wt_cache_pages_requested_from_the_cache + 1) * 100",
+          "refId": "A",
+          "legendFormat": "Cache Hit Ratio"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Operations Breakdown",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_queries_count[5m])",
+          "refId": "A",
+          "legendFormat": "Queries/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_insert_count[5m])",
+          "refId": "B",
+          "legendFormat": "Inserts/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_update_count[5m])",
+          "refId": "C",
+          "legendFormat": "Updates/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_remove_count[5m])",
+          "refId": "D",
+          "legendFormat": "Deletes/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_getmore_count[5m])",
+          "refId": "E",
+          "legendFormat": "GetMore/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Operations/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 8,
+      "title": "Operation Response Times",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_queries_time[5m]) / rate(mongodb_top_queries_count[5m]) / 1000",
+          "refId": "A",
+          "legendFormat": "Query Latency (ms)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_insert_time[5m]) / rate(mongodb_top_insert_count[5m]) / 1000",
+          "refId": "B",
+          "legendFormat": "Insert Latency (ms)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_update_time[5m]) / rate(mongodb_top_update_count[5m]) / 1000",
+          "refId": "C",
+          "legendFormat": "Update Latency (ms)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_remove_time[5m]) / rate(mongodb_top_remove_count[5m]) / 1000",
+          "refId": "D",
+          "legendFormat": "Delete Latency (ms)"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Latency (ms)",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 9,
+      "title": "WiredTiger Cache Performance",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_cache_bytes_currently_in_the_cache / 1024 / 1024",
+          "refId": "A",
+          "legendFormat": "Cache Size (MB)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_cache_tracked_dirty_bytes_in_the_cache / 1024 / 1024",
+          "refId": "B",
+          "legendFormat": "Dirty Data (MB)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_cache_maximum_bytes_configured / 1024 / 1024",
+          "refId": "C",
+          "legendFormat": "Max Cache Size (MB)"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Cache Size (MB)",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 10,
+      "title": "Cache Hit/Miss Statistics",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_cache_pages_read_into_cache[5m])",
+          "refId": "A",
+          "legendFormat": "Pages Read/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_cache_pages_written_from_cache[5m])",
+          "refId": "B",
+          "legendFormat": "Pages Written/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_cache_pages_requested_from_the_cache[5m])",
+          "refId": "C",
+          "legendFormat": "Pages Requested/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Pages/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 11,
+      "title": "Memory Usage Breakdown",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_mem_resident / 1024 / 1024",
+          "refId": "A",
+          "legendFormat": "Resident Memory (MB)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_mem_virtual / 1024 / 1024",
+          "refId": "B",
+          "legendFormat": "Virtual Memory (MB)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_mem_mapped / 1024 / 1024",
+          "refId": "C",
+          "legendFormat": "Mapped Memory (MB)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_mem_mappedWithJournal / 1024 / 1024",
+          "refId": "D",
+          "legendFormat": "Mapped with Journal (MB)"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Memory (MB)",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 12,
+      "title": "Disk I/O Operations",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_block_manager_bytes_read[5m])",
+          "refId": "A",
+          "legendFormat": "Bytes Read/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_block_manager_bytes_written[5m])",
+          "refId": "B",
+          "legendFormat": "Bytes Written/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_block_manager_bytes_written_for_checkpoint[5m])",
+          "refId": "C",
+          "legendFormat": "Checkpoint Bytes/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Bytes/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 13,
+      "title": "Lock Statistics",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_readLock_time[5m]) / 1000",
+          "refId": "A",
+          "legendFormat": "Read Lock Time (ms)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_writeLock_time[5m]) / 1000",
+          "refId": "B",
+          "legendFormat": "Write Lock Time (ms)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_readLock_count[5m])",
+          "refId": "C",
+          "legendFormat": "Read Lock Count/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_top_writeLock_count[5m])",
+          "refId": "D",
+          "legendFormat": "Write Lock Count/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Lock Time (ms) / Count/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 14,
+      "title": "Transaction Statistics",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_transactions_totalStarted[5m])",
+          "refId": "A",
+          "legendFormat": "Transactions Started/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_transactions_totalCommitted[5m])",
+          "refId": "B",
+          "legendFormat": "Transactions Committed/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_transactions_totalAborted[5m])",
+          "refId": "C",
+          "legendFormat": "Transactions Aborted/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_transactions_currentActive",
+          "refId": "D",
+          "legendFormat": "Active Transactions"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Transactions/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 15,
+      "title": "Replication Status",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 2}
+            ]
+          },
+          "unit": "short",
+          "custom": {
+            "displayMode": "list",
+            "orientation": "horizontal"
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_repl_replicationLag",
+          "refId": "A",
+          "legendFormat": "Replication Lag (sec)"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_repl_oplogWindow",
+          "refId": "B",
+          "legendFormat": "Oplog Window (sec)"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Connection Statistics",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_connections{state=\"current\"}",
+          "refId": "A",
+          "legendFormat": "Current Connections"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_connections{state=\"available\"}",
+          "refId": "B",
+          "legendFormat": "Available Connections"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_connections{state=\"totalCreated\"}[5m])",
+          "refId": "C",
+          "legendFormat": "Connections Created/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Connections",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 17,
+      "title": "WiredTiger Concurrency",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 44},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_concurrentTransactions_out",
+          "refId": "A",
+          "legendFormat": "Active Transactions"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_concurrentTransactions_available",
+          "refId": "B",
+          "legendFormat": "Available Tickets"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_concurrentTransactions_totalTickets",
+          "refId": "C",
+          "legendFormat": "Total Tickets"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Tickets",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 18,
+      "title": "Journal & Checkpoint Activity",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 44},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_log_log_bytes_written[5m])",
+          "refId": "A",
+          "legendFormat": "Journal Bytes Written/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_log_log_sync_operations[5m])",
+          "refId": "B",
+          "legendFormat": "Journal Sync Ops/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_transaction_checkpoints[5m])",
+          "refId": "C",
+          "legendFormat": "Checkpoints/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Operations/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 19,
+      "title": "Cursor Statistics",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "mongodb_ss_wt_cursor_open_cursor_count",
+          "refId": "A",
+          "legendFormat": "Open Cursors"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_cursor_cursor_create_calls[5m])",
+          "refId": "B",
+          "legendFormat": "Cursors Created/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_cursor_cursor_search_calls[5m])",
+          "refId": "C",
+          "legendFormat": "Cursor Searches/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Cursors / Operations/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    },
+    {
+      "id": 20,
+      "title": "System Resource Usage",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 52},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_connection_total_read_I_Os[5m])",
+          "refId": "A",
+          "legendFormat": "Read I/Os/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_connection_total_write_I_Os[5m])",
+          "refId": "B",
+          "legendFormat": "Write I/Os/sec"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(mongodb_ss_wt_connection_total_fsync_I_Os[5m])",
+          "refId": "C",
+          "legendFormat": "Fsync I/Os/sec"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "I/O Operations/sec",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xAxis": {
+        "show": true
+      },
+      "legend": {
+        "show": true
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "definition": "label_values(mongodb_up, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(mongodb_up, instance)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

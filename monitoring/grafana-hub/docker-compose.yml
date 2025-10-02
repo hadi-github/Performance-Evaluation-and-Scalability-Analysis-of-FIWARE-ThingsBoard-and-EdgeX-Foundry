@@ -1,0 +1,36 @@
+version: '3'
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - renderer
+
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - 8081:8081
+    environment:
+      - GF_RENDERING_WIDTH=1200
+      - GF_RENDERING_HEIGHT=600
+      - GF_RENDERING_DEVICE_SCALE_FACTOR=3
+      - GF_RENDERING_ARGS="--no-sandbox,--disable-gpu,--disable-setuid-sandbox,--disable-dev-shm-usage"
+      - GF_RENDERING_TIMEOUT=10000000
+
+networks:
+  monitoring:
+    attachable: true
+
+volumes:
+  grafana_data:
