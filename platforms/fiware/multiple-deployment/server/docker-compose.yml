@@ -1,0 +1,211 @@
+version: '3.8'
+
+services:
+  # Single Orion instance first - let's get this working
+  orion-1:
+    image: fiware/orion
+    hostname: orion-1
+    container_name: fiware-orion-1
+    restart: unless-stopped
+    ports:
+      - "1027:1026"
+    command: >
+      -dbURI mongodb://192.168.2.105:27019
+      -logLevel DEBUG
+    environment:
+      - ORION_PORT=1026
+    networks:
+      - fiware_network
+ 
+  orion-2:
+    image: fiware/orion
+    hostname: orion-2
+    container_name: fiware-orion-2
+    restart: unless-stopped
+    ports:
+      - "1028:1026"
+    command: >
+      -dbURI mongodb://192.168.2.105:27019
+      -logLevel DEBUG
+    environment:
+      - ORION_PORT=1026
+    networks:
+      - fiware_network
+  orion-3:
+    image: fiware/orion
+    hostname: orion-3
+    container_name: fiware-orion-3
+    restart: unless-stopped
+    ports:
+      - "1029:1026"
+    command: >
+      -dbURI mongodb://192.168.2.105:27019
+      -logLevel DEBUG
+    environment:
+      - ORION_PORT=1026
+    networks:
+      - fiware_network
+
+  # Single IoT Agent - simplified
+  iot-agent-1:
+    image: fiware/iotagent-ul:1.25.0
+    hostname: iot-agent-1
+    container_name: fiware-iot-agent-1
+    networks:
+      - fiware_network
+    restart: unless-stopped
+    ports:
+      - "4042:4041"
+      - "7897:7896"
+    depends_on:
+      - orion-1
+    environment:
+      - IOTA_CB_HOST=orion-1
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4041
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_HOST=192.168.2.105
+      - IOTA_MONGO_PORT=27019
+      - IOTA_MONGO_DB=iotagentjson
+      - IOTA_HTTP_PORT=7896
+      - IOTA_PROVIDER_URL=http://iot-agent-1:4041
+      - IOTA_LOG_LEVEL=DEBUG
+      # ampq
+      - IOTA_AMQP_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_AMQP_PORT=5672
+      - IOTA_AMQP_USERNAME=fiware
+      - IOTA_AMQP_PASSWORD=fiware123
+      - IOTA_AMQP_VHOST=/
+      - IOTA_AMQP_EXCHANGE=amq.topic
+      - IOTA_AMQP_QUEUE=iotqueue
+      - IOTA_AMQP_DURABLE=true
+      - IOTA_AMQP_RETRIES=5
+      - IOTA_AMQP_RETRY_TIME=5
+      # MQTT Configuration
+      - IOTA_MQTT_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_MQTT_PORT=1883
+      - IOTA_MQTT_USERNAME=
+      - IOTA_MQTT_PASSWORD=
+      - IOTA_MQTT_QOS=0
+      - IOTA_MQTT_RETAIN=false
+
+  iot-agent-2:
+    image: fiware/iotagent-ul:1.25.0
+    hostname: iot-agent-2
+    container_name: fiware-iot-agent-2
+    restart: unless-stopped
+    networks:
+      - fiware_network
+    ports:
+      - "4043:4041"
+      - "7898:7896"
+    depends_on:
+      - orion-2
+    environment:
+      - IOTA_CB_HOST=orion-2
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4041
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_HOST=192.168.2.105
+      - IOTA_MONGO_PORT=27019
+      - IOTA_MONGO_DB=iotagentjson
+      - IOTA_HTTP_PORT=7896
+      - IOTA_PROVIDER_URL=http://iot-agent-2:4041
+      - IOTA_LOG_LEVEL=DEBUG
+      # ampq
+      - IOTA_AMQP_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_AMQP_PORT=5672
+      - IOTA_AMQP_USERNAME=fiware
+      - IOTA_AMQP_PASSWORD=fiware123
+      - IOTA_AMQP_VHOST=/
+      - IOTA_AMQP_EXCHANGE=amq.topic
+      - IOTA_AMQP_QUEUE=iotqueue
+      - IOTA_AMQP_DURABLE=true
+      - IOTA_AMQP_RETRIES=5
+      - IOTA_AMQP_RETRY_TIME=5
+      # MQTT Configuration
+      - IOTA_MQTT_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_MQTT_PORT=1883
+      - IOTA_MQTT_USERNAME=
+      - IOTA_MQTT_PASSWORD=
+      - IOTA_MQTT_QOS=0
+      - IOTA_MQTT_RETAIN=false
+
+  iot-agent-3:
+    image: fiware/iotagent-ul:1.25.0
+    hostname: iot-agent-3
+    container_name: fiware-iot-agent-3
+    networks:
+      - fiware_network
+    restart: unless-stopped
+    ports:
+      - "4044:4041"
+      - "7899:7896"
+    depends_on:
+      - orion-3
+    environment:
+      - IOTA_CB_HOST=orion-3
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4041
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_HOST=192.168.2.105
+      - IOTA_MONGO_PORT=27019
+      - IOTA_MONGO_DB=iotagentjson
+      - IOTA_HTTP_PORT=7896
+      - IOTA_PROVIDER_URL=http://iot-agent-3:4041
+      - IOTA_LOG_LEVEL=DEBUG
+      # ampq
+      - IOTA_AMQP_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_AMQP_PORT=5672
+      - IOTA_AMQP_USERNAME=fiware
+      - IOTA_AMQP_PASSWORD=fiware123
+      - IOTA_AMQP_VHOST=/
+      - IOTA_AMQP_EXCHANGE=amq.topic
+      - IOTA_AMQP_QUEUE=iotqueue
+      - IOTA_AMQP_DURABLE=true
+      - IOTA_AMQP_RETRIES=5
+      - IOTA_AMQP_RETRY_TIME=5
+      # MQTT Configuration
+      - IOTA_MQTT_HOST=${NODE1_IP}  # Use IP since host network mode
+      - IOTA_MQTT_PORT=1883
+      - IOTA_MQTT_USERNAME=
+      - IOTA_MQTT_PASSWORD=
+      - IOTA_MQTT_QOS=0
+      - IOTA_MQTT_RETAIN=false
+  
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    hostname: mosquitto
+    container_name: mosquitto
+    networks:
+      - fiware_network
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+       - ./mosquitto/data:/mosquitto/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    container_name: rabbitmq
+    networks:
+      - fiware_network
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=fiware
+      - RABBITMQ_DEFAULT_PASS=fiware123
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq                                                                                                                                     
+    restart: unless-stopped
+
+
+networks:
+  fiware_network:
+    driver: bridge
+    attachable: true

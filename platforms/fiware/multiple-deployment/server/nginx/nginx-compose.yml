@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  nginx-orion:
+    image: nginx:latest
+    container_name: nginx-orion
+    hostname: nginx-orion
+    volumes:
+      - ./nginx_1026.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "1026:1026"
+    networks:
+      - fiware-net  # Assuming a shared network with orion and iotagents
+    restart: unless-stopped
+
+  nginx-iot-7896:
+    image: nginx:latest
+    container_name: nginx-iot-7896
+    volumes:
+      - ./nginx_7896.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "7896:7896"
+    networks:
+      - fiware-net
+    restart: unless-stopped
+
+  nginx-iot-4041:
+    image: nginx:latest
+    container_name: nginx-iot-4041
+    volumes:
+      - ./nginx_4041.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "4041:4041"
+    networks:
+      - fiware-net
+    restart: unless-stopped
+
+  status-page:
+    image: node:18
+    container_name: status-page
+    volumes:
+      - ./status-page:/app:ro
+    working_dir: /app
+    command: >
+      /bin/bash -c "npm install && npm start"
+    ports:
+      - "8080:8080"
+    networks:
+      - fiware-net
+    restart: unless-stopped
+    depends_on:
+      - nginx-orion
+      - nginx-iot-7896
+      - nginx-iot-4041
+    environment:
+      - NODE_ENV=production
+networks:
+  fiware-net:
+    external: true
+    name: server_fiware_network
+
