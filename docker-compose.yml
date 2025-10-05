@@ -1,51 +1,35 @@
 version: '3.8'
 
-services:
-  # PostgreSQL Database Service (internal)
-  postgres-internal:
-    image: docker.arvancloud.ir/library/postgres:16
-    container_name: tb-postgres
-    hostname: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: thingsboard
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - tb-allinone-postgres:/var/lib/postgresql/data
-    networks:
-      - thingsboard-allinone-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    # No external ports - internal only
+networks:
+  tb_network:
+    attachable: true
+    driver: "bridge"
 
-  # ThingsBoard Service (configured as all-in-one)
-  thingsboard-allinone:
+services:
+  thingsboard-1:
     image: docker.arvancloud.ir/thingsboard/tb-node:4.2.0
-    container_name: tb-node
+    container_name: tb-node-1
+    hostname: tb-node-1
     restart: unless-stopped
-    depends_on:
-      postgres-internal:
-        condition: service_healthy
+    # No internal dependencies - using external PostgreSQL
     ports:
-      - "8081:9090"    # Web UI (different port to avoid conflicts)
-      - "1884:1883"    # MQTT (different port to avoid conflicts)
-      - "8884:8883"    # MQTT SSL
-      - "7071:7070"    # Edge RPC
-      - "5689-5694:5683-5688/udp"  # CoAP (different range)
+       - "8082:9090"    # Web UI (different port to avoid conflicts)
+    #  - "1884:1883"    # MQTT (different port to avoid conflicts)
+    #  - "8884:8883"    # MQTT SSL
+    #  - "7071:7070"    # Edge RPC
+    #  - "5689-5694:5683-5688/udp"  # CoAP (different range)
+    # Use host network for better external database connectivity
+    networks:
+      - tb_network
     environment:
       # Service Configuration
-      TB_SERVICE_ID: tb-allinone-node
+      TB_SERVICE_ID: tb-node-1
       TB_SERVICE_TYPE: monolith
       
-      # Database Configuration (pointing to internal postgres)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://tb-postgres:5432/thingsboard
+      # Database Configuration (pointing to external postgres)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres123
       SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
       
       # ThingsBoard Configuration
@@ -56,7 +40,7 @@ services:
       
       # Demo data loading
       #LOAD_DEMO: 'true'
-        #INSTALL_TB: 'true'
+      #INSTALL_TB: 'true'
       
       # Memory Configuration (higher for all-in-one)
       JAVA_OPTS: >-
@@ -75,8 +59,124 @@ services:
     volumes:
       - tb-allinone-data:/data
       - tb-allinone-logs:/var/log/thingsboard
-    networks:
-      - thingsboard-allinone-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/login || exit 1"]
+      interval: 45s
+      timeout: 15s
+      retries: 10
+      start_period: 420s  # Allow more time for initialization
+  thingsboard-2:
+    image: docker.arvancloud.ir/thingsboard/tb-node:4.2.0
+    container_name: tb-node-2
+    restart: unless-stopped
+    hostname: tb-node-2
+    # No internal dependencies - using external PostgreSQL
+    ports:
+      - "8083:9090"    # Web UI (different port to avoid conflicts)
+    #  - "1884:1883"    # MQTT (different port to avoid conflicts)
+    #  - "8884:8883"    # MQTT SSL
+    #  - "7071:7070"    # Edge RPC
+    #  - "5689-5694:5683-5688/udp"  # CoAP (different range)
+    # Use host network for better external database connectivity
+    networks: 
+      tb_network:
+    environment:
+      # Service Configuration
+      TB_SERVICE_ID: tb-node-2
+      TB_SERVICE_TYPE: monolith
+      
+      # Database Configuration (pointing to external postgres)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
+      
+      # ThingsBoard Configuration
+      TB_QUEUE_TYPE: in-memory
+      
+      # Cache Configuration
+      CACHE_TYPE: caffeine
+      
+      # Demo data loading
+      #LOAD_DEMO: 'true'
+      #INSTALL_TB: 'true'
+      
+      # Memory Configuration (higher for all-in-one)
+      JAVA_OPTS: >-
+        -Xmx1536m
+        -Xms768m
+        -Dplatform=dmp
+        -Dinstall.data_dir=/tmp
+      
+      # Security Configuration
+      TB_HOST: localhost
+      HTTP_BIND_PORT: 9090
+      HTTPS_BIND_PORT: 8443
+      
+      # Logging
+      SPRING_JPA_SHOW_SQL: 'false'
+    volumes:
+      - tb-allinone-data:/data
+      - tb-allinone-logs:/var/log/thingsboard
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/login || exit 1"]
+      interval: 45s
+      timeout: 15s
+      retries: 10
+      start_period: 420s  # Allow more time for initialization
+  thingsboard-3:
+    image: docker.arvancloud.ir/thingsboard/tb-node:4.2.0
+    container_name: tb-node-3
+    hostname: tb-node-3
+    restart: unless-stopped
+    # No internal dependencies - using external PostgreSQL
+    ports:
+      - "8084:9090"    # Web UI (different port to avoid conflicts)
+    #  - "1884:1883"    # MQTT (different port to avoid conflicts)
+    #  - "8884:8883"    # MQTT SSL
+    #  - "7071:7070"    # Edge RPC
+    #  - "5689-5694:5683-5688/udp"  # CoAP (different range)
+    # Use host network for better external database connectivity
+    networks: 
+      tb_network:
+    environment:
+      # Service Configuration
+      TB_SERVICE_ID: tb-node-3
+      TB_SERVICE_TYPE: monolith
+      
+      # Database Configuration (pointing to external postgres)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
+      
+      # ThingsBoard Configuration
+      TB_QUEUE_TYPE: in-memory
+      
+      # Cache Configuration
+      CACHE_TYPE: caffeine
+      
+      # Demo data loading
+      #LOAD_DEMO: 'true'
+      #INSTALL_TB: 'true'
+      
+      # Memory Configuration (higher for all-in-one)
+      JAVA_OPTS: >-
+        -Xmx1536m
+        -Xms768m
+        -Dplatform=dmp
+        -Dinstall.data_dir=/tmp
+      
+      # Security Configuration
+      TB_HOST: localhost
+      HTTP_BIND_PORT: 9090
+      HTTPS_BIND_PORT: 8443
+      
+      # Logging
+      SPRING_JPA_SHOW_SQL: 'false'
+    volumes:
+      - tb-allinone-data:/data
+      - tb-allinone-logs:/var/log/thingsboard
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/login || exit 1"]
       interval: 45s
@@ -89,11 +189,5 @@ volumes:
     name: tb-allinone-data
   tb-allinone-logs:
     name: tb-allinone-logs
-  tb-allinone-postgres:
-    name: tb-allinone-postgres
 
-networks:
-  thingsboard-allinone-net:
-    driver: bridge
-    name: tb-allinone-network
-    attachable: true
+
