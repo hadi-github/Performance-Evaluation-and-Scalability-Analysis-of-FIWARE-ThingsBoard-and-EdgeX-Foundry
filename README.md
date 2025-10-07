@@ -1,6 +1,7 @@
 # EdgeX Foundry — Multiple Nodes
 
-Short notes for the multi-node EdgeX deployment used in experiments.
+```server/``` folder contains the files and deployments for core moduels of edgex platform
+```db/``` folder contains the configuration for a replicated master/slave deployment of redis db
 
 ## Services and actual host ports (extracted from compose)
 - ui: 4000
@@ -8,56 +9,36 @@ Short notes for the multi-node EdgeX deployment used in experiments.
 - nginx additional: 7896, 1026, 4041
 - edgex services (where published explicitly): 59701, 59882, 59880, 59881, 6379, 59986, 59900, 59720, 59860, 59861
 
-Commands
-```bash
-docker compose up -d
-```
-```bash
-docker compose down
-```
-```bash
-docker compose logs -f <service-name>
-```
-
-Notes
-
-You can expand this file with architecture diagrams, example configs, and troubleshooting steps.
-# EdgeX Foundry — Multiple Nodes
-
-This branch contains deployment files and notes for running EdgeX Foundry across multiple nodes (or multiple service instances) for scalability tests.
-
-## Services and Ports
-- Core Data: `localhost:48080`
-- Core Metadata: `localhost:48081`
-- Core Command: `localhost:48082`
-- Support Logging: `localhost:48061`
-- Support Notifications: `localhost:48060`
+some services are deploymed with multiple instances and some are external too
+there is 3 instances of core-metadata and core-data modules ( the requests will handle by nginx )
+and the database deployment
 
 ## Commands and Scripts
-- To deploy services:
+-  To check the health of services there is a ```check_health.sh``` script which will test the api responding to all health apis of main modules and will return a report of the state of services
+  ```bash
+  ./check_health.sh
+  ```
+- config the platform deployment
+search for environment variables that are for database hostname (they are set 192.168.2.105 which was the db host for our case) and change the hostname and other credentials for connecting to db
+if you want to edit ports make sure that you will update the nginx to route to those too
+
+- To deploy docker located at ```server/``` folder:
   ```bash
   docker compose up -d
-  # EdgeX Foundry — Multiple Nodes
+  sleep 30 && ../check_health.sh # should see that all services are healthy
+  ```
 
-  This branch contains deployment files and notes for running EdgeX Foundry across multiple nodes (or multiple service instances) for scalability tests.
+- To deploy redis on another server
+```bash
+docker comopse up -d
+```
 
-  ## Services and Ports (common defaults)
-  - Core Data: `localhost:48080`
-  - Core Metadata: `localhost:48081`
-  - Core Command: `localhost:48082`
-  - Support Logging: `localhost:48061`
-  - Support Notifications: `localhost:48060`
+## nginx config
 
-  ## Commands and Scripts
-  - Deploy services:
-    ```bash
-    docker compose up -d
-    ```
-  - Check logs:
-    ```bash
-    docker logs <service-name>
-    ```
+  the services will recieve requests with a load balancer nginx proxy that will redirect requests to the specified service
 
-  Refer to the `deploy/` or `server/` directory for additional scripts and configuration files.
+  7896 -> core-data
+  1026 -> core-metadata
+  4041 -> device-rest
 
-  Note: verify the actual ports in the `docker-compose.yml` or compose files in this directory; the values above are typical defaults and may differ in customized setups.
+  the config is located at ```nginx.conf``` file
