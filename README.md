@@ -1,4 +1,4 @@
-# FIWARE — Multiple Instances (concise)
+# FIWARE — Multiple Instances 
 
 This README explains the multi-instance FIWARE layout, lists the host ports used by this branch, and provides a simple run order and commands.
 
