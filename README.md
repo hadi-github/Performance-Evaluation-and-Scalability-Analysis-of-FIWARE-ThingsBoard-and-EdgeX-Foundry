@@ -1,7 +1,4 @@
-# EdgeX — single deployment (simple README)
-
-Short, minimal documentation for the single-node EdgeX deployment in this branch.
-
+# EdgeX — single deployment 
 Services and common host ports (mapped by the compose files in this branch):
 
 - core-metadata: 1026
