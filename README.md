@@ -4,4 +4,4 @@ the ```grafana``` directory contains default configurations that used in process
 
 the ```influx.db``` compose file is for influxdb container to collect jmeter datas there
 
-after deploying you should open influxdb panel in browser ```localhost:8086``` and get a admin token and put it on the influx db datasource for grafana
+after deploying you should open influxdb panel in browser ```localhost:8086``` and get a admin token and put it on the influx db datasource for grafana and also for backend listener on each jmeter plan
