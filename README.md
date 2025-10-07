@@ -1,19 +1,3 @@
-# Workloads
-
-Short notes for load-generation artifacts (JMeter, scripts, results).
-
-Services and ports
-- JMeter: CLI-based (no port)
-
-Commands and scripts
-- Run JMeter test (example):
-```bash
-jmeter -n -t testplan.jmx -l results.jtl
-```
-- Aggregate results (if script present):
-```bash
-./scripts/aggregate-results.sh results.jtl
-```
 
 # Workloads
 
