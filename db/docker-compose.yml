@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  redis-master:
+    image: redis:7.0.15-alpine
+    container_name: edgex-redis-master
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    networks:
+      - edgex-network
+    volumes:
+      - redis-master-data:/data
+
+  redis-slave:
+    image: redis:7.0.15-alpine
+    container_name: edgex-redis-slave
+    command: redis-server --slaveof redis-master 6379 --appendonly yes
+    depends_on:
+      - redis-master
+    ports:
+      - "6380:6379"
+    networks:
+      - edgex-network
+    volumes:
+      - redis-slave-data:/data
+
+volumes:
+  redis-master-data:
+  redis-slave-data:
+
+networks:
+  edgex-network:
+    driver: bridge
