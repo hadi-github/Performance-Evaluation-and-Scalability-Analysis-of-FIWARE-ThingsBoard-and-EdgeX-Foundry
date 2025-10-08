@@ -1,10 +1,10 @@
-# FIWARE — Multiple Instances 
+# FIWARE - Multiple Instances 
 
 This README explains the multi-instance FIWARE layout, lists the host ports used by this branch, and provides a simple run order and commands.
 
 Overview and directories
-- `server/` — FIWARE services and the nginx proxy compose used to route requests to the platform instances.
-- `db/` — MongoDB replica-set compose and an HAProxy instance that fronts the replica set for clients.
+- `server/` - FIWARE services and the nginx proxy compose used to route requests to the platform instances.
+- `db/` - MongoDB replica-set compose and an HAProxy instance that fronts the replica set for clients.
 
 Ports required (host ports published by compose files in this branch)
 - Orion instances (container 1026): host ports 1027, 1028, 1029
