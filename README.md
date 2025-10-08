@@ -1,4 +1,4 @@
-# EdgeX Foundry — Multi-Node Deployment
+# EdgeX Foundry - Multi-Node Deployment
 
 This project provides a multi-node deployment setup for the **EdgeX Foundry** platform.  
 It includes configurations for the core services, Redis database replication, and an Nginx load balancer.
@@ -7,8 +7,8 @@ It includes configurations for the core services, Redis database replication, an
 
 ## Project Structure
 
-- **`server/`** — Contains the Docker Compose setup and deployment files for the EdgeX core modules.  
-- **`db/`** — Contains the configuration for a replicated Redis master–slave database deployment.
+- **`server/`** - Contains the Docker Compose setup and deployment files for the EdgeX core modules.  
+- **`db/`** - Contains the configuration for a replicated Redis master–slave database deployment.
 
 ---
 
