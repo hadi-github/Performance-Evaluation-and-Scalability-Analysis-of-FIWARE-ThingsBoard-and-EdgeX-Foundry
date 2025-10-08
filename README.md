@@ -1,4 +1,4 @@
-# EdgeX — single deployment 
+# EdgeX - single deployment 
 Services and common host ports (mapped by the compose files in this branch):
 
 - core-metadata: 1026
@@ -29,8 +29,3 @@ chmod +x check_health.sh
 ```
 
 Output will be a short list of services with HEALTHY / UNHEALTHY status. This is intentionally simple — it assumes services are published on localhost at the ports listed above and that the `/api/v3/ping` endpoint returns a JSON containing `apiVersion` when healthy. Adjust ports in the script if your compose uses different host ports or environment variables.
-
-Notes
-
-- This README is intentionally minimal; expand it with run examples, logs, or diagnostics as needed.
-
