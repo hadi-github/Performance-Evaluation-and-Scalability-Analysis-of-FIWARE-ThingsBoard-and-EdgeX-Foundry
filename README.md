@@ -1,4 +1,4 @@
-# FIWARE — Single Instance 
+# FIWARE - Single Instance 
 
 ## Quick deploy
 
