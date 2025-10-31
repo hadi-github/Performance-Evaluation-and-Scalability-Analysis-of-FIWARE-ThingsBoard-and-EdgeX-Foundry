@@ -57,5 +57,5 @@ services:
 networks:
   fiware-net:
     external: true
-    name: server_fiware_network
+    name: fiware-network
 

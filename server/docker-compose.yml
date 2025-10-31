@@ -207,5 +207,5 @@ services:
 
 networks:
   fiware_network:
-    driver: bridge
-    attachable: true
+    external: true
+    name: fiware-network
