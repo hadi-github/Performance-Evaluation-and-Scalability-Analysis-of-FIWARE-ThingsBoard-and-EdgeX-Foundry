@@ -55,8 +55,8 @@ services:
       CACHE_TYPE: caffeine
       
       # Demo data loading
-      #LOAD_DEMO: 'true'
-        #INSTALL_TB: 'true'
+      LOAD_DEMO: 'true'
+      INSTALL_TB: 'true'
       
       # Memory Configuration (higher for all-in-one)
       JAVA_OPTS: >-
@@ -94,6 +94,5 @@ volumes:
 
 networks:
   thingsboard-allinone-net:
-    driver: bridge
-    name: tb-allinone-network
-    attachable: true
+    external: true 
+    name: tb-network
