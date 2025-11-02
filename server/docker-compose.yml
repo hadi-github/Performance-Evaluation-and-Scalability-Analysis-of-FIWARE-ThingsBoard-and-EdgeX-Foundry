@@ -2,8 +2,8 @@ version: '3.8'
 
 networks:
   tb_network:
-    attachable: true
-    driver: "bridge"
+    external: true 
+    name: tb-network
 
 services:
   thingsboard-1:

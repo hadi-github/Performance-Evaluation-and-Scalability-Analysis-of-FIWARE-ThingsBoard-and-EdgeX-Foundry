@@ -3,7 +3,7 @@ version: '3.8'
 networks:
   tb_network:
     external: true
-    name: multiple_tb_network
+    name: tb-network
 
 services:
   # Simple HAProxy Load Balancer with host network
