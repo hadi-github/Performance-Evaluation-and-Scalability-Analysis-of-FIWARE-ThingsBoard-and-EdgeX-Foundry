@@ -109,9 +109,9 @@ services:
       consul:
         condition: service_started
     environment:
-      ALL_SERVICES_DATABASE_HOST: 192.168.2.105
+      ALL_SERVICES_DATABASE_HOST: ${DB_HOST}
       #ALL_SERVICES_DATABASE_HOST: edgex-redis-master
-      ALL_SERVICES_MESSAGEBUS_HOST: 192.168.2.105
+      ALL_SERVICES_MESSAGEBUS_HOST: ${DB_HOST}
       ALL_SERVICES_REGISTRY_HOST: edgex-core-consul
       APP_SERVICES_CLIENTS_CORE_METADATA_HOST: edgex-core-metadata
       DEVICE_SERVICES_CLIENTS_CORE_METADATA_HOST: edgex-core-metadata
@@ -135,7 +135,7 @@ services:
       core-metadata:
         condition: service_started
     environment:
-      DATABASE_HOST: 192.168.2.105
+      DATABASE_HOST: ${DB_HOST}
       EDGEX_SECURITY_SECRET_STORE: "false"
       SERVICE_HOST: edgex-core-data
     hostname: edgex-core-data
@@ -157,7 +157,7 @@ services:
       core-metadata:
         condition: service_started
     environment:
-      DATABASE_HOST: 192.168.2.105
+      DATABASE_HOST: ${DB_HOST}
       EDGEX_SECURITY_SECRET_STORE: "false"
       SERVICE_HOST: edgex-core-data-2
     hostname: edgex-core-data-2
@@ -179,7 +179,7 @@ services:
       core-metadata:
         condition: service_started
     environment:
-      DATABASE_HOST: 192.168.2.105
+      DATABASE_HOST: ${DB_HOST}
       EDGEX_SECURITY_SECRET_STORE: "false"
       SERVICE_HOST: edgex-core-data-3
     hostname: edgex-core-data-3
