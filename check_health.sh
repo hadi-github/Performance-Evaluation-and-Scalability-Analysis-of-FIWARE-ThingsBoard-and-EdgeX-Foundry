@@ -8,11 +8,11 @@ echo "=================================="
 
 # List of services with their ports
 declare -A services=(
-    ["core-metadata"]="1026"
-    ["core-data"]="7896"
+    ["core-metadata"]="59881"
+    ["core-data"]="59880"
     ["core-command"]="59882"
     ["device-virtual"]="59900"
-    ["device-rest"]="4041"
+    ["device-rest"]="59986"
     ["app-rules-engine"]="59701"
     ["support-notifications"]="59860"
     ["support-scheduler"]="59861"

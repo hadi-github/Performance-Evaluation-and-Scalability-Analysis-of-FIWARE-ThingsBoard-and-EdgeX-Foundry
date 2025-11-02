@@ -459,8 +459,8 @@ services:
         create_host_path: true
 networks:
   edgex-network:
-    name: edgex_edgex-network
-    driver: bridge
+    external: true 
+    name: edgex-network
 volumes:
   consul-config:
     name: edgex_consul-config
