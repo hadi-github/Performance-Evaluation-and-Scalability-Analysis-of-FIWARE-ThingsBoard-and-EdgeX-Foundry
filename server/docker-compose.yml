@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     # No internal dependencies - using external PostgreSQL
     ports:
-       - "8082:9090"    # Web UI (different port to avoid conflicts)
+       - "${TB1_PORT}:9090"    # Web UI (different port to avoid conflicts)
     #  - "1884:1883"    # MQTT (different port to avoid conflicts)
     #  - "8884:8883"    # MQTT SSL
     #  - "7071:7070"    # Edge RPC
@@ -27,9 +27,9 @@ services:
       TB_SERVICE_TYPE: monolith
       
       # Database Configuration (pointing to external postgres)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${PG_HOST}:${PG_PORT}/${PG_DB}
+      SPRING_DATASOURCE_USERNAME: ${PG_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PG_PASS}
       SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
       
       # ThingsBoard Configuration
@@ -72,7 +72,7 @@ services:
     hostname: tb-node-2
     # No internal dependencies - using external PostgreSQL
     ports:
-      - "8083:9090"    # Web UI (different port to avoid conflicts)
+      - "${TB2_PORT}:9090"    # Web UI (different port to avoid conflicts)
     #  - "1884:1883"    # MQTT (different port to avoid conflicts)
     #  - "8884:8883"    # MQTT SSL
     #  - "7071:7070"    # Edge RPC
@@ -86,9 +86,9 @@ services:
       TB_SERVICE_TYPE: monolith
       
       # Database Configuration (pointing to external postgres)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${PG_HOST}:${PG_PORT}/${PG_DB}
+      SPRING_DATASOURCE_USERNAME: ${PG_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PG_PASS}
       SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
       
       # ThingsBoard Configuration
@@ -131,7 +131,7 @@ services:
     restart: unless-stopped
     # No internal dependencies - using external PostgreSQL
     ports:
-      - "8084:9090"    # Web UI (different port to avoid conflicts)
+      - "${TB3_PORT}:9090"    # Web UI (different port to avoid conflicts)
     #  - "1884:1883"    # MQTT (different port to avoid conflicts)
     #  - "8884:8883"    # MQTT SSL
     #  - "7071:7070"    # Edge RPC
@@ -145,9 +145,9 @@ services:
       TB_SERVICE_TYPE: monolith
       
       # Database Configuration (pointing to external postgres)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.2.105:9999/thingsboard
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${PG_HOST}:${PG_PORT}/${PG_DB}
+      SPRING_DATASOURCE_USERNAME: ${PG_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PG_PASS}
       SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 5
       
       # ThingsBoard Configuration
