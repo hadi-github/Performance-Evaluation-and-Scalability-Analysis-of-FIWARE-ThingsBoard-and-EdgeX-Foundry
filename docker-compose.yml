@@ -30,8 +30,8 @@ services:
 
 networks:
   monitoring:
+    attachable: true
     name: monitoring-network
-    external: true
 
 volumes:
   grafana_data:
