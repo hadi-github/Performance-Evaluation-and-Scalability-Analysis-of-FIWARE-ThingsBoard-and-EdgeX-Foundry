@@ -6,7 +6,7 @@ datasources:
     access: proxy
     orgId: 1
     uid: prometheus
-    url: http://93.115.144.202:8081
+    url: http://93.115.144.202:9090
 
     basicAuth: false
     isDefault: true
