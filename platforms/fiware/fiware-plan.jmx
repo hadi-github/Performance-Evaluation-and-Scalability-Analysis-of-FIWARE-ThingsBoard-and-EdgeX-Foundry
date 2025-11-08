@@ -29,12 +29,12 @@
           </elementProp>
           <elementProp name="total_devices" elementType="Argument">
             <stringProp name="Argument.name">total_devices</stringProp>
-            <stringProp name="Argument.value">1000</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="requests_per_device" elementType="Argument">
             <stringProp name="Argument.name">requests_per_device</stringProp>
-            <stringProp name="Argument.value">1000</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="data_port" elementType="Argument">
