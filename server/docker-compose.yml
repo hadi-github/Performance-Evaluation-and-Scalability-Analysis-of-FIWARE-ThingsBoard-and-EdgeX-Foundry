@@ -409,9 +409,9 @@ services:
     image: nginx:alpine
     ports:
     - "8080:80"
-    - "7896:7896"
-    - "1026:1026"
-    - "4041:4041"
+    - "59880:59880"
+    - "59881:59881"
+    - "59986:59986"
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
