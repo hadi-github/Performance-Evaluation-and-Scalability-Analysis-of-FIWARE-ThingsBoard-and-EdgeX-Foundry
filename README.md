@@ -1,31 +1,76 @@
-# EdgeX - single deployment 
-Services and common host ports (mapped by the compose files in this branch):
+# EdgeX Foundry - Single Operation (Monolithic)
 
-- core-metadata: 1026
-- core-data: 7896
-- core-command: 59882
-- device-virtual: 59900
-- device-rest: 4041
-- app-rules-engine: 59701
-- support-notifications: 59860
-- support-scheduler: 59861
+This branch contains the deployment configuration for running the EdgeX Foundry platform as a single-node monolithic stack. This includes all core services, supporting services, and the Redis database running in one Docker Compose environment.
 
-Quick start
+## 🏗️ Architecture
+
+All components run in a single docker-compose environment on one machine.
+
+## 🚀 Deployment Guide
+
+### 1. Prerequisites
+
+This deployment uses an external Docker network to allow easy attachment of other tools (like testing scripts) if needed. You must create it first:
 
 ```bash
-# From this worktree:
+docker network create edgex-network
+```
+
+### 2. Start the Platform
+
+Run the following command in this directory:
+
+```bash
 docker compose up -d
 ```
 
-Health checks (simple script)
+### 3. Verify Deployment
 
-This branch includes a tiny helper script `check_health.sh` that probes EdgeX service ping endpoints on localhost and reports a simple healthy/unhealthy result. It checks each service's `/api/v3/ping` endpoint with a 5s curl timeout.
+Check if the containers are running:
 
-To run the health check:
+```bash
+docker compose ps
+```
+
+### 4. Services & Ports
+
+The following core services are exposed on the host:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **Consul** | `8500` | Configuration & Registry |
+| **Core Data** | `59880` | Persists data from devices |
+| **Core Metadata** | `59881` | Manages metadata about devices |
+| **Core Command** | `59882` | Manages commands to devices |
+| **Device Virtual** | `59900` | Simulates devices |
+| **Device REST** | `59986` | REST Interface for devices |
+| **App Rules Engine** | `59701` | Rules Engine (eKuiper) |
+| **Support Notifications** | `59860` | Alerts & Notifications |
+| **Support Scheduler** | `59861` | Scheduling service |
+| **EdgeX UI** | `4000` | Web Management Interface |
+
+### 5. Health Checks
+
+A script is provided to check the health of all services.
 
 ```bash
 chmod +x check_health.sh
 ./check_health.sh
 ```
 
-Output will be a short list of services with HEALTHY / UNHEALTHY status. This is intentionally simple — it assumes services are published on localhost at the ports listed above and that the `/api/v3/ping` endpoint returns a JSON containing `apiVersion` when healthy. Adjust ports in the script if your compose uses different host ports or environment variables.
+You can also manually check a service, for example Core Data:
+`curl http://localhost:59880/api/v3/ping`
+
+## 🛑 Shutdown
+
+To stop and remove the containers:
+
+```bash
+docker compose down
+```
+
+To also remove the data volumes (Redis data, Consul config, eKuiper data):
+
+```bash
+docker compose down -v
+```
