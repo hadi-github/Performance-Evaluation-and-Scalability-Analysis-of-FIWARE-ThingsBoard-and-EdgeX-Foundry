@@ -1,7 +1,53 @@
-there is two compose files, the ```docker-compose.yml``` is containing grafana and grafana-image-renderer to do the process of image exporting
+# Grafana Setup - Visualization Hub
 
-the ```grafana``` directory contains default configurations that used in process of working, dashboards, data sources
+This branch contains the configuration for Grafana, used to visualize metrics from both the IoT platforms (via Prometheus) and the load test results (via InfluxDB).
 
-the ```influx.db``` compose file is for influxdb container to collect jmeter datas there
+## 🏗️ Services
 
-after deploying you should open influxdb panel in browser ```localhost:8086``` and get a admin token and put it on the influx db datasource for grafana and also for backend listener on each jmeter plan
+*   **Grafana**: The visualization dashboard.
+*   **Grafana Image Renderer**: Plugin for server-side rendering of panels (useful for reports).
+*   **InfluxDB (v2)**: Time-series database used specifically to store raw results from JMeter.
+
+## 🚀 Deployment Guide
+
+### 1. Start the Services
+
+Run the following command in this directory:
+
+```bash
+docker compose up -d
+```
+
+### 2. Configure InfluxDB
+
+JMeter needs to write data to InfluxDB, and Grafana needs to read from it.
+
+1.  Access InfluxDB UI at `http://localhost:8086`.
+2.  Complete the initial setup (create an organization and bucket, e.g., `jmeter`).
+3.  **Generate an API Token**.
+4.  Save this token for later use in:
+    *   Grafana Data Source configuration.
+    *   JMeter Test Plans (Backend Listener).
+
+### 3. Configure Grafana
+
+1.  Access Grafana at `http://localhost:3000`.
+    *   Default login: `admin` / `admin` (unless configured otherwise).
+2.  **Data Sources**:
+    *   Go to **Configuration > Data Sources**.
+    *   **Prometheus**: Should be pre-configured to point to your Prometheus instance (e.g., `http://prometheus:9090`).
+    *   **InfluxDB**: Add a new InfluxDB source.
+        *   Query Language: `Flux` (if using InfluxDB v2).
+        *   URL: `http://influxdb:8086`.
+        *   Organization: (Your Org).
+        *   Token: (The token you generated).
+        *   Default Bucket: `jmeter`.
+3.  **Dashboards**:
+    *   Pre-provisioned dashboards are located in `grafana/provisioning/dashboards/`.
+    *   You should see dashboards for "JMeter Performance", "Node Exporter", etc.
+
+## 📂 File Structure
+
+*   `docker-compose.yml`: Deploys Grafana, Renderer, and InfluxDB.
+*   `grafana/provisioning/`: Automated configuration for data sources and dashboards.
+*   `influx.yml`: Separate compose file if you wish to run InfluxDB standalone.
