@@ -1,54 +1,127 @@
-# ThingsBoard — Multiple Instances (concise)
+# ThingsBoard - Multiple Operation (Distributed)
 
-This branch contains compose files for running multiple ThingsBoard instances. Below are the host ports used, a short description of the nginx and pgpool roles, and minimal commands to deploy them in the recommended order.
+This branch contains the deployment configuration for a distributed ThingsBoard architecture.
+*   **Node 1**: Runs 3 replicas of ThingsBoard Node (Monolith) and an HAProxy Load Balancer.
+*   **Node 2**: Runs a PostgreSQL Cluster (Primary + 2 Replicas) managed by Pgpool-II.
 
-Ports (host)
-- ThingsBoard UI/API instances (container 9090): host ports 8082, 8083, 8084
-- Aggregator / frontend (nginx): 8081
-- PostgreSQL (cluster members): host ports (internal 5432 per node; check `db/` compose for exact host bindings)
-- Pgpool (Postgres connection pool / replication manager): commonly published on 5432 (check `db/` compose)
+## 🏗️ Architecture
 
-What nginx (in `server/`) does
-- Acts as the HTTP reverse proxy and load-balancer for multiple ThingsBoard instances. It exposes a single frontend port (8081) and routes traffic to the backend ThingsBoard containers running on the host ports above.
-
-What pgpool (in `db/`) does
-- Pgpool provides connection pooling, load balancing and basic replication/health management for PostgreSQL nodes. Applications connect to pgpool (usually on 5432) instead of connecting directly to individual Postgres nodes.
-
-Recommended minimal deploy flow
-1. Deploy DB stack (Postgres nodes + pgpool):
-
-```bash
-docker compose up -d
+```mermaid
+graph LR
+    subgraph Node1 [Application Node]
+        LB[HAProxy]
+        TB1[ThingsBoard 1]
+        TB2[ThingsBoard 2]
+        TB3[ThingsBoard 3]
+    end
+    subgraph Node2 [Database Node]
+        PgPool[Pgpool-II]
+        PG_Prim[(Postgres Primary)]
+        PG_Rep1[(Postgres Rep 1)]
+        PG_Rep2[(Postgres Rep 2)]
+    end
+    
+    LB --> TB1 & TB2 & TB3
+    TB1 & TB2 & TB3 --> PgPool
+    PgPool --> PG_Prim
+    PgPool -.-> PG_Rep1
+    PgPool -.-> PG_Rep2
 ```
 
-2. Deploy ThingsBoard application instances (server folder):
+## 🚀 Deployment Guide
 
+### Step 1: Database Layer (Node 2)
+
+1.  Navigate to the `db` folder:
+    ```bash
+    cd db
+    ```
+2.  Start the Database Cluster:
+    ```bash
+    docker compose up -d
+    ```
+3.  **Verify**: Ensure Pgpool is listening on port `8080` (mapped from container 9999).
+
+### Step 2: Application Layer (Node 1)
+
+1.  Navigate to the `server` folder:
+    ```bash
+    cd server
+    ```
+2.  **Create External Network**:
+    ```bash
+    docker network create tb-network
+    ```
+3.  **Configure Connection**:
+    Edit `.env` to match your setup (specifically `PG_HOST`).
+    
+    **`.env` defaults:**
+    ```ini
+    TB1_PORT=8082
+    TB2_PORT=8083
+    TB3_PORT=8084
+    PG_HOST=192.168.2.105
+    PG_PORT=8080
+    ```
+
+4.  **First Run (Installation)**:
+    *For the very first deployment, you must initialize the database.*
+    
+    1.  Open `docker-compose.yml`.
+    2.  Uncomment the following lines for **one** service (e.g., `thingsboard-1`):
+        ```yaml
+        environment:
+          - INSTALL_TB=true
+          - LOAD_DEMO=true
+        ```
+    3.  Start the services:
+        ```bash
+        docker compose up -d
+        ```
+    4.  Monitor logs: `docker compose logs -f thingsboard-1`.
+    5.  Once installation finishes (or container restarts), **stop the services**:
+        ```bash
+        docker compose down
+        ```
+    6.  **Comment out** `INSTALL_TB` and `LOAD_DEMO` in `docker-compose.yml` to prevent re-installation attempts.
+    7.  Start again for normal operation:
+        ```bash
+        docker compose up -d
+        ```
+
+### Step 3: Load Balancer (Node 1)
+
+1.  Navigate to the `nginx` folder (contains HAProxy):
+    ```bash
+    cd nginx
+    ```
+2.  Start the Load Balancer:
+    ```bash
+    docker compose up -d
+    ```
+
+## 🔍 Services & Ports
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **Load Balancer** | `8081` | Unified Web UI/API Access |
+| **ThingsBoard 1** | `8082` | Direct Instance Access |
+| **ThingsBoard 2** | `8083` | Direct Instance Access |
+| **ThingsBoard 3** | `8084` | Direct Instance Access |
+| **PgPool (DB)** | `8080` | Database Entry Point (Node 2) |
+
+## 🛑 Shutdown
+
+To stop the application layer:
 ```bash
-docker compose up -d
-```
-
-3. Deploy nginx frontend (to consolidate routes):
-
-```bash
+cd server
+docker compose down
 cd nginx
-docker compose -f nginx-compose.yml up -d
+docker compose down
 ```
 
-Quick tests
-
+To stop the database layer:
 ```bash
-# Check frontend
-curl -sS http://localhost:8081/ | head -n 5
-
-# Check one ThingsBoard instance
-curl -sS http://localhost:8082/api/status | jq .
-
-# Check pgpool connectivity (TCP)
-nc -zv localhost 5432
+cd db
+docker compose down -v
 ```
-
-Notes
-- the deployment of thingsboard is only tb-core containers, for the first time connecting to db you should uncomment the ```INSTALL_TB``` and ```LOAD_DEMO``` to make the tb-core run installation script for that database (if you just ncomment them for one container its enough)
-after that you should watch tb-node logs and wait until it says installation finished then the container will restart and each restart will be exited cause its wants to create tables but they are available there already
-so now that installation is complete you should down the deployment and comment those env variables and run it again
-this time tb-node will connect to db and will work completely
