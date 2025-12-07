@@ -1,21 +1,70 @@
-# ThingsBoard — Single Instance (quick start)
+# ThingsBoard - Single Operation (Monolithic)
 
+This branch contains the deployment configuration for running the ThingsBoard platform as a single-node monolithic stack, including an internal PostgreSQL database.
 
-Quick deploy
+## 🏗️ Architecture
+
+*   **ThingsBoard Node**: Monolithic service handling core, rule engine, and transport.
+*   **PostgreSQL**: Dedicated database for storing entities and telemetry.
+
+Both services run in the same Docker Compose environment.
+
+## 🚀 Deployment Guide
+
+### 1. Prerequisites
+
+This deployment requires an external network named `tb-network`.
 
 ```bash
-# From this worktree
-docker compose up -d
+docker network create tb-network
 ```
 
-Stop and cleanup
+### 2. Initial Deployment (Installation)
+
+For the **first run only**, ThingsBoard needs to install the database schema and load demo data.
+
+1.  Start the stack:
+    ```bash
+    docker compose up -d
+    ```
+
+2.  **Monitor Logs**:
+    Watch the logs to see the installation progress.
+    ```bash
+    docker compose logs -f thingsboard-allinone
+    ```
+    Wait until you see a message indicating `ThingsBoard installation finished` or the container restarts. The container might exit after installation; this is normal.
+
+### 3. Regular Operation
+
+Once installed, you should technically disable the installation flags, although the current configuration leaves them enabled for convenience in this test setup (it might restart a few times before detecting the DB is already installed).
+
+To verify it's running:
+```bash
+docker compose ps
+```
+
+### 4. Access & Ports
+
+| Service | Host Port | Internal Port | Description |
+|---------|-----------|---------------|-------------|
+| **Web UI** | `8081` | `9090` | Main Dashboard |
+| **MQTT** | `1884` | `1883` | Device Connectivity |
+| **CoAP** | `5689-5694`| `5683-5688` | CoAP Transport |
+
+*   **Default User**: `tenant@thingsboard.org`
+*   **Default Password**: `tenant`
+
+## 🛑 Shutdown
+
+To stop and remove the containers:
 
 ```bash
 docker compose down
 ```
 
-Notes
-- the deployment of thingsboard is only tb-core containers, for the first time connecting to db you should uncomment the ```INSTALL_TB``` and ```LOAD_DEMO``` to make the tb-core run installation script for that database (if you just ncomment them for one container its enough)
-after that you should watch tb-node logs and wait until it says installation finished then the container will restart and each restart will be exited cause its wants to create tables but they are available there already
-so now that installation is complete you should down the deployment and comment those env variables and run it again
-this time tb-node will connect to db and will work completely
+To remove the database volume (RESET EVERYTHING):
+
+```bash
+docker compose down -v
+```
