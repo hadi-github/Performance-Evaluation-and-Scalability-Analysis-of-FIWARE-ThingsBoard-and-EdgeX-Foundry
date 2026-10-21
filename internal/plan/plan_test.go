@@ -42,8 +42,8 @@ func TestStepsAndSeqOffsets(t *testing.T) {
 
 func TestSweepRefineOverload(t *testing.T) {
 	cases := map[string][]float64{
-		`"schedule":{"type":"sweep","start_rate":100,"factor":1.5,"n_steps":4,"step_s":2,"warmup_s":2}`: {100, 100, 150, 225, 338},
-		`"schedule":{"type":"refine","lo":300,"hi":400,"n_steps":3,"step_s":2}`:                         {325, 350, 375},
+		`"schedule":{"type":"sweep","start_rate":100,"factor":1.5,"n_steps":4,"step_s":2,"warmup_s":2}`:                             {100, 100, 150, 225, 338},
+		`"schedule":{"type":"refine","lo":300,"hi":400,"n_steps":3,"step_s":2}`:                                                     {325, 350, 375},
 		`"schedule":{"type":"overload","capacity":1000,"phases":[{"fraction":0.5,"duration_s":2},{"fraction":1.2,"duration_s":2}]}`: {500, 1200},
 	}
 	for sched, want := range cases {

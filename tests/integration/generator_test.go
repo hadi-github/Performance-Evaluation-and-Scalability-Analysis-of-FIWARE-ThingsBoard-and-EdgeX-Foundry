@@ -96,9 +96,9 @@ func basePlan(url string, rate float64, seconds int) plan.Plan {
 		SchemaVersion: 1, PlanID: "itest", Purpose: "integration test", PilotOnly: true, Seed: 99,
 		Adapter: "fixture", Target: plan.Target{BaseURL: url}, Devices: 10, RequestTimeMs: 1000,
 		Connection: plan.Connection{KeepAlive: true}, Arrivals: plan.Arrivals{Model: "constant"},
-		VUs:      plan.VUs{PreAllocated: 50, Max: 50},
-		Schedule: plan.Schedule{Type: "steps", Steps: []plan.StepSpec{{Phase: "step", Rate: rate, DurationS: seconds}}},
-		Health:   plan.Health{MinAchievedRatio: 0.99, SendLagP99Ms: 10, EarlyToleranceMs: 2},
+		VUs:         plan.VUs{PreAllocated: 50, Max: 50},
+		Schedule:    plan.Schedule{Type: "steps", Steps: []plan.StepSpec{{Phase: "step", Rate: rate, DurationS: seconds}}},
+		Health:      plan.Health{MinAchievedRatio: 0.99, SendLagP99Ms: 10, EarlyToleranceMs: 2},
 		HistogramMs: []float64{0, 1, 2, 3, 5, 7, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 2000, 5000},
 	}
 }
