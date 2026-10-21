@@ -1,0 +1,17 @@
+# FIWARE: MongoDB. Joins the platform network fiware_default.
+services:
+  mongodb-exporter:
+    restart: unless-stopped
+    cpuset: "${EXPORTERS_CPUSET:-0}"
+    image: percona/mongodb_exporter:${MONGODB_EXPORTER_VERSION:-0.52.0}
+    mem_limit: 128m
+    memswap_limit: 128m
+    # --compatible-mode also exports the old metric names used by the community MongoDB dashboard (2583).
+    command: ["--mongodb.uri=mongodb://mongo:27017", "--collect-all", "--compatible-mode"]
+    networks: [platform]
+    ports: ["9216:9216"]
+
+networks:
+  platform:
+    external: true
+    name: fiware_default

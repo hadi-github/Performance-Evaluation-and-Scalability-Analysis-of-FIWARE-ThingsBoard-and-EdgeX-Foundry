@@ -1,0 +1,65 @@
+# Prometheus on the load-generator host. The SUT exporters live on ramonavm2 (monitoring/exporters).
+# Only one platform runs at a time, so the exporters of the other two platforms are expected to be DOWN.
+global:
+  scrape_interval: 5s        # short runs (10 min) need fine-grained samples
+  evaluation_interval: 5s
+  external_labels:
+    lab: iot-bench
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['127.0.0.1:9090']
+
+  # ---- load generator (ramonavm1)
+  - job_name: loadgen-node
+    static_configs:
+      - targets: ['127.0.0.1:9100']
+        labels: { host: ramonavm1, role: loadgen }
+
+  # ---- SUT (ramonavm2): host and per-container resources
+  - job_name: node
+    static_configs:
+      - targets: ['87.107.191.107:9100']
+        labels: { host: ramonavm2, role: sut }
+
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['87.107.191.107:8089']
+        labels: { host: ramonavm2, role: sut }
+    metric_relabel_configs:
+      # keep only containers of the benchmark stacks and the exporters, drop the cgroup hierarchy noise
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: (tb|fiware|edgex|exporters)
+        action: keep
+      # short, stable label names for dashboards
+      - source_labels: [container_label_com_docker_compose_project]
+        target_label: project
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service
+      - source_labels: [name]
+        target_label: container
+
+  # ---- SUT: the load balancer, per backend and per replica (server) — the same HAProxy port for all platforms
+  - job_name: haproxy
+    static_configs:
+      - targets: ['87.107.191.107:8404']
+        labels: { host: ramonavm2, role: sut }
+
+  # ---- SUT: stateful tiers (one platform at a time)
+  - job_name: postgres          # ThingsBoard or EdgeX (both publish their exporter on 9187)
+    static_configs:
+      - targets: ['87.107.191.107:9187']
+        labels: { host: ramonavm2, role: sut }
+  - job_name: kafka             # ThingsBoard
+    static_configs:
+      - targets: ['87.107.191.107:9308']
+        labels: { host: ramonavm2, role: sut, platform: thingsboard }
+  - job_name: mongodb           # FIWARE
+    static_configs:
+      - targets: ['87.107.191.107:9216']
+        labels: { host: ramonavm2, role: sut, platform: fiware }
+  - job_name: nats              # EdgeX
+    static_configs:
+      - targets: ['87.107.191.107:7777']
+        labels: { host: ramonavm2, role: sut, platform: edgex }

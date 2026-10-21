@@ -1,0 +1,74 @@
+# Monitoring stack on the load-generator host (ramonavm1, 4 vCPU): Prometheus + Grafana + node-exporter.
+# Prometheus scrapes the exporters on the SUT (monitoring/exporters on ramonavm2) and receives k6 metrics by remote
+# write. Cores: k6 runs on 0-2 (workloads/run.sh), this stack on core 3, so monitoring never competes with the load.
+#
+#   cp .env.example .env   # then set GF_ADMIN_PASSWORD
+#   docker compose up -d   # Grafana: http://<ramonavm1>:3000  (Prometheus is bound to 127.0.0.1:9090 only)
+#
+# All three use the host network: k6 (also host network) and Grafana reach Prometheus on 127.0.0.1:9090, and
+# Prometheus reaches the local node-exporter on 127.0.0.1:9100. Only Grafana listens on a public address.
+
+name: monitoring
+
+services:
+  prometheus:
+    image: ${REGISTRY:-docker.arvancloud.ir}/prom/prometheus:${PROMETHEUS_VERSION:-v3.13.4}
+    restart: unless-stopped
+    cpuset: "${MONITORING_CPUSET:-3}"
+    mem_limit: ${PROMETHEUS_MEM:-2g}
+    memswap_limit: ${PROMETHEUS_MEM:-2g}
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-30d}
+      - --web.enable-remote-write-receiver   # k6 -o experimental-prometheus-rw
+      - --web.enable-lifecycle
+      - --web.listen-address=127.0.0.1:9090
+    network_mode: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: ${REGISTRY:-docker.arvancloud.ir}/grafana/grafana:${GRAFANA_VERSION:-12.4.13}
+    restart: unless-stopped
+    cpuset: "${MONITORING_CPUSET:-3}"
+    mem_limit: ${GRAFANA_MEM:-512m}
+    memswap_limit: ${GRAFANA_MEM:-512m}
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:?set GF_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_SERVER_HTTP_ADDR: ${GRAFANA_BIND:-0.0.0.0}
+      GF_SERVER_HTTP_PORT: "3000"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/iot-benchmark-overview.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    network_mode: host
+    depends_on:
+      - prometheus
+
+  # The load generator's own CPU/network, to show it is not the bottleneck.
+  node-exporter:
+    image: ${REGISTRY:-docker.arvancloud.ir}/prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.12.0}
+    restart: unless-stopped
+    cpuset: "${MONITORING_CPUSET:-3}"
+    mem_limit: 128m
+    memswap_limit: 128m
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --web.listen-address=127.0.0.1:9100
+    volumes:
+      - /:/host:ro,rslave
+
+volumes:
+  prometheus-data:
+  grafana-data:

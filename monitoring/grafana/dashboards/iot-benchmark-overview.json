@@ -1,0 +1,1090 @@
+{
+ "uid": "iot-bench-overview",
+ "title": "IoT benchmark overview",
+ "tags": [
+  "iot-bench"
+ ],
+ "timezone": "utc",
+ "refresh": "10s",
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "schemaVersion": 39,
+ "editable": true,
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   },
+   {
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "iconColor": "orange",
+    "name": "Benchmark runs",
+    "target": {
+     "type": "tags",
+     "tags": [
+      "benchmark"
+     ],
+     "limit": 100,
+     "matchAny": true
+    }
+   }
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "project",
+    "label": "platform",
+    "type": "custom",
+    "query": "thingsboard : tb,fiware : fiware,edgex : edgex",
+    "current": {
+     "text": "fiware",
+     "value": "fiware"
+    },
+    "options": [],
+    "hide": 0
+   },
+   {
+    "name": "testid",
+    "label": "test id",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus"
+    },
+    "query": {
+     "query": "label_values(k6_http_reqs_total{platform=\"${project:text}\"}, testid)",
+     "refId": "A"
+    },
+    "refresh": 2,
+    "sort": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "hide": 0
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "row",
+   "title": "Load (k6 on ramonavm1)",
+   "collapsed": false,
+   "panels": [],
+   "gridPos": {
+    "w": 24,
+    "h": 1,
+    "x": 0,
+    "y": 0
+   }
+  },
+  {
+   "id": 2,
+   "type": "timeseries",
+   "title": "Telemetry requests/s by phase",
+   "description": "Achieved arrival rate. The steady phase must equal the target rate (run.sh checks within 1%).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (testid, scenario) (rate(k6_http_reqs_total{testid=~\"$testid\",name=\"send\"}[$__rate_interval]))",
+     "legendFormat": "{{scenario}} {{testid}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "reqps",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "timeseries",
+   "title": "Latency (steady phase)",
+   "description": "Per push interval (5 s) percentiles reported by k6.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (testid) (k6_http_req_duration_p50{testid=~\"$testid\",name=\"send\",scenario=\"steady\"})",
+     "legendFormat": "p50 {{testid}}",
+     "refId": "A",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (testid) (k6_http_req_duration_p95{testid=~\"$testid\",name=\"send\",scenario=\"steady\"})",
+     "legendFormat": "p95 {{testid}}",
+     "refId": "B",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (testid) (k6_http_req_duration_p99{testid=~\"$testid\",name=\"send\",scenario=\"steady\"})",
+     "legendFormat": "p99 {{testid}}",
+     "refId": "C",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "timeseries",
+   "title": "Errors and dropped iterations /s",
+   "description": "Dropped iterations mean the generator could not hold the rate: the run is INVALID.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (testid, status) (rate(k6_http_reqs_total{testid=~\"$testid\",name=\"send\",expected_response=\"false\"}[$__rate_interval]))",
+     "legendFormat": "HTTP {{status}} {{testid}}",
+     "refId": "A",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (testid) (rate(k6_dropped_iterations_total{testid=~\"$testid\"}[$__rate_interval]))",
+     "legendFormat": "dropped {{testid}}",
+     "refId": "B",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 9
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Active VUs",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (testid) (k6_vus{testid=~\"$testid\"})",
+     "legendFormat": "VUs {{testid}}",
+     "refId": "A",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (testid) (k6_vus_max{testid=~\"$testid\"})",
+     "legendFormat": "max VUs {{testid}}",
+     "refId": "B",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 9
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "row",
+   "title": "SUT CPU (ramonavm2, cAdvisor / node-exporter)",
+   "collapsed": false,
+   "panels": [],
+   "gridPos": {
+    "w": 24,
+    "h": 1,
+    "x": 0,
+    "y": 17
+   }
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "CPU per tier (cores)",
+   "description": "All replicas of a tier summed. Pool tiers share the platform pool (N cores).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (service) (rate(container_cpu_usage_seconds_total{job=\"cadvisor\",project=\"$project\"}[$__rate_interval]))",
+     "legendFormat": "{{service}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 18
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 40,
+      "stacking": {
+       "mode": "normal"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "CPU per container / replica (cores)",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (container) (rate(container_cpu_usage_seconds_total{job=\"cadvisor\",project=\"$project\"}[$__rate_interval]))",
+     "legendFormat": "{{container}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 18
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "SUT busy per core",
+   "description": "Core 0: OS + exporters, 1: HAProxy, 2-3: infrastructure, 4..: platform pool (README, Resource layout).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "1 - avg by (cpu) (rate(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}[$__rate_interval]))",
+     "legendFormat": "cpu{{cpu}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 26
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Exporter overhead on the SUT (cores)",
+   "description": "Monitoring agents, pinned to core 0.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (container) (rate(container_cpu_usage_seconds_total{job=\"cadvisor\",project=\"exporters\"}[$__rate_interval]))",
+     "legendFormat": "{{container}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 26
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "type": "row",
+   "title": "SUT memory",
+   "collapsed": false,
+   "panels": [],
+   "gridPos": {
+    "w": 24,
+    "h": 1,
+    "x": 0,
+    "y": 34
+   }
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Memory working set / limit",
+   "description": "Above ~90% the kernel OOM-kills the container (see next panel).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (container) (container_memory_working_set_bytes{job=\"cadvisor\",project=\"$project\"}) / max by (container) (container_spec_memory_limit_bytes{job=\"cadvisor\",project=\"$project\"} > 0)",
+     "legendFormat": "{{container}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 35
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 13,
+   "type": "timeseries",
+   "title": "OOM kills and container (re)starts",
+   "description": "Any non-zero value during a run makes it INVALID (run.sh checks this).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (container) (increase(container_oom_events_total{job=\"cadvisor\",project=\"$project\"}[1m]))",
+     "legendFormat": "OOM {{container}}",
+     "refId": "A",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (container) (changes(container_start_time_seconds{job=\"cadvisor\",project=\"$project\"}[1m]))",
+     "legendFormat": "start {{container}}",
+     "refId": "B",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 35
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 14,
+   "type": "row",
+   "title": "Load balancer (HAProxy, per replica)",
+   "collapsed": false,
+   "panels": [],
+   "gridPos": {
+    "w": 24,
+    "h": 1,
+    "x": 0,
+    "y": 43
+   }
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "HTTP responses/s per backend server",
+   "description": "How evenly the LB spreads load over the replicas of each tier.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (proxy, server) (rate(haproxy_server_http_responses_total[$__rate_interval])) > 0",
+     "legendFormat": "{{proxy}}/{{server}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 44
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "reqps",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "Average response time per backend server",
+   "description": "HAProxy's moving average over the last 1024 requests.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (proxy, server) (haproxy_server_response_time_average_seconds) > 0",
+     "legendFormat": "{{proxy}}/{{server}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 44
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 17,
+   "type": "timeseries",
+   "title": "5xx responses/s per backend",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (proxy) (rate(haproxy_backend_http_responses_total{code=\"5xx\"}[$__rate_interval]))",
+     "legendFormat": "{{proxy}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "reqps",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 18,
+   "type": "timeseries",
+   "title": "Queued requests per backend",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (proxy) (haproxy_backend_current_queue)",
+     "legendFormat": "{{proxy}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 19,
+   "type": "row",
+   "title": "Network and load generator",
+   "collapsed": false,
+   "panels": [],
+   "gridPos": {
+    "w": 24,
+    "h": 1,
+    "x": 0,
+    "y": 60
+   }
+  },
+  {
+   "id": 20,
+   "type": "timeseries",
+   "title": "SUT network",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(node_network_receive_bytes_total{job=\"node\",device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval]))",
+     "legendFormat": "rx",
+     "refId": "A",
+     "range": true
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(node_network_transmit_bytes_total{job=\"node\",device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval]))",
+     "legendFormat": "tx",
+     "refId": "B",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 61
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "Bps",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  },
+  {
+   "id": 21,
+   "type": "timeseries",
+   "title": "Load generator busy per core (ramonavm1)",
+   "description": "k6 runs on cores 0-2, Prometheus/Grafana on 3. Near 100% means the generator limits the test.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "1 - avg by (cpu) (rate(node_cpu_seconds_total{job=\"loadgen-node\",mode=\"idle\"}[$__rate_interval]))",
+     "legendFormat": "cpu{{cpu}}",
+     "refId": "A",
+     "range": true
+    }
+   ],
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 12,
+    "y": 61
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   }
+  }
+ ]
+}

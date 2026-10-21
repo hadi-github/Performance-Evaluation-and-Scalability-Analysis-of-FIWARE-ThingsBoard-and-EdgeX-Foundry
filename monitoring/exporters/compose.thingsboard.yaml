@@ -1,0 +1,29 @@
+# ThingsBoard: PostgreSQL + Kafka (consumer-group lag per tier). Joins the platform network tb_default.
+services:
+  postgres-exporter:
+    restart: unless-stopped
+    cpuset: "${EXPORTERS_CPUSET:-0}"
+    image: prometheuscommunity/postgres-exporter:${POSTGRES_EXPORTER_VERSION:-v0.20.1}
+    mem_limit: 128m
+    memswap_limit: 128m
+    environment:
+      DATA_SOURCE_URI: postgres:5432/thingsboard?sslmode=disable
+      DATA_SOURCE_USER: postgres
+      DATA_SOURCE_PASS: ${POSTGRES_PASSWORD:-postgres}
+    networks: [platform]
+    ports: ["9187:9187"]
+
+  kafka-exporter:
+    restart: unless-stopped
+    cpuset: "${EXPORTERS_CPUSET:-0}"
+    image: danielqsj/kafka-exporter:${KAFKA_EXPORTER_VERSION:-v1.9.0}
+    mem_limit: 128m
+    memswap_limit: 128m
+    command: ["--kafka.server=kafka:9092"]
+    networks: [platform]
+    ports: ["9308:9308"]
+
+networks:
+  platform:
+    external: true
+    name: tb_default

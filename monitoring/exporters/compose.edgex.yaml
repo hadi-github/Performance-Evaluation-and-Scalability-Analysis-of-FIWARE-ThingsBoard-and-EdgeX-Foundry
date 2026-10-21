@@ -1,0 +1,29 @@
+# EdgeX: PostgreSQL + NATS (monitoring port 8222 is enabled in edgex/compose.yaml). Joins edgex_edgex-network.
+services:
+  postgres-exporter:
+    restart: unless-stopped
+    cpuset: "${EXPORTERS_CPUSET:-0}"
+    image: prometheuscommunity/postgres-exporter:${POSTGRES_EXPORTER_VERSION:-v0.20.1}
+    mem_limit: 128m
+    memswap_limit: 128m
+    environment:
+      DATA_SOURCE_URI: edgex-postgres:5432/edgex_db?sslmode=disable
+      DATA_SOURCE_USER: postgres
+      DATA_SOURCE_PASS: postgres
+    networks: [platform]
+    ports: ["9187:9187"]
+
+  nats-exporter:
+    restart: unless-stopped
+    cpuset: "${EXPORTERS_CPUSET:-0}"
+    image: natsio/prometheus-nats-exporter:${NATS_EXPORTER_VERSION:-0.20.1}
+    mem_limit: 64m
+    memswap_limit: 64m
+    command: ["-varz", "-connz", "-subz", "-port", "7777", "http://edgex-nats-server:8222"]
+    networks: [platform]
+    ports: ["7777:7777"]
+
+networks:
+  platform:
+    external: true
+    name: edgex_edgex-network

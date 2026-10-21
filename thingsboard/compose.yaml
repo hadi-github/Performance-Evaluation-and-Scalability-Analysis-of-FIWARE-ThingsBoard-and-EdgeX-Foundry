@@ -1,0 +1,263 @@
+# ThingsBoard CE — scalable microservices stack for benchmarking (HTTP only)
+#
+# Derived from the official cluster compose (thingsboard/thingsboard, branch release-4.3, docker/):
+#   docker-compose.yml + docker-compose.kafka.yml + docker-compose.postgres.yml + docker-compose.valkey.yml
+# Ingestion path under test:  client --HTTP--> tb-http-transport --Kafka--> tb-core / tb-rule-engine --> PostgreSQL
+#
+# Changes vs. official (and why):
+#   - tb-core1/2, tb-rule-engine1/2, tb-http-transport1/2 -> ONE service each with deploy.replicas. One platform
+#     instance = one replica of each of the three services; every tier stays a separate container so it can be
+#     monitored on its own. TB_SERVICE_ID is left empty so every replica uses its container hostname as a unique
+#     service id (DefaultTbServiceInfoProvider), and ZooKeeper discovery assigns partitions across replicas.
+#   - HTTP only: no MQTT/CoAP/LwM2M/SNMP transports. Dropped as well: tb-js-executor (JS_EVALUATOR=local; the default
+#     rule chain runs no JavaScript and TBEL is evaluated in-process), tb-web-ui, VC executors, EDQS, Edge RPC.
+#   - The transport image only starts with /config mounted (its start script sources /config/*.conf), so the image's
+#     own bundled defaults are mounted from tb-transports/http/conf, as the official compose does.
+#   - Own HAProxy config: DNS-based server-template (picks up any replica count) and NO per-IP rate limits
+#     (the official config returns 429 after 100 req/10 s per client IP, which would throttle a load generator).
+#   - Kafka: official apache/kafka image instead of the frozen bitnamilegacy image; Valkey: upstream valkey image.
+#   - Install is a one-shot service (profile "install") instead of INSTALL_TB living on a long-running service.
+#   - Fixed resources: every container is pinned (cpuset) and has a hard memory limit without swap. See the README,
+#     "Resource layout". All replicas share the platform pool POOL_CPUSET (one core per instance, set by make).
+#
+# Scale:  make up N=4     (sets TB_REPLICAS=4 and POOL_CPUSET=4-7)
+
+name: tb
+
+x-tb-common-env: &tb-common-env
+  TB_QUEUE_TYPE: kafka
+  TB_KAFKA_SERVERS: kafka:9092
+  ZOOKEEPER_ENABLED: "true"
+  ZOOKEEPER_URL: zookeeper:2181
+  CACHE_TYPE: redis
+  REDIS_HOST: valkey
+  METRICS_ENABLED: "true"
+  METRICS_ENDPOINTS_EXPOSE: prometheus
+
+x-tb-node-env: &tb-node-env
+  <<: *tb-common-env
+  JS_EVALUATOR: local
+  TRANSPORT_TYPE: remote
+  EDGES_ENABLED: "false"
+  HTTP_LOG_CONTROLLER_ERROR_STACK_TRACE: "false"
+  DATABASE_TS_TYPE: sql
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thingsboard
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: ${TB_DB_POOL_SIZE:-16}
+  # Time-series write batching shapes ingestion latency; values are TB defaults, made explicit for the run manifest.
+  SQL_TS_BATCH_SIZE: ${TB_SQL_TS_BATCH_SIZE:-10000}
+  SQL_TS_BATCH_MAX_DELAY_MS: ${TB_SQL_TS_BATCH_MAX_DELAY_MS:-100}
+  SQL_TS_BATCH_THREADS: ${TB_SQL_TS_BATCH_THREADS:-3}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+services:
+  # ---------------------------------------------------------------- infrastructure (not replicated, INFRA_CPUSET)
+  zookeeper:
+    image: zookeeper:${ZOOKEEPER_VERSION:-3.8.1}
+    restart: unless-stopped
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: ${ZOOKEEPER_MEM:-512m}
+    memswap_limit: ${ZOOKEEPER_MEM:-512m}
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;zookeeper:2181
+      ZOO_ADMINSERVER_ENABLED: "false"
+      JVMFLAGS: ${ZOOKEEPER_JVMFLAGS:--Xms256m -Xmx256m}
+    logging: *logging
+
+  kafka:
+    image: apache/kafka:${KAFKA_VERSION:-4.0.0}
+    restart: unless-stopped
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: ${KAFKA_MEM:-1280m}
+    memswap_limit: ${KAFKA_MEM:-1280m}
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Same as the official kafka.env: ThingsBoard creates its own topics.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_BYTES: 1073741824
+      KAFKA_LOG_SEGMENT_BYTES: 26214400
+      KAFKA_HEAP_OPTS: ${KAFKA_HEAP_OPTS:--Xms768m -Xmx768m}
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    logging: *logging
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-16}
+    restart: unless-stopped
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: ${POSTGRES_MEM:-1536m}
+    memswap_limit: ${POSTGRES_MEM:-1536m}
+    shm_size: 256m
+    environment:
+      POSTGRES_DB: thingsboard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-300}
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-512MB}
+      - -c
+      - log_statement=none
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d thingsboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+  valkey:
+    # ThingsBoard docs: latest Valkey version compatible with TB is 8.0
+    image: valkey/valkey:${VALKEY_VERSION:-8.0-alpine}
+    restart: unless-stopped
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: ${VALKEY_MEM:-256m}
+    memswap_limit: ${VALKEY_MEM:-256m}
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: *logging
+
+  # ---------------------------------------------------------------- one-shot installer
+  # docker compose --profile install run --rm tb-install
+  tb-install:
+    profiles: ["install"]
+    image: thingsboard/tb-node:${TB_VERSION:-4.3.1.6}
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    environment:
+      <<: *tb-node-env
+      INSTALL_TB: "true"
+      LOAD_DEMO: ${TB_LOAD_DEMO:-true}
+      JAVA_OPTS: -Xms1g -Xmx1g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------------------------------------------------------------- replicated tiers (one replica each = one instance)
+  tb-core:
+    image: thingsboard/tb-node:${TB_VERSION:-4.3.1.6}
+    restart: unless-stopped
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${TB_CORE_MEM:-1g}
+    memswap_limit: ${TB_CORE_MEM:-1g}
+    environment:
+      <<: *tb-node-env
+      TB_SERVICE_TYPE: tb-core
+      JAVA_OPTS: ${TB_CORE_JAVA_OPTS:--Xms512m -Xmx512m}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      zookeeper:
+        condition: service_started
+    deploy:
+      replicas: ${TB_REPLICAS:-1}
+    logging: *logging
+
+  tb-rule-engine:
+    image: thingsboard/tb-node:${TB_VERSION:-4.3.1.6}
+    restart: unless-stopped
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${TB_RULE_ENGINE_MEM:-1g}
+    memswap_limit: ${TB_RULE_ENGINE_MEM:-1g}
+    environment:
+      <<: *tb-node-env
+      TB_SERVICE_TYPE: tb-rule-engine
+      JAVA_OPTS: ${TB_RULE_ENGINE_JAVA_OPTS:--Xms512m -Xmx512m}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      zookeeper:
+        condition: service_started
+    deploy:
+      replicas: ${TB_REPLICAS:-1}
+    logging: *logging
+
+  tb-http-transport:
+    image: thingsboard/tb-http-transport:${TB_VERSION:-4.3.1.6}
+    restart: unless-stopped
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${TB_HTTP_TRANSPORT_MEM:-512m}
+    memswap_limit: ${TB_HTTP_TRANSPORT_MEM:-512m}
+    volumes:
+      - ./tb-transports/http/conf:/config:ro
+    environment:
+      <<: *tb-common-env
+      HTTP_BIND_ADDRESS: 0.0.0.0
+      HTTP_BIND_PORT: 8081
+      HTTP_REQUEST_TIMEOUT: 60000
+      JAVA_OPTS: ${TB_HTTP_TRANSPORT_JAVA_OPTS:--Xms256m -Xmx256m}
+    depends_on:
+      tb-core:
+        condition: service_started
+    deploy:
+      replicas: ${TB_REPLICAS:-1}
+    logging: *logging
+
+  # ---------------------------------------------------------------- single entry point (always present, also at N=1)
+  haproxy:
+    image: haproxy:${HAPROXY_VERSION:-3.2-alpine}
+    restart: unless-stopped
+    cpuset: "${LB_CPUSET:-1}"
+    mem_limit: ${LB_MEM:-256m}
+    memswap_limit: ${LB_MEM:-256m}
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${TB_HTTP_PORT:-8080}:8080"   # REST API (/api) + HTTP device API (/api/v1) + UI
+      - "${BIND_IP:-0.0.0.0}:${LB_STATS_PORT:-8404}:8404"  # HAProxy stats (/stats) + Prometheus (/metrics)
+    sysctls:
+      net.ipv4.ip_local_port_range: "1024 65000"
+    ulimits:
+      nofile: 500000
+    depends_on:
+      - tb-core
+      - tb-http-transport
+    logging: *logging
+
+volumes:
+  kafka-data:
+  pg-data:
+  valkey-data:

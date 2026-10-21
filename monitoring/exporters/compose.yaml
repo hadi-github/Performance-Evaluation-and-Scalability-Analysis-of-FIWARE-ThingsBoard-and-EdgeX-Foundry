@@ -1,0 +1,51 @@
+# Exporters on the SUT (ramonavm2), scraped by Prometheus on ramonavm1 (monitoring/prometheus.yml).
+# Pinned to core 0 (the OS core: outside HAProxy, infrastructure and the platform pool) with memory limits, so
+# monitoring never takes CPU from the measured cores. Platform-specific exporters: compose.<platform>.yaml.
+#
+#   make up P=fiware        (after `make up N=...` of that platform: they join its Docker network)
+#   make down
+
+name: exporters
+
+x-pinned: &pinned
+  restart: unless-stopped
+  cpuset: "${EXPORTERS_CPUSET:-0}"
+
+services:
+  node-exporter:
+    <<: *pinned
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.12.0}
+    mem_limit: 128m
+    memswap_limit: 128m
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --web.listen-address=:9100
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)
+    volumes:
+      - /:/host:ro,rslave
+
+  cadvisor:
+    <<: *pinned
+    # gcr.io/cadvisor/cadvisor is blocked from Iran (HTTP 403); the same image is published on ghcr.io.
+    image: ghcr.io/google/cadvisor:${CADVISOR_VERSION:-v0.60.6}
+    mem_limit: 384m
+    memswap_limit: 384m
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg     # OOM-kill events (container_oom_events_total)
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=5s
+      - --enable_metrics=cpu,memory,network,oom_event,diskIO
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8089:8080"

@@ -1,0 +1,154 @@
+# FIWARE (Orion Context Broker + IoT Agent for UltraLight 2.0) — scalable stack for benchmarking
+#
+# Derived from the official Orion compose (telefonicaid/fiware-orion 4.5.0, docker/docker-compose.yml: orion + mongo:8.0)
+# and the IoT Agent UL docker docs. Ingestion path under test (HTTP only):
+#   client --UL/HTTP--> iot-agent --NGSI-v2--> orion --> MongoDB
+#
+# Changes vs. official (and why):
+#   - orion and iot-agent have deploy.replicas (default 1) behind HAProxy. Orion is stateless (all state in MongoDB);
+#     the IoT Agent keeps its device registry in MongoDB (IOTA_REGISTRY_TYPE=mongodb), so every replica sees the
+#     same provisioned groups/devices.
+#   - IoT Agents reach Orion THROUGH the load balancer (alias orion-lb), not a pinned Orion instance.
+#   - HTTP only: no MQTT broker; the IoT Agent's MQTT and AMQP bindings are disabled.
+#   - Orion runs -reqMutexPolicy none: Orion docs say any other policy gives no advantage in Active-Active setups.
+#   - A one-shot job creates the entity indexes recommended in Orion's performance-tuning guide (Orion creates none).
+#   - Versions are identical regardless of replica count (the old single/multi branches used different versions).
+#   - Fixed resources: every container is pinned (cpuset) and has a hard memory limit without swap. See the README,
+#     "Resource layout". One platform instance = one orion + one iot-agent replica; all replicas share the platform
+#     pool POOL_CPUSET (one core per instance, set by make).
+#
+# Scale:  make up N=4     (sets FIWARE_REPLICAS=4 and POOL_CPUSET=4-7)
+
+name: fiware
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+services:
+  # ---------------------------------------------------------------- infrastructure (not replicated)
+  mongo:
+    # Orion docs recommend MongoDB 8.0 (WiredTiger) for update-intensive workloads.
+    image: mongo:${MONGO_VERSION:-8.0}
+    restart: unless-stopped
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: ${MONGO_MEM:-2g}
+    memswap_limit: ${MONGO_MEM:-2g}
+    command: ["--bind_ip_all", "--wiredTigerCacheSizeGB", "${MONGO_WT_CACHE_GB:-1}"]
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+  mongo-init:
+    image: mongo:${MONGO_VERSION:-8.0}
+    restart: "no"
+    cpuset: "${INFRA_CPUSET:-2-3}"
+    mem_limit: 256m
+    memswap_limit: 256m
+    environment:
+      FIWARE_SERVICE: ${FIWARE_SERVICE:-openiot}
+    volumes:
+      - ./mongo/init-indexes.js:/init-indexes.js:ro
+    command: ["mongosh", "--quiet", "mongodb://mongo:27017", "/init-indexes.js"]
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+
+  # ---------------------------------------------------------------- replicated tiers
+  orion:
+    image: fiware/orion:${ORION_VERSION:-4.5.0}
+    restart: unless-stopped
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${ORION_MEM:-512m}
+    memswap_limit: ${ORION_MEM:-512m}
+    # The image ENTRYPOINT is: contextBroker -fg -multiservice -disableFileLog ; these flags are appended.
+    command:
+      - -dbURI
+      - mongodb://mongo:27017
+      - -dbPoolSize
+      - "${ORION_DB_POOL_SIZE:-10}"
+      - -reqMutexPolicy
+      - none
+      - -reqPoolSize
+      - "${ORION_REQ_POOL_SIZE:-0}"
+      - -logLevel
+      - ${ORION_LOG_LEVEL:-WARN}
+    ulimits:
+      nofile: 65536
+      nproc: 32000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+    deploy:
+      replicas: ${FIWARE_REPLICAS:-1}
+    logging: *logging
+
+  iot-agent:
+    image: fiware/iotagent-ul:${IOTA_VERSION:-3.7.0}
+    restart: unless-stopped
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${IOTA_MEM:-512m}
+    memswap_limit: ${IOTA_MEM:-512m}
+    environment:
+      IOTA_CB_HOST: orion-lb               # Orion via the load balancer
+      IOTA_CB_PORT: "1026"
+      IOTA_CB_NGSI_VERSION: v2
+      IOTA_NORTH_PORT: "4041"
+      IOTA_HTTP_PORT: "7896"
+      IOTA_PROVIDER_URL: http://iot-agent-lb:4041
+      IOTA_REGISTRY_TYPE: mongodb
+      IOTA_MONGO_HOST: mongo
+      IOTA_MONGO_PORT: "27017"
+      IOTA_MONGO_DB: iotagentul
+      IOTA_MQTT_DISABLED: "true"
+      IOTA_AMQP_DISABLED: "true"
+      IOTA_DEFAULT_RESOURCE: /iot/d
+      IOTA_TIMESTAMP: "true"
+      IOTA_AUTOCAST: "true"
+      IOTA_LOG_LEVEL: ${IOTA_LOG_LEVEL:-WARN}
+      # Replicas are the scaling unit; Node's cluster mode stays off so one replica == one event loop.
+      IOTA_MULTI_CORE: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      orion:
+        condition: service_started
+    deploy:
+      replicas: ${FIWARE_REPLICAS:-1}
+    logging: *logging
+
+  # ---------------------------------------------------------------- single entry point (always present, also at N=1)
+  haproxy:
+    image: haproxy:${HAPROXY_VERSION:-3.2-alpine}
+    restart: unless-stopped
+    cpuset: "${LB_CPUSET:-1}"
+    mem_limit: ${LB_MEM:-256m}
+    memswap_limit: ${LB_MEM:-256m}
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      default:
+        aliases: [orion-lb, iot-agent-lb]
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${ORION_PORT:-1026}:1026"          # Orion NGSI-v2 API
+      - "${BIND_IP:-0.0.0.0}:${IOTA_NORTH_PORT:-4041}:4041"     # IoT Agent provisioning API
+      - "${BIND_IP:-0.0.0.0}:${IOTA_HTTP_PORT:-7896}:7896"      # UltraLight over HTTP (telemetry ingress)
+      - "${BIND_IP:-0.0.0.0}:${LB_STATS_PORT:-8404}:8404"
+    sysctls:
+      net.ipv4.ip_local_port_range: "1024 65000"
+    ulimits:
+      nofile: 500000
+    logging: *logging
+
+volumes:
+  mongo-data:
