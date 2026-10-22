@@ -600,3 +600,509 @@ Write concern: default 1 (acknowledged).
     acknowledged (1) or unacknowledged (0). Default is 1.
 ```
 
+## FIWARE IoT Agent registry (iotagent-ul 3.7.0 / iotagent-node-lib 4.7.0; upstream fix in 4.8.0)
+
+### telefonicaid/iotagent-ul@3.7.0 `package.json` lines 40-46
+
+iotagent-ul 3.7.0 (latest release) depends on iotagent-node-lib 4.7.0.  
+<https://github.com/telefonicaid/iotagent-ul/blob/3.7.0/package.json#L40-L46>
+
+```
+    "body-parser": "1.20.3",
+    "dateformat": "3.0.3",
+    "express": "4.21.2",
+    "iotagent-node-lib": "4.7.0",
+    "logops": "2.1.2",
+    "mqtt": "4.3.7",
+    "underscore": "1.12.1"
+```
+
+### telefonicaid/iotagent-ul@3.7.0 `lib/iotaUtils.js` lines 80-112
+
+retrieveDevice: with a non-default API key, group lookup then findOrCreate(deviceId, apiKey) (device lookup).  
+<https://github.com/telefonicaid/iotagent-ul/blob/3.7.0/lib/iotaUtils.js#L80-L112>
+
+```
+function retrieveDevice(deviceId, apiKey, callback) {
+    if (apiKey === config.getConfig().defaultKey) {
+        iotAgentLib.getDevicesByAttribute('id', deviceId, undefined, undefined, function (error, devices) {
+            if (error) {
+                callback(error);
+            } else if (devices && devices.length === 1) {
+                callback(null, devices[0]);
+            } else {
+                config.getLogger().error(
+                    context,
+
+                    "MEASURES-001: Couldn't find device data for APIKey %s and DeviceId %s",
+
+                    apiKey,
+                    deviceId
+                );
+
+                callback(new errors.DeviceNotFound(deviceId, { apikey: apiKey }));
+            }
+        });
+    } else {
+        async.waterfall(
+            [
+                apply(iotAgentLib.getConfigurationSilently, config.getConfig().iota.defaultResource, apiKey),
+                apply(iotAgentLib.findOrCreate, deviceId, apiKey), // group.apikey and apikey are the same
+                apply(
+                    iotAgentLib.mergeDeviceWithConfiguration,
+                    ['lazy', 'active', 'staticAttributes', 'commands', 'subscriptions'],
+                    [null, null, [], [], [], [], []]
+                )
+            ],
+            callback
+        );
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `lib/model/Device.js` lines 20-50
+
+4.7.0 device model: no index declared (only _id exists).  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/lib/model/Device.js#L20-L50>
+
+```
+ * For those usages not covered by the GNU Affero General Public License
+ * please contact with::daniel.moranjimenez@telefonica.com
+ */
+
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const Group = require('./Group');
+
+mongoose.Schema.Types.ExplicitAttrsType = Group.ExplicitAttrsType;
+
+const Device = new Schema({
+    id: String,
+    type: String,
+    name: String,
+    lazy: Array,
+    active: Array,
+    commands: Array,
+    apikey: String,
+    endpoint: String,
+    resource: String,
+    protocol: String,
+    transport: String,
+    staticAttributes: Array,
+    subscriptions: Array,
+    service: { type: String, lowercase: true },
+    subservice: String,
+    polling: Boolean,
+    timezone: String,
+    timestamp: Boolean,
+    registrationId: String,
+    internalId: String,
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `lib/model/Group.js` lines 70-76
+
+4.7.0 group model: index {apikey, resource}.  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/lib/model/Group.js#L70-L76>
+
+```
+    storeLastMeasure: Boolean
+});
+
+function load() {
+    Group.index({ apikey: 1, resource: 1 }, { unique: true });
+    module.exports.model = mongoose.model('Group', Group);
+    module.exports.internalSchema = Group;
+```
+
+### telefonicaid/iotagent-node-lib@4.8.0 `lib/model/Device.js` lines 60-66
+
+4.8.0 adds the device index {service, subservice, apikey, id} (unique).  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.8.0/lib/model/Device.js#L60-L66>
+
+```
+    oldCtxt: Object
+});
+
+function load() {
+    Device.index({ service: 1, subservice: 1, apikey: 1, id: 1 }, { unique: true });
+    module.exports.model = mongoose.model('Device', Device);
+    module.exports.internalSchema = Device;
+```
+
+### telefonicaid/iotagent-node-lib@4.8.0 `CHANGES_NEXT_RELEASE` lines 1-8
+
+4.8.0 change log: 'Add: index for Device model based on {service: 1, subservice: 1, id: 1, apikey: 1} (#1576)'.  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.8.0/CHANGES_NEXT_RELEASE#L1-L8>
+
+```
+
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `lib/services/ngsi/entities-NGSI-v2.js` lines 655-663
+
+Every update sets typeInformation.oldCtxt (the JEXL context without its own oldCtxt).  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/lib/services/ngsi/entities-NGSI-v2.js#L655-L663>
+
+```
+                    payload.entities.push(e);
+                }
+            }
+        }
+        //Add jexlctxt to typeInformation without oldCtxt
+        const oldCJexlctxt = { ...jexlctxt };
+        delete oldCJexlctxt.oldCtxt;
+        originTypeInformation['oldCtxt'] = oldCJexlctxt;
+    } // end for (let measures of originMeasures)
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `lib/services/ngsi/ngsiService.js` lines 68-82
+
+After the update to Orion, a set oldCtxt is written back to the device registry (storeDeviceField).  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/lib/services/ngsi/ngsiService.js#L68-L82>
+
+```
+ * @param {Object} typeInformation  Configuration information for the device.
+ * @param {String} token            User token to identify against the PEP Proxies (optional).
+ */
+function sendUpdateValue(entityName, attributes, typeInformation, token, callback) {
+    const newCallback = statsRegistry.withStats('updateEntityRequestsOk', 'updateEntityRequestsError', callback);
+    const additionalCallback = (data, next) => {
+        if (typeInformation.oldCtxt) {
+            logger.debug(context, 'StoreOldCtxt %j', typeInformation.oldCtxt);
+            deviceService.storeDeviceField('oldCtxt', typeInformation.oldCtxt, typeInformation, function () {
+                next(null, data);
+            });
+        } else {
+            next(null, data);
+        }
+    };
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `lib/services/devices/deviceRegistryMongoDB.js` lines 400-440
+
+storeDeviceField: getDevice (find by id/apikey/service/subservice) then save: one lookup + one write per measure.  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/lib/services/devices/deviceRegistryMongoDB.js#L400-L440>
+
+```
+function storeDeviceField(fieldName, fieldValue, typeInformation, callback) {
+    if (
+        typeInformation &&
+        typeInformation.id &&
+        typeInformation.apikey &&
+        typeInformation.service &&
+        typeInformation.subservice
+    ) {
+        getDevice(
+            typeInformation.id,
+            typeInformation.apikey,
+            typeInformation.service,
+            typeInformation.subservice,
+            function (error, data) {
+                if (error) {
+                    callback(error);
+                } else {
+                    if (fieldName === 'lastMeasure') {
+                        data.lastMeasure = { timestamp: new Date().toISOString(), measure: fieldValue };
+                    } else {
+                        data[fieldName] = fieldValue;
+                    }
+                    /* eslint-disable-next-line  new-cap */
+                    const deviceObj = new Device.model(data);
+                    deviceObj.isNew = false;
+                    deviceObj
+                        .save({})
+                        .then((deviceDao) => {
+                            callback(null, deviceDao.toObject());
+                        })
+                        .catch((error) => {
+                            logger.debug(
+                                fillService(context, deviceObj),
+                                'Error storing device information: %s',
+                                error
+                            );
+                            callback(new errors.InternalDbError(error));
+                        });
+                }
+            }
+        );
+```
+
+### telefonicaid/iotagent-node-lib@4.7.0 `doc/admin.md` lines 422-428
+
+storeLastMeasure is disabled by default (not the source of the per-measure write).  
+<https://github.com/telefonicaid/iotagent-node-lib/blob/4.7.0/doc/admin.md#L422-L428>
+
+```
+#### `storeLastMeasure`
+
+If this flag is activated, last measure arrived to Device IoTAgent without be processed will be stored in Device under
+`lastMeasure` field (composed of sub-fields `timestamp` and `measure` for the measure itself, in multi-measure format).
+This flag is overwritten by `storeLastMeasure` flag in group or device. This flag is disabled by default.
+
+For example in a device document stored in MongoDB will be extended with a subdocument named lastMeasure like this:
+```
+
+## FIWARE Orion performance tuning (fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md)
+
+### telefonicaid/fiware-orion@4.5.0 `doc/manuals/admin/perf_tuning.md` lines 46-55
+
+Recommended entity indexes.  
+<https://github.com/telefonicaid/fiware-orion/blob/4.5.0/doc/manuals/admin/perf_tuning.md#L46-L55>
+
+```
+However, in order to help administrators in this task, the following *general* indexes are recommended. They improve 
+read **and** write performance:
+
+* Collection [entities](database_model.md#entities-collection)
+    * `{_id.servicePath: 1, _id.id: 1, _id.type: 1}` (note that this is a compound index and key order matters in this case)
+    * `creDate`
+    * `_id.id`
+    * `_id.type`
+    * `_id.servicePath`
+    * `attrNames`
+```
+
+### telefonicaid/fiware-orion@4.5.0 `doc/manuals/admin/perf_tuning.md` lines 87-92
+
+Write concern: acknowledged = applied in memory.  
+<https://github.com/telefonicaid/fiware-orion/blob/4.5.0/doc/manuals/admin/perf_tuning.md#L87-L92>
+
+```
+[Write concern](https://docs.mongodb.org/manual/core/write-concern/) is a parameter for MongoDB write
+operations. By default, Orion uses "acknowledged" write concern which means that Orion waits until
+MongoDB confirms it has applied the operation in memory. You can change this behavior with the
+[`-writeConcern` CLI option](cli.md). When "unacknowledged" write concern is configured, Orion doesn't
+wait to get confirmation, so it can execute write-operations much faster.
+
+```
+
+### telefonicaid/fiware-orion@4.5.0 `doc/manuals/admin/perf_tuning.md` lines 126-147
+
+Notification modes: transient default; threadpool for high load.  
+<https://github.com/telefonicaid/fiware-orion/blob/4.5.0/doc/manuals/admin/perf_tuning.md#L126-L147>
+
+```
+## Notification modes and performance
+
+Orion can use different notification modes, depending on the value of [`-notificationMode`](cli.md).
+
+Default mode is 'transient'. In this mode, each time a notification is sent, a new thread is created to deal
+with the notification. Once the notification is sent and the response is received, the thread with its connection context
+is destroyed. This is the recommended mode for low load scenarios. In high level cases, it might lead to
+a [thread exhaustion problem](#orion-thread-model-and-its-implications).
+
+Persistent mode is similar, except that the connection context is not destroyed at the end. Thus,
+new notifications associated to the same connection context (i.e. the same destination URL) can
+reuse the connection and save the HTTP connection time (i.e. TCP handshake, etc.). Of course,
+this requires that the server (i.e. the component that receives the notification) also maintains the connection
+open. Note that while in some cases the persistent mode could improve performance (as it saves
+the time required to create and destroy HTTP connections), in others it may cause notifications
+associated to the same connection context to have to wait (as only one of them may use the
+connection at a time). In other words, only one notification thread can use the connection at a time, so if the
+notification request/response transmission time exceeds the notification inter-triggering time
+then threads will block. You can detect this situation when the `connectionContext` value
+[in statistics](statistics.md#semwait-block) is abnormally high.
+
+Finally, threadpool mode is based on a queue for notifications and a pool of worker threads that
+```
+
+### telefonicaid/fiware-orion@4.5.0 `doc/manuals/admin/perf_tuning.md` lines 280-300
+
+reqPoolSize: pool ~ number of CPU cores in high load.  
+<https://github.com/telefonicaid/fiware-orion/blob/4.5.0/doc/manuals/admin/perf_tuning.md#L280-L300>
+
+```
+
+* **reqPoolSize**. Size of thread pool for incoming connections. Default value is 0, meaning no thread pool at all,
+  i.e., a new thread is created to manage each new incoming HTTP request and destroyed after its use. Thread pool
+  mode uses internally the `epoll()` system call, which is more efficient than the one used when no
+  thread pool is used (`poll()`). Some performance information regarding this can be found in [the documentation of the
+  HTTP server library itself](https://www.gnu.org/software/libmicrohttpd/manual/libmicrohttpd.html#Thread-modes-and-event-loops).
+
+* **reqTimeout**. The inactivity timeout in seconds before a connection is closed. Default value is 0 seconds, 
+which means infinity. This is the recommended behaviour and setting it to a non-infinite timeout could cause Orion 
+to close the connection before completing the request (e.g. a query request involving several CPr forwards can 
+take a long time). This could be considered an "HTTP-unpolite" behaviour from the point of view of the server 
+(Orion) given that, in this case, it should be the client who decides to close the connection.
+However, this parameter may be used to limit resource consumption at server side (Orion). Use it with care.
+
+Given that thread creation and destruction are costly operations, it is recommend to use `-reqPoolSize` in
+high load scenarios. In particular, according to [MHD feedback](http://lists.gnu.org/archive/html/libmicrohttpd/2016-12/msg00023.html),
+the pool should be sized with a value equal or close to number of available CPU cores. If you set `-reqPoolSize` to a value higher than
+number of CPU cores then you'll most probably experience performance decrease.
+
+The other three parameters (`-reqTimeout`, `-maxConnections` and `-connectionMemory`) usually work well with their default values.
+
+```
+
+### telefonicaid/fiware-orion@4.5.0 `doc/manuals/admin/perf_tuning.md` lines 446-458
+
+reqMutexPolicy none is safe and the only useful value active-active.  
+<https://github.com/telefonicaid/fiware-orion/blob/4.5.0/doc/manuals/admin/perf_tuning.md#L446-L458>
+
+```
+Orion supports four different policies (configurable with `-reqMutexPolicy`):
+
+* "all", which ensures that not more than one request is being processed by the internal logic module at the same time
+
+* "read", which ensures that in a given CB node not more than one read request is being processed by the internal logic module at the same time - write requests can execute concurrently.
+
+* "write", which ensures that in a given CB node not more than one write request is being processed by the internal logic module at the same time, read requests can execute concurrently
+
+* "none", which allows all the requests to be executed concurrently.
+
+Default value is "all", mainly due to legacy reasons (a leftover of the times in which some race condition issues may occur).
+However, for the time being, "none" can safely be used, leading to a better performance (as no thread is blocked waiting 
+for others at the internal logic module entry). In fact, in Active-Active Orion configuration, using something different 
+```
+
+## ThingsBoard deployment defaults (thingsboard v4.3.1.6)
+
+### thingsboard/thingsboard@v4.3.1.6 `application/src/main/resources/thingsboard.yml` lines 425-438
+
+SQL timeseries / latest batching defaults (batch size, max delay, threads).  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/application/src/main/resources/thingsboard.yml#L425-L438>
+
+```
+    batch_threads: "${SQL_ATTRIBUTES_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
+    value_no_xss_validation: "${SQL_ATTRIBUTES_VALUE_NO_XSS_VALIDATION:false}" # If true attribute values will be checked for XSS vulnerability
+  ts:
+    batch_size: "${SQL_TS_BATCH_SIZE:10000}" # Batch size for persisting timeseries inserts
+    batch_max_delay: "${SQL_TS_BATCH_MAX_DELAY_MS:100}" # Max timeout for time-series entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_TS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing timeseries insert statistic
+    batch_threads: "${SQL_TS_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
+    value_no_xss_validation: "${SQL_TS_VALUE_NO_XSS_VALIDATION:false}" # If true telemetry values will be checked for XSS vulnerability
+    callback_thread_pool_size: "${SQL_TS_CALLBACK_THREAD_POOL_SIZE:12}" # Thread pool size for telemetry callback executor
+  ts_latest:
+    batch_size: "${SQL_TS_LATEST_BATCH_SIZE:1000}" # Batch size for persisting latest telemetry updates
+    batch_max_delay: "${SQL_TS_LATEST_BATCH_MAX_DELAY_MS:50}" # Maximum timeout for latest telemetry entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_TS_LATEST_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing latest telemetry updates statistic
+    batch_threads: "${SQL_TS_LATEST_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `application/src/main/resources/thingsboard.yml` lines 964-968
+
+Datasource pool size default 16.  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/application/src/main/resources/thingsboard.yml#L964-L968>
+
+```
+      # This property controls the amount of time that a connection can be out of the pool before a message is logged indicating a possible connection leak. A value of 0 means leak detection is disabled
+      leakDetectionThreshold: "${SPRING_DATASOURCE_HIKARI_LEAK_DETECTION_THRESHOLD:0}"
+      # This property increases the number of connections in the pool as demand increases. At the same time, the property ensures that the pool doesn't grow to the point of exhausting a system's resources, which ultimately affects an application's performance and availability
+      maximumPoolSize: "${SPRING_DATASOURCE_MAXIMUM_POOL_SIZE:16}"
+      # Enable MBean to diagnose pools state via JMX
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `application/src/main/resources/thingsboard.yml` lines 1912-1927
+
+Transport / core queue poll intervals (25 ms) and core partitions (10).  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/application/src/main/resources/thingsboard.yml#L1912-L1927>
+
+```
+    max_core_handler_threads: "${TB_QUEUE_TRANSPORT_MAX_CORE_HANDLER_THREADS:16}"
+    # Interval in milliseconds to poll api requests from transport microservices
+    request_poll_interval: "${TB_QUEUE_TRANSPORT_REQUEST_POLL_INTERVAL_MS:25}"
+    # Interval in milliseconds to poll api response from transport microservices
+    response_poll_interval: "${TB_QUEUE_TRANSPORT_RESPONSE_POLL_INTERVAL_MS:25}"
+  core:
+    # Default topic name
+    topic: "${TB_QUEUE_CORE_TOPIC:tb_core}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_CORE_NOTIFICATIONS_TOPIC:tb_core.notifications}"
+    # Interval in milliseconds to poll messages by Core microservices
+    poll-interval: "${TB_QUEUE_CORE_POLL_INTERVAL_MS:25}"
+    # Amount of partitions used by Core microservices
+    partitions: "${TB_QUEUE_CORE_PARTITIONS:10}"
+    # Timeout for processing a message pack by Core microservices
+    pack-processing-timeout: "${TB_QUEUE_CORE_PACK_PROCESSING_TIMEOUT_MS:2000}"
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `application/src/main/resources/thingsboard.yml` lines 2044-2052
+
+Rule-engine queue poll interval (25 ms), pack processing timeout.  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/application/src/main/resources/thingsboard.yml#L2044-L2052>
+
+```
+    # Deprecated. It will be removed in the nearest releases
+    topic: "${TB_QUEUE_RULE_ENGINE_TOPIC:tb_rule_engine}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_RULE_ENGINE_NOTIFICATIONS_TOPIC:tb_rule_engine.notifications}"
+    # Interval in milliseconds to poll messages by Rule Engine
+    poll-interval: "${TB_QUEUE_RULE_ENGINE_POLL_INTERVAL_MS:25}"
+    # Timeout for processing a message pack of Rule Engine
+    pack-processing-timeout: "${TB_QUEUE_RULE_ENGINE_PACK_PROCESSING_TIMEOUT_MS:2000}"
+    stats:
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `docker/docker-compose.yml` lines 75-96
+
+Official microservices compose: tb-rule-engine1 (like tb-core1, line 42) mounts ./tb-node/conf at /config.  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/docker/docker-compose.yml#L75-L96>
+
+```
+  tb-rule-engine1:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_NODE_DOCKER_NAME}:${TB_VERSION}"
+    ports:
+      - "8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tb-rule-engine1
+      TB_SERVICE_TYPE: tb-rule-engine
+      JAVA_OPTS: "${JAVA_OPTS}"
+    env_file:
+      - tb-node.env
+    volumes:
+      - ./tb-node/conf:/config
+      - ./tb-node/log:/var/log/thingsboard
+    depends_on:
+      - zookeeper
+      - tb-js-executor
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `docker/tb-node/conf/thingsboard.conf` lines 1-12
+
+Official tb-node launcher config includes -XX:+ExitOnOutOfMemoryError.  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/docker/tb-node/conf/thingsboard.conf#L1-L12>
+
+```
+#
+# SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+
+export JAVA_OPTS="$JAVA_OPTS -Dplatform=deb -Dinstall.data_dir=/usr/share/thingsboard/data"
+export JAVA_OPTS="$JAVA_OPTS -Xlog:gc*,heap*,age*,safepoint=debug:file=/var/log/thingsboard/${TB_SERVICE_ID}-gc.log:time,uptime,level,tags:filecount=10,filesize=10M"
+export JAVA_OPTS="$JAVA_OPTS -XX:+IgnoreUnrecognizedVMOptions -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/thingsboard/${TB_SERVICE_ID}-heapdump.bin"
+export JAVA_OPTS="$JAVA_OPTS -XX:-UseBiasedLocking -XX:+UseTLAB -XX:+ResizeTLAB -XX:+PerfDisableSharedMem -XX:+UseCondCardMark"
+export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled -XX:MaxTenuringThreshold=10"
+export JAVA_OPTS="$JAVA_OPTS -XX:+ExitOnOutOfMemoryError"
+export LOG_FILENAME=thingsboard.out
+```
+
+### thingsboard/thingsboard@v4.3.1.6 `msa/tb-node/docker/start-tb-node.sh` lines 7-22
+
+The image sources /config/thingsboard.conf if /config exists, else its built-in conf (without ExitOnOutOfMemoryError).  
+<https://github.com/thingsboard/thingsboard/blob/v4.3.1.6/msa/tb-node/docker/start-tb-node.sh#L7-L22>
+
+```
+jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
+configfile=${pkg.name}.conf
+run_user=${pkg.user}
+
+CONF_FOLDER="/config"
+if [ -d "${CONF_FOLDER}" ]; then
+  LOGGING_CONFIG="${CONF_FOLDER}/logback.xml"
+  source "${CONF_FOLDER}/${configfile}"
+  export LOADER_PATH=${CONF_FOLDER},${LOADER_PATH}
+else
+  CONF_FOLDER="/usr/share/${pkg.name}/conf"
+  LOGGING_CONFIG="/usr/share/${pkg.name}/conf/logback.xml"
+  source "${CONF_FOLDER}/${configfile}"
+fi
+
+
+```
+

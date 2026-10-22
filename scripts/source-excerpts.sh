@@ -57,3 +57,48 @@ cite telefonicaid/fiware-orion 4.5.0 src/lib/mongoBackend/MongoCommonUpdate.cpp 
   "updateEntity: write the entity (findAndModify or update); on failure return without notifying; then processSubscriptions."
 cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/cli.md 55 58 \
   "Write concern: default 1 (acknowledged)."
+echo "## FIWARE IoT Agent registry (iotagent-ul 3.7.0 / iotagent-node-lib 4.7.0; upstream fix in 4.8.0)"
+echo
+cite telefonicaid/iotagent-ul 3.7.0 package.json 40 46 \
+  "iotagent-ul 3.7.0 (latest release) depends on iotagent-node-lib 4.7.0."
+cite telefonicaid/iotagent-ul 3.7.0 lib/iotaUtils.js 80 112 \
+  "retrieveDevice: with a non-default API key, group lookup then findOrCreate(deviceId, apiKey) (device lookup)."
+cite telefonicaid/iotagent-node-lib 4.7.0 lib/model/Device.js 20 50 \
+  "4.7.0 device model: no index declared (only _id exists)."
+cite telefonicaid/iotagent-node-lib 4.7.0 lib/model/Group.js 70 76 \
+  "4.7.0 group model: index {apikey, resource}."
+cite telefonicaid/iotagent-node-lib 4.8.0 lib/model/Device.js 60 66 \
+  "4.8.0 adds the device index {service, subservice, apikey, id} (unique)."
+cite telefonicaid/iotagent-node-lib 4.8.0 CHANGES_NEXT_RELEASE 1 8 \
+  "4.8.0 change log: 'Add: index for Device model based on {service: 1, subservice: 1, id: 1, apikey: 1} (#1576)'."
+cite telefonicaid/iotagent-node-lib 4.7.0 lib/services/ngsi/entities-NGSI-v2.js 655 663 \
+  "Every update sets typeInformation.oldCtxt (the JEXL context without its own oldCtxt)."
+cite telefonicaid/iotagent-node-lib 4.7.0 lib/services/ngsi/ngsiService.js 68 82 \
+  "After the update to Orion, a set oldCtxt is written back to the device registry (storeDeviceField)."
+cite telefonicaid/iotagent-node-lib 4.7.0 lib/services/devices/deviceRegistryMongoDB.js 400 440 \
+  "storeDeviceField: getDevice (find by id/apikey/service/subservice) then save: one lookup + one write per measure."
+cite telefonicaid/iotagent-node-lib 4.7.0 doc/admin.md 422 428 \
+  "storeLastMeasure is disabled by default (not the source of the per-measure write)."
+echo "## FIWARE Orion performance tuning (fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md)"
+echo
+cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md 46 55 "Recommended entity indexes."
+cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md 87 92 "Write concern: acknowledged = applied in memory."
+cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md 126 147 "Notification modes: transient default; threadpool for high load."
+cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md 280 300 "reqPoolSize: pool ~ number of CPU cores in high load."
+cite telefonicaid/fiware-orion 4.5.0 doc/manuals/admin/perf_tuning.md 446 458 "reqMutexPolicy none is safe and the only useful value active-active."
+echo "## ThingsBoard deployment defaults (thingsboard v4.3.1.6)"
+echo
+cite thingsboard/thingsboard v4.3.1.6 application/src/main/resources/thingsboard.yml 425 438 \
+  "SQL timeseries / latest batching defaults (batch size, max delay, threads)."
+cite thingsboard/thingsboard v4.3.1.6 application/src/main/resources/thingsboard.yml 964 968 \
+  "Datasource pool size default 16."
+cite thingsboard/thingsboard v4.3.1.6 application/src/main/resources/thingsboard.yml 1912 1927 \
+  "Transport / core queue poll intervals (25 ms) and core partitions (10)."
+cite thingsboard/thingsboard v4.3.1.6 application/src/main/resources/thingsboard.yml 2044 2052 \
+  "Rule-engine queue poll interval (25 ms), pack processing timeout."
+cite thingsboard/thingsboard v4.3.1.6 docker/docker-compose.yml 75 96 \
+  "Official microservices compose: tb-rule-engine1 (like tb-core1, line 42) mounts ./tb-node/conf at /config."
+cite thingsboard/thingsboard v4.3.1.6 docker/tb-node/conf/thingsboard.conf 1 12 \
+  "Official tb-node launcher config includes -XX:+ExitOnOutOfMemoryError."
+cite thingsboard/thingsboard v4.3.1.6 msa/tb-node/docker/start-tb-node.sh 7 22 \
+  "The image sources /config/thingsboard.conf if /config exists, else its built-in conf (without ExitOnOutOfMemoryError)."
