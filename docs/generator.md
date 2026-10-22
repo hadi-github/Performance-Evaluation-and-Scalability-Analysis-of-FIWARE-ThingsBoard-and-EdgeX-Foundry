@@ -40,7 +40,7 @@ go test ./internal/... && go test ./tests/integration -v           # unit + faul
   | fixture / reference | `POST /ingest` JSON incl. `device_id` | 332 (203-byte body) | one record |
   | ThingsBoard | `POST /api/v1/<token>/telemetry` JSON | 308 (145-byte body) | 6 `ts_kv` rows (one per key), same ts |
   | FIWARE | `POST /iot/d?k=&i=` UltraLight `t\|h\|p\|q(seq)\|r(run_id)\|s(sched)` | 289 (77-byte body) | entity attributes, **latest value only** (no history yet) |
-  | EdgeX | `POST device-rest /api/v3/resource/<dev>/reading` JSON, `Object` resource | (see calibration) 139-byte body | one reading with an object value |
+  | EdgeX | `POST device-rest /api/v3/resource/<dev>/reading` JSON, `Object` resource | 335 (139-byte body) | one reading with an object value |
 
   The bodies exceed the ~100 B target because identity fields are never truncated (`run_id` is ~35 characters).
 

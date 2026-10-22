@@ -135,7 +135,12 @@ edgex/config/core-data.yaml   official core-data config + NATS QueueGroup
 fiware/mongo/init-indexes.js  entity indexes from Orion's perf-tuning guide
 thingsboard/tb-transports/    the HTTP transport image's own default config, mounted at /config
 yaade/                    Yaade collections (provision → send → read back) and the scripts that build/run them
-workloads/                k6 workloads (fixed req/s for a fixed time) + run.sh, run on the load generator
+workloads/k6/             open-model generator (gen.js + adapters) run by benchctl (docs/generator.md)
+workloads/plans/          generator plans (smoke, calibration, Poisson)
+cmd/, internal/           Go: benchctl, fixture-target, plan/runner/report/reconcile/arrivals
+tests/                    feasibility probes and Docker integration tests
+docs/                     k6-feasibility, generator, calibration, generator-status, design-decisions
+workloads/                (first-generation smoke workloads: run.sh + *.js, not confirmatory)
 monitoring/               Prometheus + Grafana (load generator) and monitoring/exporters (SUT)
 ```
 
