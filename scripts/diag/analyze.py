@@ -89,7 +89,13 @@ def ndjson(p):
 # ------------------------------------------------------------------ EdgeX
 def edgex(base, run, sut, t0, t1, rate, ack):
     d = {}
-    cnt = [r for r in ndjson(f"{sut}/pg-counters.ndjson") if "t_ms" in r]
+    cnt = []  # json_agg pretty-prints arrays over several lines: split records at their {"t_ms" start
+    if os.path.exists(f"{sut}/pg-counters.ndjson"):
+        for chunk in re.split(r'\n(?=\{"t_ms")', open(f"{sut}/pg-counters.ndjson").read()):
+            try:
+                cnt.append(json.loads(chunk))
+            except json.JSONDecodeError:
+                pass
     if cnt:
         a, b = nearest([(r["t_ms"], r) for r in cnt], t0)[1], nearest([(r["t_ms"], r) for r in cnt], t1)[1]
         dt = (b["t_ms"] - a["t_ms"]) / 1000
