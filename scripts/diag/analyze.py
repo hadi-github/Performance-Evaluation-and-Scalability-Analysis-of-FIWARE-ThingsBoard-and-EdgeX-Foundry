@@ -155,8 +155,11 @@ def edgex(base, run, sut, t0, t1, rate, ack):
     p = f"{base}/{run}.persist.tsv"
     if os.path.exists(p):
         pts = [(float(a), float(b)) for a, b in (l.split("\t") for l in open(p) if l[:1].isdigit())]
-        a, b = nearest(pts, t0), nearest(pts, t1)
-        d["persisted_per_s_in_window"] = (b[1] - a[1]) / ((b[0] - a[0]) / 1000)
+        if pts:
+            a, b = nearest(pts, t0), nearest(pts, t1)
+            d["persisted_per_s_in_window"] = (b[1] - a[1]) / ((b[0] - a[0]) / 1000)
+        else:
+            d["persisted_per_s_in_window"] = "no persistence series"
     # disk write await on the SUT
     try:
         res = prom_range(f'rate(node_disk_write_time_seconds_total{{instance="{SUT_NODE}"}}[30s]) / '
