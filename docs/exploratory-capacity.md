@@ -6,7 +6,15 @@ Status: **exploratory, 2026-10-22. Not paper results**; it chooses no thresholds
 
 ## Decision
 
-**A Go generator is REQUIRED** by the declared rule: EdgeX at k = 4 passed the 500 msg/s step cleanly (and 700),
+**Update (2026-10-22, decisions D23 and D24; numbers in `docs/diagnostics.md`, Step 1, generated):** under D23 (goodput =
+durably stored and delivered) EdgeX's outstanding work and reconciliation are evaluated at persistence. At persistence EdgeX
+fails below 500 msg/s at both k (k = 4 between the 350 and 500 steps, k = 1 at the 200 step), so **no platform passes
+500 msg/s at persistence**. D24 defers the Go generator: k6 stays, reopened only if a tuned capacity exceeds 450 msg/s.
+The sink-based verdicts below are unchanged and stay as reported. The "Smallest B_i" and "Pool bound" columns are
+**utilization-law (single-step) bounds**; the regression-based demands that replace them are in `docs/diagnostics.md`,
+Step 2.
+
+**Original text (declared rule, sink-based):** **A Go generator is REQUIRED** by the declared rule: EdgeX at k = 4 passed the 500 msg/s step cleanly (and 700),
 and its utilization-law estimate at the highest passing step exceeds 500.
 
 Read with three caveats, all reported rather than re-evaluated (the rules were fixed before the data):
@@ -27,7 +35,7 @@ Read with three caveats, all reported rather than re-evaluated (the rules were f
 
 ## Results
 
-| Platform | k | Highest passing | First failing | Failure reason | Smallest B_i at highest pass (container) | Pool bound (labelled) | Generator health | Verdict |
+| Platform | k | Highest passing | First failing | Failure reason | Smallest B_i at highest pass (container), utilization law | Pool bound (utilization law) | Generator health | Verdict |
 |---|---|---|---|---|---|---|---|---|
 | EdgeX | 4 | **700** | 1000: INVALID (generator) | k6 host memory exhausted (5.9 GB, swap): 174 drops, send-lag p99 456 ms | 2221 msg/s (edgex-database-1) | 939 (cpuset 4-7) | OK at 50-700 (lag p99 ≤ 8.3 ms, 0 drops); INVALID at 1000 | **exceeds 500 msg/s** |
 | EdgeX | 1 | 350 | 500: FAIL | outstanding work grows (4812 → 19236 > 4812 + 500); export service OOM-killed, core-data NATS slow-consumer drops | 925 msg/s (edgex-app-http-export-1) | 392 (cpuset 4) | OK at every step (lag p99 ≤ 2.6 ms, 0 drops) | **unclear** (failed below 500, but smallest B_i > 500) |
