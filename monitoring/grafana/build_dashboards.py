@@ -260,11 +260,19 @@ def overview():
             ('sum by (container) (rate(container_cpu_usage_seconds_total{job="loadgen-cadvisor",service="k6"}' + R + '))', "CPU cores {{container}}"),
             ('max by (container) (container_memory_working_set_bytes{job="loadgen-cadvisor",service="k6"}) / 1e9', "memory GB {{container}}")],
             "short", w=12, h=8),
+        panel("Clock synchronisation (kernel timex, per host)", [
+            ('max by (host) (node_timex_sync_status)', "synced (1/0) {{host}}"),
+            ('max by (host) (node_timex_offset_seconds) * 1000', "offset ms {{host}}"),
+            ('max by (host) (node_timex_maxerror_seconds) * 1000', "max error bound ms {{host}}")],
+            "short", w=12, h=8,
+            desc="Each host's kernel view of its own NTP discipline (timesyncd). This is NOT a measured offset between "
+                 "the two hosts; the max-error bound is loose under timesyncd. Cross-host latency (sink) needs a "
+                 "qualified clock method."),
         text("Generator health, records, audit", "Per-run generator health (drops, ticks, achieved rate, send-lag p99, "
              "early sends, record completeness) is computed **offline** from the run directory "
              "(`benchctl check`, `health.json`), and reconciliation by message ID is `benchctl reconcile`. "
              "Neither is in Prometheus. Raw records: `results/runs/<run_id>/` on ramonavm1.\n\n"
-             "**Unavailable:** sink receipts, clock-synchronisation evidence, history audit. " + UNAVAILABLE, w=12, h=8),
+             "**Unavailable:** sink receipts, qualified cross-host clock offset, history audit. " + UNAVAILABLE, w=12, h=8),
 
         # 8 ---------------------------------------------------------------------------------------------
         row("8. Runs and derived results"),

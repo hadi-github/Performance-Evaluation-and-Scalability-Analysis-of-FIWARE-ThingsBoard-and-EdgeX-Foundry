@@ -2169,21 +2169,103 @@
   },
   {
    "id": 41,
-   "type": "text",
-   "title": "Generator health, records, audit",
+   "type": "timeseries",
+   "title": "Clock synchronisation (kernel timex, per host)",
+   "description": "Each host's kernel view of its own NTP discipline (timesyncd). This is NOT a measured offset between the two hosts; the max-error bound is loose under timesyncd. Cross-host latency (sink) needs a qualified clock method.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_timex_sync_status)",
+     "legendFormat": "synced (1/0) {{host}}",
+     "refId": "A",
+     "range": true,
+     "instant": false,
+     "format": "time_series"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_timex_offset_seconds) * 1000",
+     "legendFormat": "offset ms {{host}}",
+     "refId": "B",
+     "range": true,
+     "instant": false,
+     "format": "time_series"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_timex_maxerror_seconds) * 1000",
+     "legendFormat": "max error bound ms {{host}}",
+     "refId": "C",
+     "range": true,
+     "instant": false,
+     "format": "time_series"
+    }
+   ],
    "gridPos": {
     "w": 12,
     "h": 8,
     "x": 12,
     "y": 123
    },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never",
+      "spanNulls": false
+     }
+    },
+    "overrides": []
+   },
    "options": {
-    "mode": "markdown",
-    "content": "Per-run generator health (drops, ticks, achieved rate, send-lag p99, early sends, record completeness) is computed **offline** from the run directory (`benchctl check`, `health.json`), and reconciliation by message ID is `benchctl reconcile`. Neither is in Prometheus. Raw records: `results/runs/<run_id>/` on ramonavm1.\n\n**Unavailable:** sink receipts, clock-synchronisation evidence, history audit. **Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/tooling-interfaces.md`."
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
    }
   },
   {
    "id": 42,
+   "type": "text",
+   "title": "Generator health, records, audit",
+   "gridPos": {
+    "w": 12,
+    "h": 8,
+    "x": 0,
+    "y": 131
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "Per-run generator health (drops, ticks, achieved rate, send-lag p99, early sends, record completeness) is computed **offline** from the run directory (`benchctl check`, `health.json`), and reconciliation by message ID is `benchctl reconcile`. Neither is in Prometheus. Raw records: `results/runs/<run_id>/` on ramonavm1.\n\n**Unavailable:** sink receipts, qualified cross-host clock offset, history audit. **Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/tooling-interfaces.md`."
+   }
+  },
+  {
+   "id": 43,
    "type": "row",
    "title": "8. Runs and derived results",
    "collapsed": false,
@@ -2192,7 +2274,7 @@
     "w": 24,
     "h": 1,
     "x": 0,
-    "y": 131
+    "y": 139
    }
   },
   {
@@ -2203,7 +2285,7 @@
     "w": 12,
     "h": 8,
     "x": 0,
-    "y": 132
+    "y": 140
    },
    "options": {
     "onlyFromThisDashboard": false,
@@ -2219,14 +2301,14 @@
    }
   },
   {
-   "id": 43,
+   "id": 44,
    "type": "text",
    "title": "Derived research metrics",
    "gridPos": {
     "w": 12,
     "h": 8,
     "x": 12,
-    "y": 132
+    "y": 140
    },
    "options": {
     "mode": "markdown",
