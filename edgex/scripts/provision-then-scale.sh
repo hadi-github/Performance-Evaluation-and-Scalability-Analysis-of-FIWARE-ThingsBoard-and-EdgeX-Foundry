@@ -44,8 +44,15 @@ case "${1:-}" in
         '[range($off; $off + $n) | {apiVersion: "v3", device: {name: ("bench-" + $run + "-" + ("0000" + tostring)[-5:]),
           serviceName: "device-rest", profileName: $p, adminState: "UNLOCKED", operatingState: "UP",
           protocols: {other: {Address: "bench"}}}}]')
-      bad=$(curl -fsS -m 60 -X POST $META/device -H 'Content-Type: application/json' -d "$body" | jq '[.[] | select(.statusCode != 201)] | length')
-      [[ "$bad" == 0 ]] || { echo "device creation failed in batch at $off" >&2; exit 4; }
+      # right after start-up device-rest answers ping before it serves validation requests on the bus: retry
+      # (409 = created by an earlier attempt; safe at one replica)
+      for ((try = 1; ; try++)); do
+        res=$(curl -sS -m 60 -X POST $META/device -H 'Content-Type: application/json' -d "$body" || true)
+        jq -e 'type == "array" and length > 0 and all(.[]; .statusCode == 201 or .statusCode == 409)' \
+          <<<"${res:-null}" >/dev/null 2>&1 && break
+        (( try < 10 )) || { echo "device creation failed in batch at $off: $(head -c 300 <<<"$res")" >&2; exit 4; }
+        sleep 3
+      done
     done
 
     echo "scaling to N=$N, starting the export service"
