@@ -5,3 +5,7 @@ services:
   kafka:
     environment:
       JMX_PORT: "9999"
+    # The healthcheck tool runs inside the broker container and would inherit JMX_PORT and fail to bind 9999
+    # (already held by the broker): Kafka stayed unhealthy and ThingsBoard never started (DIAG-tb-idle, invalid).
+    healthcheck:
+      test: ["CMD-SHELL", "JMX_PORT= /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]

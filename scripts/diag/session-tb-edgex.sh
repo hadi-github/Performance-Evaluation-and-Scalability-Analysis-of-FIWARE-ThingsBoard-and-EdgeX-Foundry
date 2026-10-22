@@ -15,7 +15,10 @@ tb_up() {
       cd thingsboard && export $TBCF $TBMEM && make clean >/dev/null 2>&1 && make install >/dev/null 2>&1 &&
       make up N=1 POOL_CPUSET=4-7 >/dev/null 2>&1 && cd .. && scripts/monitoring.sh exporters-up thingsboard >/dev/null &&
       until curl -sf -m5 -o /dev/null -X POST 127.0.0.1:8080/api/auth/login -H 'Content-Type: application/json' \
-        -d '{\"username\":\"tenant@thingsboard.org\",\"password\":\"tenant\"}'; do sleep 5; done; echo tb up \$(date -u +%T)"
+        -d '{\"username\":\"tenant@thingsboard.org\",\"password\":\"tenant\"}'; do sleep 5; done
+      n=\$(docker ps --filter label=com.docker.compose.project=tb --filter status=running --format '{{.Names}}' | grep -cE 'tb-tb-|haproxy');
+      [ \"\$n\" = 4 ] || { echo \"TB NOT UP: \$n of 4 tb services running\"; docker ps -a --filter label=com.docker.compose.project=tb --format '{{.Names}} {{.Status}}'; exit 1; }
+      echo tb up \$(date -u +%T)"
 }
 
 # Kafka JMX request counters from a core-0 sidecar (no CPU charged to the broker's cgroup)
@@ -26,7 +29,7 @@ tb_jmx() {
 }
 
 tb_idle() { # H-T1: 5 min without load after start-up
-  local id=DIAG-tb-idle
+  local id=${1:-DIAG-tb-idle2}
   log "settling 120 s after start-up"; sleep 120
   v2 "cd $R && scripts/diag/collect.sh start thingsboard $id"
   local a b
@@ -77,7 +80,7 @@ tb_runs() {
   explore_run DIAG-tb-obs-nosink-r100 -history DIAG-tb-obs-nosink-r100.history.ndjson
 }
 
-tb_all() { tb_up; tb_idle; tb_runs; }
+tb_all() { tb_up; tb_idle DIAG-tb-idle2; tb_runs; }
 
 # ---------------------------------------------------------------- EdgeX
 # edgex_run <N> <plan> <run_id> <compose_files> [nosink]
