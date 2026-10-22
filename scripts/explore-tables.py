@@ -29,10 +29,15 @@ def run_tables(d):
         out.append(f"| {s['name']} | {s['rate']:g} | {s['verdict']} | {s['unsuccessful_ratio'] * 100:.4f}% "
                    f"| {f(s['send_lag_p99_ms'])} | {mins} | {outs} | {b} | {'; '.join(s.get('reasons') or [])} |")
     rec = e.get("history_reconciliation")
-    out += ["", f"Sink: {x['planned_reached_sink']} of {x['planned_messages']} planned reached, {x['sink_duplicates']} duplicate "
-            f"receipts. History reconciliation: "
-            + (rec if isinstance(rec, str) else f"stored unique {rec['stored_unique']}, ack_lost {len(rec['ack_lost'] or [])}, "
-               f"duplicates {len(rec['duplicates'] or [])}, orphans {len(rec['orphans'] or [])}") if rec else "", ""]
+    if rec is None:
+        hist = "not reconcilable (no history)"
+    elif isinstance(rec, str):
+        hist = rec
+    else:
+        hist = (f"stored unique {rec['stored_unique']}, ack_lost {len(rec['ack_lost'] or [])}, "
+                f"duplicates {len(rec['duplicates'] or [])}, orphans {len(rec['orphans'] or [])}")
+    out += ["", f"Sink: {x['planned_reached_sink']} of {x['planned_messages']} planned reached, {x['sink_duplicates']} "
+            f"duplicate receipts. History reconciliation (whole run): {hist}.", ""]
 
     steps = [s for s in x["steps"] if s.get("cpu")]
     if steps:
