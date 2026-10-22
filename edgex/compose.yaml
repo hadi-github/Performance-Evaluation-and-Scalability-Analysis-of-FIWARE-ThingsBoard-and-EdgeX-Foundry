@@ -244,6 +244,34 @@ services:
       replicas: ${EDGEX_REPLICAS:-1}
     logging: *logging
 
+  # Outbound delivery for the measurement (profile "export"): every event on the bus is exported over HTTP to the
+  # sink (docs/exploratory-capacity.md). It is EdgeX processing on the outbound path, so it runs in the application
+  # pool, the counterpart of ThingsBoard's rule-engine REST call. One replica (no queue group: each replica would
+  # export every event). Official image is built without NATS, so it is built like the other bus services.
+  app-http-export:
+    profiles: ["export"]
+    <<: *edgex-service
+    image: edgex-nats/app-service-configurable:${EDGEX_VERSION:-4.0.2}
+    cpuset: "${POOL_CPUSET:-4}"
+    mem_limit: ${EDGEX_APP_EXPORT_MEM:-512m}
+    memswap_limit: ${EDGEX_APP_EXPORT_MEM:-512m}
+    build:
+      context: https://github.com/edgexfoundry/app-service-configurable.git#v${EDGEX_VERSION:-4.0.2}
+      dockerfile: Dockerfile
+      args:
+        <<: *nats-build-args
+        ADD_BUILD_TAGS: "include_nats_messaging VERSION=${EDGEX_VERSION:-4.0.2}"
+    environment:
+      <<: *edgex-env
+      EDGEX_PROFILE: http-export
+      SERVICE_HOST: edgex-app-http-export
+      WRITABLE_PIPELINE_EXECUTIONORDER: HTTPExport
+      WRITABLE_PIPELINE_FUNCTIONS_HTTPEXPORT_PARAMETERS_URL: ${SINK_URL:-http://87.107.191.32:18090}/edgex
+    depends_on:
+      core-data:
+        condition: service_started
+    logging: *logging
+
   ui:
     profiles: ["ui"]
     <<: *edgex-service

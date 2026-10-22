@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SUT_IP="${SUT_IP:-87.107.191.107}" PORT="${SINK_PORT:-18090}" CORE="${SINK_CPU:-2}"
-rule=(INPUT -p tcp --dport "$PORT" ! -s "$SUT_IP" ! -s 127.0.0.1 -m comment --comment iot-bench-sink -j DROP)
+# drop the port unless it comes from the SUT or over loopback (Prometheus scrapes 127.0.0.1)
+rule=(INPUT -p tcp --dport "$PORT" ! -i lo ! -s "$SUT_IP" -m comment --comment iot-bench-sink -j DROP)
 case "${1:-}" in
   start)
     out="${2:?output file}"

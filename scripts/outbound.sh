@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Configure each platform's outbound delivery to the sink (docs/exploratory-capacity.md, "Setup").
+# This is setup required by the measurement (research/notes/decisions.md: telemetry semantics), not tuning.
+#
+#   scripts/outbound.sh thingsboard   REST API Call node after "Save Timeseries" -> Success in the root rule chain
+#   scripts/outbound.sh fiware        Orion subscription on all Sensor entities -> sink (keyValues)
+#   scripts/outbound.sh edgex         nothing to configure here: the app-service-configurable export service
+#                                     (edgex/compose.yaml profile "export") carries the sink URL
+# Env: SUT (default 87.107.191.107), SINK_URL (default http://87.107.191.32:18090), TB_USER/TB_PASS.
+set -euo pipefail
+SUT="${SUT:-87.107.191.107}"
+SINK="${SINK_URL:-http://87.107.191.32:18090}"
+
+case "${1:-}" in
+  thingsboard)
+    TB="http://$SUT:8080"
+    jwt=$(curl -fsS -X POST "$TB/api/auth/login" -H 'Content-Type: application/json' \
+      -d "{\"username\":\"${TB_USER:-tenant@thingsboard.org}\",\"password\":\"${TB_PASS:-tenant}\"}" | jq -r .token)
+    H=(-H "X-Authorization: Bearer $jwt" -H 'Content-Type: application/json')
+    root=$(curl -fsS "${H[@]}" "$TB/api/ruleChains?pageSize=50&page=0&type=CORE" | jq -r '.data[] | select(.root) | .id.id')
+    meta=$(curl -fsS "${H[@]}" "$TB/api/ruleChain/$root/metadata")
+    if jq -e '.nodes[] | select(.name == "bench sink")' <<<"$meta" >/dev/null; then
+      echo "root rule chain already has the 'bench sink' node"; exit 0
+    fi
+    save=$(jq '[.nodes[].type] | index("org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode")' <<<"$meta")
+    [[ "$save" != null ]] || { echo "no Save Timeseries node in the root rule chain" >&2; exit 1; }
+    new=$(jq --argjson save "$save" --arg url "$SINK/tb" '
+      .nodes += [{
+        "type": "org.thingsboard.rule.engine.rest.TbRestApiCallNode", "name": "bench sink", "debugMode": false,
+        "configuration": {
+          "restEndpointUrlPattern": $url, "requestMethod": "POST", "useSimpleClientHttpFactory": false,
+          "parseToPlainText": false, "ignoreRequestBody": false, "enableProxy": false, "useSystemProxyProperties": false,
+          "readTimeoutMs": 10000, "maxParallelRequestsCount": 0, "headers": {"Content-Type": "application/json"},
+          "credentials": {"type": "anonymous"}}}]
+      | .connections += [{"fromIndex": $save, "toIndex": (.nodes | length - 1), "type": "Success"}]' <<<"$meta")
+    curl -fsS "${H[@]}" -X POST "$TB/api/ruleChain/metadata" -d "$new" | jq -c '{nodes: [.nodes[].name], connections: (.connections | length)}'
+    ;;
+  fiware)
+    ORION="http://$SUT:1026"
+    FH=(-H "fiware-service: ${FIWARE_SERVICE:-openiot}" -H 'fiware-servicepath: /')
+    if curl -fsS "${FH[@]}" "$ORION/v2/subscriptions" | jq -e '.[] | select(.description == "bench sink")' >/dev/null; then
+      echo "subscription 'bench sink' already exists"; exit 0
+    fi
+    curl -fsS -o /dev/null -w "subscription: HTTP %{http_code}\n" "${FH[@]}" -H 'Content-Type: application/json' \
+      -X POST "$ORION/v2/subscriptions" -d "{
+        \"description\": \"bench sink\",
+        \"subject\": {\"entities\": [{\"idPattern\": \".*\", \"type\": \"Sensor\"}], \"condition\": {\"attrs\": [\"seq\"]}},
+        \"notification\": {\"http\": {\"url\": \"$SINK/fiware\"}, \"attrs\": [\"seq\", \"run_id\", \"scheduled_send_ms\"],
+                          \"attrsFormat\": \"keyValues\"}}"
+    ;;
+  edgex) echo "EdgeX: start the export service: (cd edgex && docker compose --profile export up -d app-http-export)" ;;
+  *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac
