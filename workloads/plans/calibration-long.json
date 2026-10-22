@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "plan_id": "calibration-long",
+  "purpose": "Generator calibration: 10 minutes at one rate, as ten 60 s steps, to expose send-lag or memory drift over a full-length run. Not a platform result.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fixture",
+  "target": {
+    "base_url": "http://87.107.191.107:18080"
+  },
+  "devices": 100,
+  "request_timeout_ms": 2000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 200,
+    "max": 200
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "min01",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min02",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min03",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min04",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min05",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min06",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min07",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min08",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min09",
+        "rate": 1500,
+        "duration_s": 60
+      },
+      {
+        "phase": "min10",
+        "rate": 1500,
+        "duration_s": 60
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "histogram_ms": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    7,
+    10,
+    15,
+    20,
+    30,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300,
+    500,
+    750,
+    1000,
+    1500,
+    2000,
+    3000,
+    5000,
+    10000
+  ],
+  "cleanup": false,
+  "test_faults": {}
+}

@@ -328,6 +328,9 @@ func Run(o Options) (string, *Manifest, error) {
 	if o.CPUs != "" {
 		args = append(args, "--cpus", o.CPUs)
 	}
+	if o.FullJSON {
+		args = append(args, "-e", "FULL_JSON=1")
+	}
 	for _, kv := range o.Env {
 		args = append(args, "-e", kv)
 	}

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "plan_id": "poisson-thin10",
+  "purpose": "Poisson prototype: Bernoulli thinning, tick factor 10 (p = 0.1). Measures timing accuracy and generator cost. Pilot only.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fixture",
+  "target": {
+    "base_url": "http://87.107.191.107:18080"
+  },
+  "devices": 100,
+  "request_timeout_ms": 2000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "thinning",
+    "tick_factor": 10
+  },
+  "vus": {
+    "pre_allocated": 200,
+    "max": 200
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "thin",
+        "rate": 500,
+        "duration_s": 60
+      },
+      {
+        "phase": "thin",
+        "rate": 1000,
+        "duration_s": 60
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "histogram_ms": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    7,
+    10,
+    15,
+    20,
+    30,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300,
+    500,
+    750,
+    1000,
+    1500,
+    2000,
+    3000,
+    5000,
+    10000
+  ],
+  "cleanup": false,
+  "test_faults": {}
+}

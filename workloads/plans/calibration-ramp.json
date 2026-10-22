@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "plan_id": "calibration-ramp",
+  "purpose": "Generator calibration: step the offered rate against the fast fixture endpoint until the generator itself fails a health gate. Reports the generator ceiling for the given cores. Not a platform result.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fixture",
+  "target": {
+    "base_url": "http://87.107.191.107:18080"
+  },
+  "devices": 100,
+  "request_timeout_ms": 2000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 200,
+    "max": 200
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "cal",
+        "rate": 500,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 1000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 2000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 3000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 4000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 5000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 6000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 8000,
+        "duration_s": 45
+      },
+      {
+        "phase": "cal",
+        "rate": 10000,
+        "duration_s": 45
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "histogram_ms": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    7,
+    10,
+    15,
+    20,
+    30,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300,
+    500,
+    750,
+    1000,
+    1500,
+    2000,
+    3000,
+    5000,
+    10000
+  ],
+  "cleanup": false,
+  "test_faults": {}
+}

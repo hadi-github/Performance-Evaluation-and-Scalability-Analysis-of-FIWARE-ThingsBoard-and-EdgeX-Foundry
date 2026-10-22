@@ -5,6 +5,8 @@
 //	benchctl check     -run DIR                             recompute health + manifest verdict from the artifacts
 //	benchctl reconcile -run DIR -store FILE                 join the outcome ledger with a fixture/ingester store
 //	benchctl expected  -run DIR                             planned messages per step (thinning set from the seed)
+//	benchctl arrivals  -run DIR [-store FILE]               inter-arrival statistics, planned vs received (Poisson check)
+//	benchctl sendtimes -run DIR                             send lag from k6's own ns sample times (-full-json runs)
 //
 // Exit status: 0 = VALID / clean, 1 = INVALID / not clean, 2 = usage or I/O error.
 package main
@@ -17,6 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"iotbench/internal/arrivals"
 	"iotbench/internal/fixture"
 	"iotbench/internal/plan"
 	"iotbench/internal/reconcile"
@@ -160,6 +163,43 @@ func main() {
 			fmt.Printf("%s\tticks %d\tplanned_sends %d\tseq %d..%d\n", s.Name, s.Ticks, report.PlannedSends(&r, s),
 				s.SeqOffset, s.SeqOffset+s.Ticks-1)
 		}
+	case "arrivals":
+		var r plan.Resolved
+		if err := report.ReadJSON(filepath.Join(*dir, "resolved.json"), &r); err != nil {
+			die(2, "%v", err)
+		}
+		var recv []arrivals.Received
+		if *store != "" {
+			recs, err := fixture.ReadRecords(*store)
+			if err != nil {
+				die(2, "%v", err)
+			}
+			for _, x := range recs {
+				if x.RunID == r.RunID && x.Seq >= 0 {
+					recv = append(recv, arrivals.Received{Seq: x.Seq, RecvMs: x.RecvMs, Sched: x.SchedMs})
+				}
+			}
+		}
+		rep := arrivals.Analyse(&r, recv)
+		b, _ := json.MarshalIndent(rep, "", " ")
+		_ = os.WriteFile(filepath.Join(*dir, "arrivals.json"), append(b, '\n'), 0o644)
+		for _, s := range rep {
+			fmt.Printf("%-24s lambda %7.1f tick %8.1f | planned: n %7d mean %7.3f ms CV %.3f KS %.4f (1%% crit %.4f)",
+				s.Name, s.Lambda, s.TickRate, s.Planned.N, s.Planned.MeanMs, s.Planned.CV, s.Planned.KSvsExp, s.Planned.KSCrit01)
+			if s.Received != nil {
+				fmt.Printf(" | received: n %7d CV %.3f KS %.4f | receipt-scheduled p50 %.2f p99 %.2f ms",
+					s.Received.N, s.Received.CV, s.Received.KSvsExp, s.TimingErrP50, s.TimingErrP99)
+			}
+			fmt.Println()
+		}
+	case "sendtimes":
+		lags, err := arrivals.SendTimes(filepath.Join(*dir, "k6.json.gz"))
+		if err != nil {
+			die(2, "%v", err)
+		}
+		s := arrivals.SortedCopy(lags)
+		fmt.Printf("authoritative send lag (k6 sample time - http_req_duration - scheduled): n %d  p50 %.3f  p99 %.3f  max %.3f  min %.3f ms\n",
+			len(s), arrivals.Quantile(s, 0.5), arrivals.Quantile(s, 0.99), arrivals.Quantile(s, 1), arrivals.Quantile(s, 0))
 	default:
 		die(2, "unknown command %q", cmd)
 	}

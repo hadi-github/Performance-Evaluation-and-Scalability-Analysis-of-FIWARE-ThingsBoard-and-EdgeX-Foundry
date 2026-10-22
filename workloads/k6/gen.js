@@ -31,6 +31,9 @@ const TIMEOUT = cfg.request_timeout_ms + 'ms';
 const EARLY_TOL = cfg.health.early_tolerance_ms;
 const DUP = new Set(cfg.test_faults.duplicate_seqs || []);
 const EARLY_EVERY = cfg.test_faults.early_every || 0;
+// Calibration runs with full JSON output: attach seq/scheduled time to the samples (non-indexed metadata), so
+// k6's own ns sample times can serve as the authoritative send time (benchctl sendtimes).
+const FULL_JSON = __ENV.FULL_JSON === '1';
 
 // ---- metrics: one Counter per (step, quantity) and per (step, histogram bucket), declared in the init context
 const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown'];
@@ -100,6 +103,10 @@ function record(r) {
 
 function send(st, step, m, i) {
   const req = adapter.request(cfg, st, m);
+  if (FULL_JSON) {
+    exec.vu.metrics.metadata.seq = String(m.seq);
+    exec.vu.metrics.metadata.sched = String(m.scheduled_send_ms);
+  }
   const actual = Date.now();
   const lag = actual - m.scheduled_send_ms;
   const res = http.post(req.url, req.body, { headers: req.headers, timeout: TIMEOUT, tags: { name: 'send' } });
