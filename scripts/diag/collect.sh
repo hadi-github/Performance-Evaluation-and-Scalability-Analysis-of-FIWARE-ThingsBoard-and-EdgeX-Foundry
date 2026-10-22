@@ -12,7 +12,7 @@
 #   pg-counters.ndjson  EdgeX: pg_stat_database / pg_stat_wal / pg_stat_statements every 10 s
 #   valkey.txt       ThingsBoard: INFO commandstats every 10 s (server_time_usec as timestamp)
 #   mongo.ndjson     FIWARE: opcounters every 5 s; with a profile rate, one "profile" line (scripts/diag/mongo-loop.js)
-#   http.ndjson      NATS varz/connz (EdgeX), Orion /metrics and /statistics per replica (FIWARE), every 10 s
+#   http.ndjson      NATS varz/connz (EdgeX), Orion /admin/metrics and /statistics per replica (FIWARE), every 10 s
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
@@ -56,7 +56,7 @@ case "$cmd" in
         elif [ "$platform" = fiware ]; then
           for c in $(docker ps --format "{{.Names}}" --filter name=fiware-orion | sort); do
             ip=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $c)
-            curl -s -m 5 "http://$ip:1026/metrics" | jq -Rsc --arg t "$t" --arg c "$c" "{t_ms: (\$t|tonumber), src: \"orion_metrics\", container: \$c, data: .}" || true
+            curl -s -m 5 "http://$ip:1026/admin/metrics" | jq -Rsc --arg t "$t" --arg c "$c" "{t_ms: (\$t|tonumber), src: \"orion_metrics\", container: \$c, data: .}" || true
             curl -s -m 5 "http://$ip:1026/statistics" | jq -c --arg t "$t" --arg c "$c" "{t_ms: (\$t|tonumber), src: \"orion_statistics\", container: \$c, data: .}" || true
           done
         else exit 0; fi

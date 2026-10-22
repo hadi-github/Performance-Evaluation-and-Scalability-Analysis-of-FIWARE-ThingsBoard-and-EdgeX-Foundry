@@ -6,7 +6,9 @@ const appDbs = () => db.adminCommand({ listDatabases: 1 }).databases.map((d) => 
   .filter((n) => !['admin', 'local', 'config'].includes(n));
 let prev = null, okRuns = 0, profiled = false;
 while (true) {
-  const op = db.serverStatus().opcounters;
+  const raw = db.serverStatus().opcounters; // 64-bit Longs: convert, or arithmetic and JSON break
+  const op = {};
+  for (const k of Object.keys(raw)) op[k] = Number(raw[k]);
   const t = Date.now();
   print(JSON.stringify({ t_ms: t, opcounters: op }));
   if (rate > 0 && !profiled && prev) {
