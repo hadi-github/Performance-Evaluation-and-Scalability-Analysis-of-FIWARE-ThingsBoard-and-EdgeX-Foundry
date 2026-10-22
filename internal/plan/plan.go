@@ -32,7 +32,7 @@ type Plan struct {
 	VUs           VUs        `json:"vus"`
 	Schedule      Schedule   `json:"schedule"`
 	Health        Health     `json:"health"`
-	HistogramMs   []float64  `json:"histogram_ms"` // bucket upper edges (ms), ascending; an overflow bucket is added
+	HistogramMs   []float64  `json:"histogram_ms,omitempty"` // obsolete (latency is now exact k6 Trends); accepted and ignored
 	Cleanup       bool       `json:"cleanup"`
 	TestFaults    TestFaults `json:"test_faults"`
 }
@@ -87,6 +87,7 @@ type StepSpec struct {
 	Phase     string  `json:"phase"`
 	Rate      float64 `json:"rate"`
 	DurationS int     `json:"duration_s"`
+	VUs       int     `json:"vus,omitempty"` // per-step VU pool (pre-allocated = max); default: plan vus
 }
 
 type PhaseSpec struct {
@@ -119,6 +120,7 @@ type Step struct {
 	StartS    int     `json:"start_s"`    // offset from the test start
 	Ticks     int64   `json:"ticks"`      // = tick_rate x duration_s
 	SeqOffset int64   `json:"seq_offset"` // first seq of this step
+	VUs       int     `json:"vus,omitempty"`
 }
 
 type Resolved struct {
@@ -131,6 +133,9 @@ type Resolved struct {
 }
 
 var nameRe = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
+
+// runIDRe also allows upper case (exploratory runs are named EXPL-...).
+var runIDRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]*$`)
 
 // Load reads a plan with strict decoding: unknown fields and trailing data are errors.
 func Load(path string) (*Plan, error) {
@@ -204,31 +209,10 @@ func (p *Plan) validate() error {
 	if h.MinAchievedRatio <= 0 || h.MinAchievedRatio > 1 || h.SendLagP99Ms <= 0 || h.EarlyToleranceMs < 0 {
 		bad("health: min_achieved_ratio in (0,1], send_lag_p99_ms > 0 and early_tolerance_ms >= 0 are required")
 	}
-	if len(p.HistogramMs) < 2 {
-		bad("histogram_ms needs at least 2 bucket edges")
-	}
-	for i := 1; i < len(p.HistogramMs); i++ {
-		if p.HistogramMs[i] <= p.HistogramMs[i-1] {
-			bad("histogram_ms must be strictly ascending")
-			break
-		}
-	}
-	if !contains(p.HistogramMs, h.SendLagP99Ms) {
-		bad("histogram_ms must contain the send-lag limit %.0f as a bucket edge, so the p99 gate is exact", h.SendLagP99Ms)
-	}
 	if len(errs) > 0 {
 		return errors.New("plan invalid:\n  " + strings.Join(errs, "\n  "))
 	}
 	return nil
-}
-
-func contains(v []float64, x float64) bool {
-	for _, e := range v {
-		if e == x {
-			return true
-		}
-	}
-	return false
 }
 
 // Resolve validates the plan and expands its schedule into explicit steps.
@@ -236,8 +220,8 @@ func (p *Plan) Resolve(runID string) (*Resolved, error) {
 	if err := p.validate(); err != nil {
 		return nil, err
 	}
-	if !nameRe.MatchString(runID) {
-		return nil, fmt.Errorf("run_id must match %s", nameRe)
+	if !runIDRe.MatchString(runID) {
+		return nil, fmt.Errorf("run_id must match %s", runIDRe)
 	}
 	specs, err := p.Schedule.expand()
 	if err != nil {
@@ -262,7 +246,10 @@ func (p *Plan) Resolve(runID string) (*Resolved, error) {
 		}
 		st := Step{
 			Index: i, Phase: s.Phase, Rate: s.Rate, TickRate: tick, DurationS: s.DurationS,
-			StartS: start, Ticks: int64(math.Round(ticks)), SeqOffset: seq,
+			StartS: start, Ticks: int64(math.Round(ticks)), SeqOffset: seq, VUs: s.VUs,
+		}
+		if s.VUs < 0 {
+			return nil, fmt.Errorf("step %d: vus must be >= 0", i)
 		}
 		st.Name = fmt.Sprintf("s%02d-%s-r%s", i, s.Phase, trimFloat(s.Rate))
 		if !nameRe.MatchString(st.Name) {

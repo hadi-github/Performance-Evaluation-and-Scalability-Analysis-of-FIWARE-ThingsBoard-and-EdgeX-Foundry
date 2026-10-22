@@ -19,7 +19,6 @@ import (
 type Summary struct {
 	SchemaVersion     int           `json:"schema_version"`
 	RunID             string        `json:"run_id"`
-	EdgesMs           []float64     `json:"histogram_edges_ms"`
 	Steps             []StepSummary `json:"steps"`
 	DroppedTotal      float64       `json:"dropped_iterations_total"`
 	VUsPeak           float64       `json:"vus_peak"`
@@ -36,22 +35,32 @@ type Sample struct {
 }
 
 type StepSummary struct {
-	Index           int       `json:"index"`
-	Name            string    `json:"name"`
-	ScenarioStartMs float64   `json:"scenario_start_ms"`
-	Attempted       float64   `json:"attempted"`
-	AckSuccess      float64   `json:"ack_success"`
-	ExplicitFailure float64   `json:"explicit_failure"`
-	Unknown         float64   `json:"unknown"`
-	Early           float64   `json:"early"`
-	BeyondPlan      float64   `json:"beyond_plan"`
-	Thinned         float64   `json:"thinned"`
-	DupInjected     float64   `json:"dup_injected"`
-	Dropped         float64   `json:"dropped_iterations"`
-	HTTPReqs        float64   `json:"http_reqs"`
-	DataSentBytes   float64   `json:"data_sent_bytes"`
-	SendLagHist     []float64 `json:"send_lag_hist"`
-	AckLatencyHist  []float64 `json:"ack_latency_hist"`
+	Index           int          `json:"index"`
+	Name            string       `json:"name"`
+	ScenarioStartMs float64      `json:"scenario_start_ms"`
+	Attempted       float64      `json:"attempted"`
+	AckSuccess      float64      `json:"ack_success"`
+	ExplicitFailure float64      `json:"explicit_failure"`
+	Unknown         float64      `json:"unknown"`
+	Early           float64      `json:"early"`
+	BeyondPlan      float64      `json:"beyond_plan"`
+	Thinned         float64      `json:"thinned"`
+	DupInjected     float64      `json:"dup_injected"`
+	Dropped         float64      `json:"dropped_iterations"`
+	HTTPReqs        float64      `json:"http_reqs"`
+	DataSentBytes   float64      `json:"data_sent_bytes"`
+	SendLag         TrendStats   `json:"send_lag_ms"`
+	AckLatency      TrendStats   `json:"ack_latency_ms"`
+	AckByMinute     []TrendStats `json:"ack_latency_ms_by_minute"`
+}
+
+// TrendStats are exact statistics of a k6 Trend (sub-)metric, in ms.
+type TrendStats struct {
+	Minute int     `json:"minute,omitempty"` // 1-based minute of the step by scheduled tick (per-minute entries)
+	Count  float64 `json:"count"`
+	P50    float64 `json:"p50"`
+	P99    float64 `json:"p99"`
+	Max    float64 `json:"max"`
 }
 
 // Record is one line of records.ndjson: a non-success message or an early send.
@@ -102,6 +111,7 @@ type StepHealth struct {
 	Outcomes         map[string]float64 `json:"outcomes"`
 	SendLagMs        Quantiles          `json:"send_lag_ms"`
 	AckLatencyMs     Quantiles          `json:"ack_latency_ms"`
+	AckByMinute      []Quantiles        `json:"ack_latency_ms_by_minute"`
 	PerDeviceIntervS float64            `json:"per_device_interval_s"`
 	OnWireBytesAvg   float64            `json:"on_wire_bytes_per_request"`
 	CoreBusyMax      []float64          `json:"generator_core_busy_max"`
@@ -111,13 +121,13 @@ type StepHealth struct {
 	Valid            bool               `json:"valid"`
 }
 
-// Quantiles from a bucketed histogram: each value is the upper edge of the bucket holding that quantile
-// (+Inf for the overflow bucket), plus the count.
+// Quantiles are exact (k6 Trend) statistics in ms, plus the count; null when there were no samples.
 type Quantiles struct {
-	Count float64 `json:"count"`
-	P50   F       `json:"p50_le"`
-	P99   F       `json:"p99_le"`
-	Max   F       `json:"max_le"`
+	Minute int     `json:"minute,omitempty"`
+	Count  float64 `json:"count"`
+	P50    F       `json:"p50"`
+	P99    F       `json:"p99"`
+	Max    F       `json:"max"`
 }
 
 // F is a float that JSON-encodes NaN (no data) as null and +Inf (overflow bucket) as "+Inf".
@@ -189,39 +199,12 @@ func ReadNDJSON[T any](path string) ([]T, error) {
 	return out, sc.Err()
 }
 
-func quantiles(edges, hist []float64) Quantiles {
-	q := Quantiles{}
-	for _, c := range hist {
-		q.Count += c
+// fromTrend converts k6's exact Trend statistics; no samples gives NaN (reported as null).
+func fromTrend(t TrendStats) Quantiles {
+	if t.Count == 0 {
+		return Quantiles{P50: F(math.NaN()), P99: F(math.NaN()), Max: F(math.NaN())}
 	}
-	if q.Count == 0 {
-		q.P50, q.P99, q.Max = F(math.NaN()), F(math.NaN()), F(math.NaN())
-		return q
-	}
-	edge := func(b int) F {
-		if b < len(edges) {
-			return F(edges[b])
-		}
-		return F(math.Inf(1))
-	}
-	at := func(p float64) F {
-		need, cum := p*q.Count, 0.0
-		for b, c := range hist {
-			cum += c
-			if cum >= need-1e-9 {
-				return edge(b)
-			}
-		}
-		return edge(len(hist) - 1)
-	}
-	q.P50, q.P99 = at(0.50), at(0.99)
-	for b := len(hist) - 1; b >= 0; b-- {
-		if hist[b] > 0 {
-			q.Max = edge(b)
-			break
-		}
-	}
-	return q
+	return Quantiles{Count: t.Count, P50: F(t.P50), P99: F(t.P99), Max: F(t.Max)}
 }
 
 // PlannedSends is the number of messages step s is meant to send: every tick for constant arrivals, the
@@ -312,8 +295,13 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 		}
 		sh.Outcomes = map[string]float64{"ack_success": ss.AckSuccess, "explicit_failure": ss.ExplicitFailure,
 			"unknown": ss.Unknown, "not_sent": ss.Dropped}
-		sh.SendLagMs = quantiles(s.EdgesMs, ss.SendLagHist)
-		sh.AckLatencyMs = quantiles(s.EdgesMs, ss.AckLatencyHist)
+		sh.SendLagMs = fromTrend(ss.SendLag)
+		sh.AckLatencyMs = fromTrend(ss.AckLatency)
+		for _, m := range ss.AckByMinute {
+			q := fromTrend(m)
+			q.Minute = m.Minute
+			sh.AckByMinute = append(sh.AckByMinute, q)
+		}
 		sh.PerDeviceIntervS = float64(r.Devices) / st.Rate
 		if ss.HTTPReqs > 0 {
 			sh.OnWireBytesAvg = ss.DataSentBytes / ss.HTTPReqs
@@ -352,8 +340,8 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 		add("ticks_complete", sh.TicksExecuted == st.Ticks, true, "%d of %d planned ticks executed", sh.TicksExecuted, st.Ticks)
 		add("achieved_rate", sh.AchievedRatio >= r.Health.MinAchievedRatio, true,
 			"%d of %d planned sends (%.4f, limit %.2f)", sh.Sends, sh.PlannedSends, sh.AchievedRatio, r.Health.MinAchievedRatio)
-		add("send_lag_p99", float64(sh.SendLagMs.P99) <= r.Health.SendLagP99Ms, true, "p99 <= %v ms (limit %v ms; p50 <= %v, max <= %v)",
-			sh.SendLagMs.P99, r.Health.SendLagP99Ms, sh.SendLagMs.P50, sh.SendLagMs.Max)
+		add("send_lag_p99", float64(sh.SendLagMs.P99) <= r.Health.SendLagP99Ms, true, "p99 %.2f ms (limit %v ms; p50 %.2f, max %.2f)",
+			float64(sh.SendLagMs.P99), r.Health.SendLagP99Ms, float64(sh.SendLagMs.P50), float64(sh.SendLagMs.Max))
 		add("no_early_sends", ss.Early == 0, true, "%.0f sends more than %v ms before their scheduled time", ss.Early, r.Health.EarlyToleranceMs)
 		outSum := ss.AckSuccess + ss.ExplicitFailure + ss.Unknown
 		add("outcome_accounting", outSum == ss.Attempted, true, "ack %.0f + failure %.0f + unknown %.0f = %.0f attempted",

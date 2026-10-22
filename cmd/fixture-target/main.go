@@ -32,6 +32,7 @@ func main() {
 	flag.DurationVar(&c.RampOver, "ramp-over", 0, "ramp duration, from the first request")
 	flag.BoolVar(&c.Mode207, "mode-207", false, "answer 207 with a one-item batch body (EdgeX style)")
 	flag.Int64Var(&c.Fail207Every, "fail-207-every", 0, "in 207 mode, item statusCode 500 for seq % n == 0")
+	flag.StringVar(&c.ForwardURL, "forward", "", "re-post every stored message to this URL (a sink)")
 	flag.Parse()
 
 	f, err := os.Create(*out)

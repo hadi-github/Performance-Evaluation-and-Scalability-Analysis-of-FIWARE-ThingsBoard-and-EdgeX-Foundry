@@ -14,12 +14,13 @@
 //
 // Outputs (no per-message console logging for successes, no IDs in metric tags):
 //   - counters per step: attempted, ack_success, explicit_failure, unknown, early sends, beyond-plan, thinned ticks;
-//   - per-step bucketed histograms: send lag (actual - scheduled) and ack latency (response - scheduled);
+//   - send lag (actual - scheduled) per step and ack latency (response - scheduled) per step and per minute of the
+//     step (by scheduled tick), as two tagged k6 Trends with exact p50/p99/max per tag combination;
 //   - one JSON log record per non-success message or early send (k6 --log-output file, written by benchctl);
 //   - handleSummary -> <OUT_DIR>/k6-summary.json (all counters, dropped iterations and VUs per step).
 import http from 'k6/http';
 import exec from 'k6/execution';
-import { Counter, Gauge } from 'k6/metrics';
+import { Counter, Gauge, Trend } from 'k6/metrics';
 import { ADAPTERS } from './lib/adapters.js';
 import { selected, threshold, values } from './lib/hash.js';
 
@@ -28,7 +29,6 @@ const OUT_DIR = __ENV.OUT_DIR || '.';
 const adapter = ADAPTERS[cfg.adapter];
 if (!adapter) throw new Error('unknown adapter ' + cfg.adapter);
 
-const EDGES = cfg.histogram_ms;
 const THINNING = cfg.arrivals.model === 'thinning';
 const SEL_THRESHOLD = threshold(cfg.send_probability);
 const TIMEOUT = cfg.request_timeout_ms + 'ms';
@@ -39,30 +39,24 @@ const EARLY_EVERY = cfg.test_faults.early_every || 0;
 // k6's own ns sample times can serve as the authoritative send time (benchctl sendtimes).
 const FULL_JSON = __ENV.FULL_JSON === '1';
 
-// ---- metrics: one Counter per (step, quantity) and per (step, histogram bucket), declared in the init context
+// ---- metrics, declared in the init context of every VU. Keep the number of metric objects small: k6 creates them
+// per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/calibration.md).
 const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown'];
 const M = cfg.steps.map((s) => {
   const c = (n) => new Counter('g_' + n + '_s' + s.index);
-  const hist = (n) => EDGES.concat([Infinity]).map((_, b) => new Counter('g_' + n + '_s' + s.index + '_le' + edgeName(b)));
   const o = {};
   OUTCOMES.forEach((k) => { o[k] = c(k); });
   return {
     attempted: c('attempted'), outcome: o, early: c('early'), beyond: c('beyond'), thinned: c('thinned'),
-    dupInjected: c('dup_injected'), lag: hist('lag'), ack: hist('ack'), t0: new Gauge('g_t0_s' + s.index),
+    dupInjected: c('dup_injected'), t0: new Gauge('g_t0_s' + s.index),
     plannedRate: new Gauge('g_planned_rate_s' + s.index), // for live monitoring only (refreshed every 500 ticks)
   };
 });
-
-// Bucket b of a histogram is named by its upper edge ("le"), e.g. g_lag_s3_le10, g_lag_s3_le0p5, g_lag_s3_leinf,
-// so that Prometheus recording rules can turn the name into an le label (monitoring/rules). Non-cumulative counts.
-function edgeName(b) {
-  return b < EDGES.length ? String(EDGES[b]).replace('.', 'p') : 'inf';
-}
-
-function bucket(v) {
-  for (let b = 0; b < EDGES.length; b++) if (v <= EDGES[b]) return b;
-  return EDGES.length;
-}
+// Latency Trends, tagged s = step index, m = minute of the step by scheduled tick (0-based). k6 keeps every value of
+// a Trend (and of each thresholded sub-metric) for the summary, so p99s are exact.
+const LAG = new Trend('g_lag_ms');
+const ACK = new Trend('g_ack_ms');
+const minutes = (s) => Math.ceil(s.duration_s / 60);
 
 const GUARD_S = 1;
 const scenarios = {};
@@ -74,8 +68,9 @@ for (const s of cfg.steps) {
     timeUnit: '1s',
     duration: (s.duration_s + GUARD_S) + 's',
     startTime: s.start_s + 's',
-    preAllocatedVUs: cfg.vus.pre_allocated,
-    maxVUs: cfg.vus.max,
+    // Per-step pool (pre-allocated = max, no dynamic allocation); plan default otherwise.
+    preAllocatedVUs: s.vus || cfg.vus.pre_allocated,
+    maxVUs: s.vus || cfg.vus.max,
     gracefulStop: (cfg.request_timeout_ms + 5000) + 'ms',
     exec: 'gen',
     env: { STEP: String(s.index) },
@@ -84,6 +79,9 @@ for (const s of cfg.steps) {
   thresholds['dropped_iterations{scenario:' + s.name + '}'] = ['count>=0'];
   thresholds['http_reqs{scenario:' + s.name + '}'] = ['count>=0'];
   thresholds['data_sent{scenario:' + s.name + '}'] = ['count>=0'];
+  thresholds['g_lag_ms{s:' + s.index + '}'] = ['p(99)>=0'];
+  thresholds['g_ack_ms{s:' + s.index + '}'] = ['p(99)>=0'];
+  for (let m = 0; m < minutes(s); m++) thresholds['g_ack_ms{s:' + s.index + ',m:' + m + '}'] = ['p(99)>=0'];
 }
 
 export const options = {
@@ -96,7 +94,7 @@ export const options = {
   systemTags: ['status', 'scenario', 'name', 'expected_response', 'error_code'],
   // Bounded run-level labels for the optional Prometheus remote-write stream (one value per run; never per message).
   tags: { run_id: cfg.run_id, plan_id: cfg.plan_id, adapter: cfg.adapter },
-  summaryTrendStats: ['avg', 'p(99)', 'max'],
+  summaryTrendStats: ['count', 'avg', 'med', 'p(99)', 'max'],
 };
 
 // 207 counts as an expected HTTP status for diagnostics; the outcome is decided by the adapter's classify().
@@ -129,8 +127,10 @@ function send(st, step, m, i) {
   const mm = M[step.index];
   mm.attempted.add(1);
   mm.outcome[c.outcome].add(1);
-  mm.lag[bucket(lag)].add(1);
-  if (c.outcome === 'ack_success') mm.ack[bucket(response - m.scheduled_send_ms)].add(1);
+  LAG.add(lag, { s: String(step.index) });
+  if (c.outcome === 'ack_success') {
+    ACK.add(response - m.scheduled_send_ms, { s: String(step.index), m: String(Math.floor(i / (step.tick_rate * 60))) });
+  }
   const early = lag < -EARLY_TOL;
   if (early) mm.early.add(1);
   if (c.outcome !== 'ack_success' || early) {
@@ -167,7 +167,7 @@ export function teardown(st) {
 
 export function handleSummary(data) {
   const v = (name, stat) => (data.metrics[name] && data.metrics[name].values[stat]) || 0;
-  const hist = (n, s) => EDGES.concat([Infinity]).map((_, b) => v('g_' + n + '_s' + s + '_le' + edgeName(b), 'count'));
+  const trend = (name) => ({ count: v(name, 'count'), p50: v(name, 'med'), p99: v(name, 'p(99)'), max: v(name, 'max') });
   const steps = cfg.steps.map((s) => ({
     index: s.index, name: s.name,
     scenario_start_ms: v('g_t0_s' + s.index, 'value'),
@@ -182,11 +182,13 @@ export function handleSummary(data) {
     dropped_iterations: v('dropped_iterations{scenario:' + s.name + '}', 'count'),
     http_reqs: v('http_reqs{scenario:' + s.name + '}', 'count'),
     data_sent_bytes: v('data_sent{scenario:' + s.name + '}', 'count'),
-    send_lag_hist: hist('lag', s.index),
-    ack_latency_hist: hist('ack', s.index),
+    send_lag_ms: trend('g_lag_ms{s:' + s.index + '}'),
+    ack_latency_ms: trend('g_ack_ms{s:' + s.index + '}'),
+    ack_latency_ms_by_minute: Array.from({ length: minutes(s) }, (_, m) => Object.assign({ minute: m + 1 },
+      trend('g_ack_ms{s:' + s.index + ',m:' + m + '}'))),
   }));
   const out = {
-    schema_version: 1, run_id: cfg.run_id, histogram_edges_ms: EDGES, steps,
+    schema_version: 2, run_id: cfg.run_id, steps,
     dropped_iterations_total: v('dropped_iterations', 'count'),
     vus_peak: v('vus', 'max'), vus_max_allocated: v('vus_max', 'max'),
     sample_request: data.setup_data ? data.setup_data.sample : null,

@@ -8,6 +8,8 @@
 //	benchctl expected  -run DIR                             planned messages per step (thinning set from the seed)
 //	benchctl arrivals  -run DIR [-store FILE]               inter-arrival statistics, planned vs received (Poisson check)
 //	benchctl sendtimes -run DIR                             send lag from k6's own ns sample times (-full-json runs)
+//	benchctl explore   -run DIR -sink FILE [-cpu TSV] [-history FILE]
+//	                   exploratory capacity check: declared pass rule per step, CPU bounds (internal/explore)
 //
 // Exit status: 0 = VALID / clean, 1 = INVALID / not clean, 2 = usage or I/O error.
 package main
@@ -18,9 +20,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"iotbench/internal/arrivals"
+	"iotbench/internal/explore"
 	"iotbench/internal/fixture"
 	"iotbench/internal/plan"
 	"iotbench/internal/reconcile"
@@ -60,9 +64,9 @@ func repoRoot() string {
 func summarize(m *runner.Manifest) {
 	fmt.Printf("== %s: %s\n", m.RunID, m.Verdict)
 	for _, s := range m.Health.Steps {
-		fmt.Printf("  %-28s rate %7.1f  sends %8d/%-8d  ack %8.0f fail %6.0f unknown %6.0f dropped %4.0f  lag p99<=%v ms  ack p99<=%v ms\n",
+		fmt.Printf("  %-28s rate %7.1f  sends %8d/%-8d  ack %8.0f fail %6.0f unknown %6.0f dropped %4.0f  lag p99 %.1f ms  ack p99 %.1f ms\n",
 			s.Name, s.Rate, s.Sends, s.PlannedSends, s.Outcomes["ack_success"], s.Outcomes["explicit_failure"],
-			s.Outcomes["unknown"], s.Outcomes["not_sent"], s.SendLagMs.P99, s.AckLatencyMs.P99)
+			s.Outcomes["unknown"], s.Outcomes["not_sent"], float64(s.SendLagMs.P99), float64(s.AckLatencyMs.P99))
 	}
 	for _, r := range m.Health.Reasons {
 		fmt.Println("  INVALID: " + r)
@@ -87,7 +91,10 @@ func main() {
 	promRW := fs.String("prom-rw", "", "Prometheus remote-write URL for live monitoring (e.g. http://127.0.0.1:9090/api/v1/write)")
 	grafana := fs.String("grafana-url", "", "post a run annotation to this Grafana (password: env BENCH_GRAFANA_PASSWORD)")
 	dir := fs.String("run", "", "run directory")
-	store := fs.String("store", "", "store file (fixture NDJSON records)")
+	store := fs.String("store", "", "store file: NDJSON with run_id, seq (and optional stored); fixture or history export")
+	sinkFile := fs.String("sink", "", "sink NDJSON (cmd/sink)")
+	cpuFile := fs.String("cpu", "", "CPU snapshot TSV (monitoring/exporters/cpu-snapshot.sh --loop)")
+	history := fs.String("history", "", "history export NDJSON (scripts/history-ids.sh)")
 	var env multi
 	fs.Var(&env, "env", "KEY=VALUE passed to k6 (repeatable; names are recorded, values are not)")
 	_ = fs.Parse(args)
@@ -134,15 +141,9 @@ func main() {
 			os.Exit(1)
 		}
 	case "reconcile":
-		recs, err := fixture.ReadRecords(*store)
+		stored, err := readStore(*store)
 		if err != nil {
 			die(2, "%v", err)
-		}
-		var stored []reconcile.Stored
-		for _, r := range recs {
-			if r.Stored && r.Seq >= 0 {
-				stored = append(stored, reconcile.Stored{RunID: r.RunID, Seq: r.Seq})
-			}
 		}
 		res, err := reconcile.Run(*dir, stored)
 		if err != nil {
@@ -203,7 +204,121 @@ func main() {
 		s := arrivals.SortedCopy(lags)
 		fmt.Printf("authoritative send lag (k6 sample time - http_req_duration - scheduled): n %d  p50 %.3f  p99 %.3f  max %.3f  min %.3f ms\n",
 			len(s), arrivals.Quantile(s, 0.5), arrivals.Quantile(s, 0.99), arrivals.Quantile(s, 1), arrivals.Quantile(s, 0))
+	case "explore":
+		runExplore(*dir, *sinkFile, *cpuFile, *history)
 	default:
 		die(2, "unknown command %q", cmd)
+	}
+}
+
+// readStore reads identities from an NDJSON file with run_id and seq; a "stored" field, if present, must be true.
+func readStore(path string) ([]reconcile.Stored, error) {
+	type row struct {
+		RunID  string `json:"run_id"`
+		Seq    *int64 `json:"seq"`
+		Stored *bool  `json:"stored"`
+	}
+	rows, err := report.ReadNDJSON[row](path)
+	if err != nil {
+		return nil, err
+	}
+	var out []reconcile.Stored
+	for _, r := range rows {
+		if r.Seq == nil || *r.Seq < 0 || (r.Stored != nil && !*r.Stored) {
+			continue
+		}
+		out = append(out, reconcile.Stored{RunID: r.RunID, Seq: *r.Seq})
+	}
+	return out, nil
+}
+
+func readSnapshots(path string) ([]explore.Snapshot, error) {
+	if path == "" {
+		return nil, nil
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var out []explore.Snapshot
+	for _, l := range strings.Split(string(b), "\n") {
+		f := strings.Split(l, "\t")
+		if len(f) < 6 {
+			continue
+		}
+		t, err1 := strconv.ParseFloat(f[0], 64)
+		u, err2 := strconv.ParseInt(f[3], 10, 64)
+		if err1 != nil || err2 != nil {
+			continue // NA usage (container gone mid-snapshot)
+		}
+		out = append(out, explore.Snapshot{TimeS: t, Container: f[1], ID: f[2], UsageUsec: u, StartedAt: f[4], Cpuset: f[5]})
+	}
+	return out, nil
+}
+
+func runExplore(dir, sinkPath, cpuPath, historyPath string) {
+	r, sum, h, err := report.Evaluate(dir)
+	if err != nil || sum == nil {
+		die(2, "run %s: %v (summary present: %v)", dir, err, sum != nil)
+	}
+	type sinkRow struct {
+		RunID  string  `json:"run_id"`
+		Seq    int64   `json:"seq"`
+		RecvMs float64 `json:"recv_ms"`
+	}
+	rows, err := report.ReadNDJSON[sinkRow](sinkPath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	var obs []explore.SinkObs
+	for _, x := range rows {
+		obs = append(obs, explore.SinkObs{RunID: x.RunID, Seq: x.Seq, RecvMs: x.RecvMs})
+	}
+	snaps, err := readSnapshots(cpuPath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	res := explore.Evaluate(r, sum, h, obs, snaps)
+	out := map[string]any{"explore": res}
+	if historyPath != "" {
+		stored, err := readStore(historyPath)
+		if err != nil {
+			die(2, "%v", err)
+		}
+		if rec, err := reconcile.Run(dir, stored); err != nil {
+			out["history_reconciliation"] = "refused: " + err.Error()
+		} else {
+			out["history_reconciliation"] = rec
+		}
+	}
+	b, _ := json.MarshalIndent(out, "", " ")
+	_ = os.WriteFile(filepath.Join(dir, "explore.json"), append(b, '\n'), 0o644)
+
+	fmt.Printf("== explore %s: highest passing %v msg/s, first non-pass %v msg/s (%s); sink: %d of %d planned reached, %d duplicate receipts\n",
+		res.RunID, res.HighestPassRate, res.FirstFailRate, res.FirstFailVerdict, res.ReachedSinkOfPlan, res.Planned, res.SinkDuplicates)
+	for _, s := range res.Steps {
+		var mins []string
+		for _, m := range s.Minutes {
+			mins = append(mins, fmt.Sprintf("%.0f", m.P99Ms))
+		}
+		var outs []string
+		for _, o := range s.OutstandingMin {
+			outs = append(outs, fmt.Sprintf("%.1f", o))
+		}
+		fmt.Printf("  %-26s %-13s unsucc %.4f%%  lag p99 %5.1f ms  ack p99/min [%s] ms  outstanding/min [%s]",
+			s.Name, s.Verdict, s.Unsuccessful*100, s.SendLagP99Ms, strings.Join(mins, " "), strings.Join(outs, " "))
+		if s.MinBContainer != "" {
+			fmt.Printf("  bound %.0f msg/s (%s)", s.MinB, s.MinBContainer)
+		}
+		fmt.Println()
+		for _, reason := range s.Reasons {
+			fmt.Println("      - " + reason)
+		}
+	}
+	if rec, ok := out["history_reconciliation"].(*reconcile.Result); ok {
+		fmt.Printf("  history: planned %d, stored unique %d, ack_lost %d, persisted_despite_unknown %d, duplicates %d, orphans %d\n",
+			rec.Planned, rec.StoredUnique, len(rec.AckLost), len(rec.PersistedDespiteUnknown), len(rec.Duplicates), len(rec.Orphans))
+	} else if v, ok := out["history_reconciliation"]; ok {
+		fmt.Printf("  history: %v\n", v)
 	}
 }

@@ -10,10 +10,13 @@
 //	RampTo/RampOver        every answer delayed by RampTo x min(1, t/RampOver), t = time since the first request
 //	Delay                  fixed delay for every answer (overridable per request with ?delay_ms=)
 //	Mode207/Fail207Every   answer 207 with a one-item JSON batch body; item statusCode 500 if seq % n == 0, else 201
+//	ForwardURL             re-post every stored message's body to this URL (a sink), like a platform's outbound
+//	                       path; done by a bounded worker pool, and every failed or dropped forward is counted
 package fixture
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,6 +40,7 @@ type Config struct {
 	RampOver     time.Duration
 	Mode207      bool
 	Fail207Every int64
+	ForwardURL   string
 }
 
 // Record is one received request. Times are epoch milliseconds (float, sub-ms resolution) and monotonic ns.
@@ -70,11 +74,34 @@ type Server struct {
 	records  chan Record
 	done     chan struct{}
 	closeMu  sync.Once
+	forward  chan []byte
+	fwdFail  atomic.Int64 // forwards that failed or were dropped (queue full)
+	fwdOK    atomic.Int64
 }
 
 // New starts the record writer on w (NDJSON). Call Close after the HTTP server has stopped.
 func New(cfg Config, w io.Writer, buffer int) *Server {
 	s := &Server{cfg: cfg, start: time.Now(), records: make(chan Record, buffer), done: make(chan struct{})}
+	if cfg.ForwardURL != "" {
+		s.forward = make(chan []byte, 100000)
+		client := &http.Client{Timeout: 10 * time.Second}
+		for i := 0; i < 64; i++ {
+			go func() {
+				for b := range s.forward {
+					res, err := client.Post(cfg.ForwardURL, "application/json", bytes.NewReader(b))
+					if err != nil || res.StatusCode != http.StatusOK {
+						s.fwdFail.Add(1)
+					} else {
+						s.fwdOK.Add(1)
+					}
+					if res != nil {
+						_, _ = io.Copy(io.Discard, res.Body)
+						res.Body.Close()
+					}
+				}
+			}()
+		}
+	}
 	go func() {
 		bw := bufio.NewWriterSize(w, 1<<20)
 		enc := json.NewEncoder(bw)
@@ -98,7 +125,8 @@ func (s *Server) Close() {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/stats" {
-		fmt.Fprintf(w, "{\"received\":%d,\"overflow\":%d}\n", s.received.Load(), s.overflow.Load())
+		fmt.Fprintf(w, "{\"received\":%d,\"overflow\":%d,\"forwarded\":%d,\"forward_failed\":%d}\n",
+			s.received.Load(), s.overflow.Load(), s.fwdOK.Load(), s.fwdFail.Load())
 		return
 	}
 	recv := time.Now()
@@ -151,6 +179,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rec.Status, rec.Stored, rec.DelayMs = status, stored, float64(delay)/float64(time.Millisecond)
 	// Stored on receipt (before the answer), so a request the client gave up on is still persisted.
 	s.emit(rec)
+	if stored && s.forward != nil && rec.Seq >= 0 {
+		select {
+		case s.forward <- raw:
+		default:
+			s.fwdFail.Add(1)
+		}
+	}
 
 	if delay > 0 {
 		time.Sleep(delay)

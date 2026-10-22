@@ -81,8 +81,10 @@ func TestRejects(t *testing.T) {
 		}
 	}
 	p, _ := load(t, `"schedule":{"type":"steady","rate":1,"duration_s":1}`)
-	p.HistogramMs = []float64{0, 1, 5} // missing the 10 ms send-lag limit as an edge
-	if _, err := p.Resolve("run-1"); err == nil {
-		t.Fatal("accepted histogram without the send-lag limit edge")
+	if _, err := p.Resolve("EXPL-edgex-k4"); err != nil {
+		t.Fatalf("upper-case run id rejected: %v", err)
+	}
+	if _, err := p.Resolve("bad id"); err == nil {
+		t.Fatal("run id with a space accepted")
 	}
 }
