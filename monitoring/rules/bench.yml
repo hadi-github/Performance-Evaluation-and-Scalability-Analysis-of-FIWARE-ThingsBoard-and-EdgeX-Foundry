@@ -4,9 +4,13 @@ groups:
   - name: sut-cpu
     interval: 5s
     rules:
-      # core-equivalents per container (cgroup v2 usage via cAdvisor; one series per replica)
+      # core-equivalents per container (cgroup v2 usage via cAdvisor; one series per replica). Gated on the
+      # cAdvisor target being up: during an outage the rate would otherwise keep reporting the last window's
+      # value (or 0) instead of no data.
       - record: bench:container_cpu_cores:rate30s
-        expr: sum by (host, platform, tier, service, container) (rate(container_cpu_usage_seconds_total{job="cadvisor"}[30s]))
+        expr: |
+          sum by (host, platform, tier, service, container) (
+            rate(container_cpu_usage_seconds_total{job="cadvisor"}[30s]) and on (instance) (up{job="cadvisor"} == 1))
       - record: bench:service_cpu_cores:rate30s
         expr: sum by (host, platform, tier, service) (bench:container_cpu_cores:rate30s)
       - record: bench:tier_cpu_cores:rate30s
@@ -15,7 +19,9 @@ groups:
       - record: bench:platform_cpu_cores:rate30s
         expr: sum by (host, platform) (bench:container_cpu_cores:rate30s{tier=~"application|supporting"})
       - record: bench:host_core_busy:ratio30s
-        expr: 1 - avg by (host, cpu) (rate(node_cpu_seconds_total{mode="idle"}[30s]))
+        expr: |
+          1 - avg by (host, cpu) (
+            rate(node_cpu_seconds_total{mode="idle"}[30s]) and on (instance) (up{job=~"node|loadgen-node"} == 1))
 
   - name: k6
     interval: 5s

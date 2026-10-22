@@ -25,6 +25,8 @@ services:
       - --web.enable-remote-write-receiver   # k6 -o experimental-prometheus-rw
       - --web.enable-lifecycle
       - --web.listen-address=127.0.0.1:9090
+      # rate() normally drops __name__; the k6 recording rules turn metric names into labels after rate()
+      - --enable-feature=promql-delayed-name-removal
     network_mode: host
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro

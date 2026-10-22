@@ -335,8 +335,8 @@
   {
    "id": 6,
    "type": "timeseries",
-   "title": "Restarts and OOM kills",
-   "description": "Platform restarts/OOM are platform evidence, not automatically an invalid run.",
+   "title": "Container starts and OOM kills",
+   "description": "Starts from cAdvisor's container_start_time_seconds (covers manual restarts and recreation; Docker's RestartCount only counts restart-policy restarts). Platform restarts/OOM are platform evidence, not automatically an invalid run.",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -347,8 +347,8 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "max by (container) (bench_container_restarts{platform=\"$platform\"})",
-     "legendFormat": "docker restarts {{container}}",
+     "expr": "sum by (container) (changes(container_start_time_seconds{job=\"cadvisor\",platform=\"$platform\"}[10m]))",
+     "legendFormat": "starts in 10 min {{container}}",
      "refId": "A",
      "range": true,
      "instant": false,
@@ -1703,7 +1703,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag)",
+     "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag and on (instance) (up{job=\"kafka\"} == 1))",
      "legendFormat": "{{consumergroup}} {{topic}}",
      "refId": "A",
      "range": true,
@@ -1761,7 +1761,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "rate(gnatsd_varz_in_msgs[$__rate_interval])",
+     "expr": "rate(gnatsd_varz_in_msgs[$__rate_interval]) and on (instance) (up{job=\"nats\"} == 1)",
      "legendFormat": "in msgs/s",
      "refId": "A",
      "range": true,
@@ -1773,7 +1773,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "rate(gnatsd_varz_out_msgs[$__rate_interval])",
+     "expr": "rate(gnatsd_varz_out_msgs[$__rate_interval]) and on (instance) (up{job=\"nats\"} == 1)",
      "legendFormat": "out msgs/s",
      "refId": "B",
      "range": true,
@@ -1785,7 +1785,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "gnatsd_varz_slow_consumers",
+     "expr": "gnatsd_varz_slow_consumers and on (instance) (up{job=\"nats\"} == 1)",
      "legendFormat": "slow consumers",
      "refId": "C",
      "range": true,
@@ -1843,7 +1843,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (datname) (rate(pg_stat_database_xact_commit{datname!~\"template.*|postgres\"}[$__rate_interval]))",
+     "expr": "sum by (datname) (rate(pg_stat_database_xact_commit{datname!~\"template.*|postgres\"}[$__rate_interval]) and on (instance) (up{job=\"postgres\"} == 1))",
      "legendFormat": "commits {{datname}}",
      "refId": "A",
      "range": true,
@@ -1855,7 +1855,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (datname) (rate(pg_stat_database_tup_inserted{datname!~\"template.*|postgres\"}[$__rate_interval]))",
+     "expr": "sum by (datname) (rate(pg_stat_database_tup_inserted{datname!~\"template.*|postgres\"}[$__rate_interval]) and on (instance) (up{job=\"postgres\"} == 1))",
      "legendFormat": "rows inserted {{datname}}",
      "refId": "B",
      "range": true,
@@ -1913,7 +1913,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (state) (pg_stat_activity_count)",
+     "expr": "sum by (state) (pg_stat_activity_count and on (instance) (up{job=\"postgres\"} == 1))",
      "legendFormat": "{{state}}",
      "refId": "A",
      "range": true,
@@ -1971,7 +1971,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (type) (rate(mongodb_op_counters_total[$__rate_interval]))",
+     "expr": "sum by (type) (rate(mongodb_op_counters_total[$__rate_interval]) and on (instance) (up{job=\"mongodb\"} == 1))",
      "legendFormat": "{{type}}",
      "refId": "A",
      "range": true,
@@ -2029,7 +2029,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (proxy, server) (rate(haproxy_server_http_responses_total[$__rate_interval])) > 0",
+     "expr": "sum by (proxy, server) (rate(haproxy_server_http_responses_total[$__rate_interval]) and on (instance) (up{job=\"haproxy\"} == 1)) > 0",
      "legendFormat": "{{proxy}}/{{server}} resp/s",
      "refId": "A",
      "range": true,
@@ -2041,7 +2041,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "max by (proxy, server) (haproxy_server_response_time_average_seconds) * 1000 > 0",
+     "expr": "max by (proxy, server) (haproxy_server_response_time_average_seconds and on (instance) (up{job=\"haproxy\"} == 1)) * 1000 > 0",
      "legendFormat": "{{proxy}}/{{server}} avg ms",
      "refId": "B",
      "range": true,

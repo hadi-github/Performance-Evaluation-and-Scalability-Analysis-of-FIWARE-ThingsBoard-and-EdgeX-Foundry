@@ -135,11 +135,13 @@ def overview():
             "short", w=12, h=8, kind="table", instant=True,
             desc="bench_container_info from monitoring/exporters/container-info.sh (textfile collector). "
                  "cpuset = pinned CPUs. Absent = the timer is not installed on the SUT."),
-        panel("Restarts and OOM kills", [
-            ('max by (container) (bench_container_restarts{platform="$platform"})', "docker restarts {{container}}"),
+        panel("Container starts and OOM kills", [
+            ('sum by (container) (changes(container_start_time_seconds{job="cadvisor",' + PL + '}[10m]))', "starts in 10 min {{container}}"),
             ('max by (container) (bench_container_oom_killed{platform="$platform"})', "last exit OOM {{container}}"),
             ('sum by (container) (increase(container_oom_events_total{job="cadvisor",' + PL + '}[5m]))', "OOM events 5m {{container}}")],
-            "short", w=12, h=8, desc="Platform restarts/OOM are platform evidence, not automatically an invalid run."),
+            "short", w=12, h=8, desc="Starts from cAdvisor's container_start_time_seconds (covers manual restarts and "
+                                     "recreation; Docker's RestartCount only counts restart-policy restarts). Platform "
+                                     "restarts/OOM are platform evidence, not automatically an invalid run."),
         panel("Load host pressure (ramonavm1): busy per core", [
             ('bench:host_core_busy:ratio30s{host="ramonavm1"}', "cpu{{cpu}}")], "percentunit", w=12, h=7,
             desc="k6 runs on cores 0-2, Prometheus/Grafana/cAdvisor on core 3."),
@@ -231,24 +233,25 @@ def overview():
         # 6 ---------------------------------------------------------------------------------------------
         row("6. Queue and storage diagnostics (only the selected platform's sources)"),
         panel("Kafka consumer-group lag (ThingsBoard)", [
-            ('sum by (consumergroup, topic) (kafka_consumergroup_lag)', "{{consumergroup}} {{topic}}")], "short", w=12, h=8,
+            ('sum by (consumergroup, topic) (kafka_consumergroup_lag and on (instance) (up{job="kafka"} == 1))', "{{consumergroup}} {{topic}}")], "short", w=12, h=8,
             desc="kafka-exporter: offset lag of each consumer group = messages produced but not yet consumed by "
                  "that group. A backlog signal, not proof of persistence."),
         panel("NATS (EdgeX, core NATS: no persistence, no durable queue)", [
-            ('rate(gnatsd_varz_in_msgs' + R + ')', "in msgs/s"), ('rate(gnatsd_varz_out_msgs' + R + ')', "out msgs/s"),
-            ('gnatsd_varz_slow_consumers', "slow consumers")], "short", w=12, h=8,
+            ('rate(gnatsd_varz_in_msgs' + R + ') and on (instance) (up{job="nats"} == 1)', "in msgs/s"),
+            ('rate(gnatsd_varz_out_msgs' + R + ') and on (instance) (up{job="nats"} == 1)', "out msgs/s"),
+            ('gnatsd_varz_slow_consumers and on (instance) (up{job="nats"} == 1)', "slow consumers")], "short", w=12, h=8,
             desc="Core NATS has no queue depth to report; out < in means fan-out or loss, not backlog."),
         panel("PostgreSQL: commits/s and inserted rows/s (ThingsBoard, EdgeX)", [
-            ('sum by (datname) (rate(pg_stat_database_xact_commit{datname!~"template.*|postgres"}' + R + '))', "commits {{datname}}"),
-            ('sum by (datname) (rate(pg_stat_database_tup_inserted{datname!~"template.*|postgres"}' + R + '))', "rows inserted {{datname}}")],
+            ('sum by (datname) (rate(pg_stat_database_xact_commit{datname!~"template.*|postgres"}' + R + ') and on (instance) (up{job="postgres"} == 1))', "commits {{datname}}"),
+            ('sum by (datname) (rate(pg_stat_database_tup_inserted{datname!~"template.*|postgres"}' + R + ') and on (instance) (up{job="postgres"} == 1))', "rows inserted {{datname}}")],
             "short", w=12, h=8, desc="Database activity. Rows are not logical messages (ThingsBoard stores 6 rows per reading)."),
         panel("PostgreSQL connections by state", [
-            ('sum by (state) (pg_stat_activity_count)', "{{state}}")], "short", w=12, h=8),
+            ('sum by (state) (pg_stat_activity_count and on (instance) (up{job="postgres"} == 1))', "{{state}}")], "short", w=12, h=8),
         panel("MongoDB operations/s (FIWARE)", [
-            ('sum by (type) (rate(mongodb_op_counters_total' + R + '))', "{{type}}")], "short", w=12, h=8),
+            ('sum by (type) (rate(mongodb_op_counters_total' + R + ') and on (instance) (up{job="mongodb"} == 1))', "{{type}}")], "short", w=12, h=8),
         panel("HAProxy: responses/s and avg response time per replica (server)", [
-            ('sum by (proxy, server) (rate(haproxy_server_http_responses_total' + R + ')) > 0', "{{proxy}}/{{server}} resp/s"),
-            ('max by (proxy, server) (haproxy_server_response_time_average_seconds) * 1000 > 0', "{{proxy}}/{{server}} avg ms")],
+            ('sum by (proxy, server) (rate(haproxy_server_http_responses_total' + R + ') and on (instance) (up{job="haproxy"} == 1)) > 0', "{{proxy}}/{{server}} resp/s"),
+            ('max by (proxy, server) (haproxy_server_response_time_average_seconds and on (instance) (up{job="haproxy"} == 1)) * 1000 > 0', "{{proxy}}/{{server}} avg ms")],
             "short", w=12, h=8, desc="avg = HAProxy's moving average over its last 1024 requests."),
 
         # 7 ---------------------------------------------------------------------------------------------
