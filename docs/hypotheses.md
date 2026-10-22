@@ -80,3 +80,15 @@ others.** Runs at ~50 % of the exploratory capacity, with and without the sink p
 `DIAG-edgex-k4-obs-{sink,nosink}-r200`, `DIAG-tb-obs-{sink,nosink}-r100`, `DIAG-fiware-obs-{sink,nosink}-r50`.
 - Expected: EdgeX export service 1.6 ms/msg ± 25 % (fit); ThingsBoard REST node adds 0.3-2 ms/msg in
   tb-rule-engine; FIWARE subscription adds 0.3-2 ms/msg (Orion + MongoDB).
+
+## Appended 2026-10-22, before run `DIAG-fiware-k4-r100-cpuprof` (after the FIWARE profile results)
+
+**H-F5: the IoT Agent's Node CPU per measure (~22 ms per measure handled by a replica, plus ~0.15 cores per
+replica at idle) is dominated by the per-measure registry round trips through mongoose (two device lookups and the
+`oldCtxt` save, iotagent-node-lib 4.7.0 `ngsiService.js:74-76`, `entities-NGSI-v2.js:659-662`,
+`deviceRegistryMongoDB.js:400-440`), not by UL parsing or the NGSI request to Orion.**
+- Run: `DIAG-fiware-k4-r100-cpuprof`: V8 CPU profile (inspector, 60 s) of `fiware-iot-agent-1` at a steady
+  100 msg/s; no MongoDB profiler.
+- Expected: ≥ 30 % of non-idle samples in mongoose / mongodb driver / bson frames (self + children, by module path);
+  < 20 % in the UL parser and the HTTP client to Orion together.
+- Refuted if: mongoose/mongodb/bson < 15 % of non-idle samples.
