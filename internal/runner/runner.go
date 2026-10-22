@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,6 +35,8 @@ type Options struct {
 	Cpuset     string   // generator cores, e.g. "0-1"
 	FullJSON   bool     // also write k6's full JSON output (calibration runs only: 13 samples per request)
 	CPUs       string   // docker --cpus limit for k6; tests only (deliberate generator starvation)
+	PromRW     string   // optional Prometheus remote-write URL (k6 -o experimental-prometheus-rw); monitoring only
+	GrafanaURL string   // optional: post a run annotation; password from env BENCH_GRAFANA_PASSWORD
 	Env        []string // passed to k6 (credentials, never stored in artifacts)
 	Stdout     *os.File
 }
@@ -51,6 +54,8 @@ type Manifest struct {
 	Host          map[string]string `json:"generator_host"`
 	Cpuset        string            `json:"generator_cpuset"`
 	CPUsLimit     string            `json:"generator_cpus_limit,omitempty"`
+	PromRW        string            `json:"prometheus_remote_write,omitempty"`
+	Annotation    string            `json:"grafana_annotation,omitempty"`
 	FullJSON      bool              `json:"full_k6_json_output"`
 	EnvKeys       []string          `json:"env_keys_passed"` // names only, values redacted
 	Connection    map[string]any    `json:"connection_model"`
@@ -310,7 +315,7 @@ func Run(o Options) (string, *Manifest, error) {
 	}
 	m := &Manifest{SchemaVersion: 1, RunID: runID, PlanID: p.PlanID, PilotOnly: p.PilotOnly,
 		PlanSHA256: hex.EncodeToString(sum[:]), Resolved: r, K6: k6, Git: gitInfo(o.RepoRoot), Host: hostInfo(),
-		Cpuset: o.Cpuset, CPUsLimit: o.CPUs, FullJSON: o.FullJSON,
+		Cpuset: o.Cpuset, CPUsLimit: o.CPUs, FullJSON: o.FullJSON, PromRW: o.PromRW,
 		ScriptsSHA256: scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")),
 		Connection: map[string]any{"keep_alive": p.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
 			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": p.RequestTimeMs}}
@@ -331,12 +336,22 @@ func Run(o Options) (string, *Manifest, error) {
 	if o.FullJSON {
 		args = append(args, "-e", "FULL_JSON=1")
 	}
+	if o.PromRW != "" {
+		// Counters arrive as <name>_total; trends only as precomputed per-push-interval statistics
+		// (k6_<trend>_p99 etc.), which are NOT mergeable across intervals or runs.
+		args = append(args, "-e", "K6_PROMETHEUS_RW_SERVER_URL="+o.PromRW,
+			"-e", "K6_PROMETHEUS_RW_PUSH_INTERVAL=5s",
+			"-e", "K6_PROMETHEUS_RW_TREND_STATS=p(50),p(99),max")
+	}
 	for _, kv := range o.Env {
 		args = append(args, "-e", kv)
 	}
 	args = append(args, o.Image, "run", "--quiet", "--log-format", "json", "--log-output", "file=/out/k6-log.ndjson")
 	if o.FullJSON {
 		args = append(args, "--out", "json=/out/k6.json.gz")
+	}
+	if o.PromRW != "" {
+		args = append(args, "--out", "experimental-prometheus-rw")
 	}
 	args = append(args, "gen.js")
 
@@ -371,7 +386,43 @@ func Run(o Options) (string, *Manifest, error) {
 	if err := Finish(dir, m); err != nil {
 		return dir, m, err
 	}
+	if o.GrafanaURL != "" {
+		m.Annotation = annotate(o.GrafanaURL, m)
+		if err := writeJSON(filepath.Join(dir, "manifest.json"), m); err != nil {
+			return dir, m, err
+		}
+	}
 	return dir, m, nil
+}
+
+// annotate posts the run window as a Grafana annotation (tags: benchmark, run id, plan id, verdict). It is a
+// navigation aid only; the run's evidence is its directory, not the annotation.
+func annotate(url string, m *Manifest) string {
+	start, err1 := time.Parse(time.RFC3339Nano, m.StartUTC)
+	end, err2 := time.Parse(time.RFC3339Nano, m.EndUTC)
+	if err1 != nil || err2 != nil {
+		return "failed: bad timestamps"
+	}
+	body, _ := json.Marshal(map[string]any{
+		"time": start.UnixMilli(), "timeEnd": end.UnixMilli(),
+		"tags": []string{"benchmark", m.RunID, m.PlanID, m.Verdict},
+		"text": fmt.Sprintf("%s (%s) generator verdict %s", m.RunID, m.PlanID, m.Verdict),
+	})
+	req, err := http.NewRequest("POST", strings.TrimRight(url, "/")+"/api/annotations", bytes.NewReader(body))
+	if err != nil {
+		return "failed: " + err.Error()
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth("admin", os.Getenv("BENCH_GRAFANA_PASSWORD"))
+	res, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
+	if err != nil {
+		return "failed: " + err.Error()
+	}
+	res.Body.Close()
+	if res.StatusCode != 200 {
+		return fmt.Sprintf("failed: HTTP %d", res.StatusCode)
+	}
+	return "posted"
 }
 
 // Finish (re)computes the health verdict from the run directory and writes health.json and manifest.json.

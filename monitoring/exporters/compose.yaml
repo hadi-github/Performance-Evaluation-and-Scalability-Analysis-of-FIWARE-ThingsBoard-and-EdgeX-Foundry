@@ -23,6 +23,8 @@ services:
       - --path.rootfs=/host
       - --web.listen-address=:9100
       - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)
+      # bench_container_* (cpuset, restarts, OOM-killed) written by container-info.sh (systemd timer, 10 s)
+      - --collector.textfile.directory=/host/var/lib/node_exporter/textfile
     volumes:
       - /:/host:ro,rslave
 

@@ -43,14 +43,21 @@ const FULL_JSON = __ENV.FULL_JSON === '1';
 const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown'];
 const M = cfg.steps.map((s) => {
   const c = (n) => new Counter('g_' + n + '_s' + s.index);
-  const hist = (n) => EDGES.concat([Infinity]).map((_, b) => new Counter('g_' + n + '_s' + s.index + '_b' + b));
+  const hist = (n) => EDGES.concat([Infinity]).map((_, b) => new Counter('g_' + n + '_s' + s.index + '_le' + edgeName(b)));
   const o = {};
   OUTCOMES.forEach((k) => { o[k] = c(k); });
   return {
     attempted: c('attempted'), outcome: o, early: c('early'), beyond: c('beyond'), thinned: c('thinned'),
     dupInjected: c('dup_injected'), lag: hist('lag'), ack: hist('ack'), t0: new Gauge('g_t0_s' + s.index),
+    plannedRate: new Gauge('g_planned_rate_s' + s.index), // for live monitoring only (refreshed every 500 ticks)
   };
 });
+
+// Bucket b of a histogram is named by its upper edge ("le"), e.g. g_lag_s3_le10, g_lag_s3_le0p5, g_lag_s3_leinf,
+// so that Prometheus recording rules can turn the name into an le label (monitoring/rules). Non-cumulative counts.
+function edgeName(b) {
+  return b < EDGES.length ? String(EDGES[b]).replace('.', 'p') : 'inf';
+}
 
 function bucket(v) {
   for (let b = 0; b < EDGES.length; b++) if (v <= EDGES[b]) return b;
@@ -87,6 +94,8 @@ export const options = {
   noConnectionReuse: !cfg.connection.keep_alive,
   discardResponseBodies: !adapter.needsBody(cfg),
   systemTags: ['status', 'scenario', 'name', 'expected_response', 'error_code'],
+  // Bounded run-level labels for the optional Prometheus remote-write stream (one value per run; never per message).
+  tags: { run_id: cfg.run_id, plan_id: cfg.plan_id, adapter: cfg.adapter },
   summaryTrendStats: ['avg', 'p(99)', 'max'],
 };
 
@@ -139,6 +148,7 @@ export function gen(st) {
   const i = exec.scenario.iterationInTest;
   const mm = M[step.index];
   if (i === 0) mm.t0.add(exec.scenario.startTime);
+  if (i % 500 === 0 && i < step.ticks) mm.plannedRate.add(step.rate);
   if (i >= step.ticks) { mm.beyond.add(1); return; }
   const seq = step.seq_offset + i;
   if (THINNING && !selected(cfg.seed, seq, SEL_THRESHOLD)) { mm.thinned.add(1); return; }
@@ -157,7 +167,7 @@ export function teardown(st) {
 
 export function handleSummary(data) {
   const v = (name, stat) => (data.metrics[name] && data.metrics[name].values[stat]) || 0;
-  const hist = (n, s) => EDGES.concat([Infinity]).map((_, b) => v('g_' + n + '_s' + s + '_b' + b, 'count'));
+  const hist = (n, s) => EDGES.concat([Infinity]).map((_, b) => v('g_' + n + '_s' + s + '_le' + edgeName(b), 'count'));
   const steps = cfg.steps.map((s) => ({
     index: s.index, name: s.name,
     scenario_start_ms: v('g_t0_s' + s.index, 'value'),

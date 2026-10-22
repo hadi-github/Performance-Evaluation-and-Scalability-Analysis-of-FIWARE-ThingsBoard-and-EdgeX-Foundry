@@ -1,0 +1,50 @@
+# Recording rules for the IoT benchmark (docs/metrics-dictionary.md). Each rule only renames or aggregates
+# validated series; nothing here computes a research result (capacity, CPU per persisted message, verdicts).
+groups:
+  - name: sut-cpu
+    interval: 5s
+    rules:
+      # core-equivalents per container (cgroup v2 usage via cAdvisor; one series per replica)
+      - record: bench:container_cpu_cores:rate30s
+        expr: sum by (host, platform, tier, service, container) (rate(container_cpu_usage_seconds_total{job="cadvisor"}[30s]))
+      - record: bench:service_cpu_cores:rate30s
+        expr: sum by (host, platform, tier, service) (bench:container_cpu_cores:rate30s)
+      - record: bench:tier_cpu_cores:rate30s
+        expr: sum by (host, platform, tier) (bench:container_cpu_cores:rate30s)
+      # platform total = application + supporting tier (the declared SUT CPU boundary; excludes exporters)
+      - record: bench:platform_cpu_cores:rate30s
+        expr: sum by (host, platform) (bench:container_cpu_cores:rate30s{tier=~"application|supporting"})
+      - record: bench:host_core_busy:ratio30s
+        expr: 1 - avg by (host, cpu) (rate(node_cpu_seconds_total{mode="idle"}[30s]))
+
+  - name: k6
+    interval: 5s
+    rules:
+      # telemetry requests by step and HTTP status (k6 built-in counter; name="send" excludes setup/cleanup)
+      - record: bench:k6_send_requests:rate30s
+        expr: sum by (run_id, plan_id, adapter, scenario, status) (rate(k6_http_reqs_total{name="send"}[30s]))
+      # planned (offered) message rate of the step that is running (gauge k6_g_planned_rate_s<step>)
+      - record: bench:k6_planned_rate
+        expr: |
+          max by (run_id, plan_id, adapter, step) (
+            label_replace({__name__=~"k6_g_planned_rate_s[0-9]+"}, "step", "$1", "__name__", "k6_g_planned_rate_s([0-9]+)"))
+      - record: bench:k6_dropped_iterations:rate30s
+        expr: sum by (run_id, plan_id, adapter, scenario) (rate(k6_dropped_iterations_total[30s]))
+      # generator outcome counters k6_g_<outcome>_s<step>_total -> outcome, step labels
+      - record: bench:k6_outcome:rate30s
+        expr: |
+          sum by (run_id, plan_id, adapter, outcome, step) (
+            label_replace(label_replace(
+              rate({__name__=~"k6_g_(ack_success|explicit_failure|unknown|early|beyond|thinned)_s[0-9]+_total"}[30s]),
+              "outcome", "$1", "__name__", "k6_g_(ack_success|explicit_failure|unknown|early|beyond|thinned)_s[0-9]+_total"),
+              "step", "$1", "__name__", "k6_g_[a-z_]+_s([0-9]+)_total"))
+      # bucketed send lag / ack latency k6_g_{lag,ack}_s<step>_le<edge>_total -> histogram, step, le labels
+      # (non-cumulative bucket counts; edges in ms, "inf" = overflow; 0p5 = 0.5)
+      - record: bench:k6_latency_bucket:rate30s
+        expr: |
+          sum by (run_id, plan_id, histogram, step, le) (
+            label_replace(label_replace(label_replace(
+              rate({__name__=~"k6_g_(lag|ack)_s[0-9]+_le[0-9a-z]+_total"}[30s]),
+              "histogram", "$1", "__name__", "k6_g_(lag|ack)_s.*"),
+              "step", "$1", "__name__", "k6_g_[a-z]+_s([0-9]+)_le.*"),
+              "le", "$1", "__name__", "k6_g_[a-z]+_s[0-9]+_le([0-9a-z]+)_total"))

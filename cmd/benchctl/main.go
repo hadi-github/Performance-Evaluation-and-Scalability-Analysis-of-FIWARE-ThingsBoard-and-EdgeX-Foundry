@@ -2,6 +2,7 @@
 //
 //	benchctl resolve   -plan P [-run-id ID]                 print the resolved plan (explicit steps, seq offsets)
 //	benchctl run       -plan P [-results results] [-image I] [-cpuset 0-1] [-full-json] [-env K=V ...]
+//	                   [-prom-rw URL] [-grafana-url URL]   (live monitoring stream / run annotation; optional)
 //	benchctl check     -run DIR                             recompute health + manifest verdict from the artifacts
 //	benchctl reconcile -run DIR -store FILE                 join the outcome ledger with a fixture/ingester store
 //	benchctl expected  -run DIR                             planned messages per step (thinning set from the seed)
@@ -83,6 +84,8 @@ func main() {
 	image := fs.String("image", defaultImage, "k6 image")
 	cpuset := fs.String("cpuset", "0-1", "generator cores")
 	fullJSON := fs.Bool("full-json", false, "also write k6's full JSON output (calibration only)")
+	promRW := fs.String("prom-rw", "", "Prometheus remote-write URL for live monitoring (e.g. http://127.0.0.1:9090/api/v1/write)")
+	grafana := fs.String("grafana-url", "", "post a run annotation to this Grafana (password: env BENCH_GRAFANA_PASSWORD)")
 	dir := fs.String("run", "", "run directory")
 	store := fs.String("store", "", "store file (fixture NDJSON records)")
 	var env multi
@@ -109,7 +112,7 @@ func main() {
 			die(2, "-plan is required")
 		}
 		d, m, err := runner.Run(runner.Options{PlanPath: *planPath, RepoRoot: repoRoot(), ResultsDir: *results, RunID: *runID,
-			Image: *image, Cpuset: *cpuset, FullJSON: *fullJSON, Env: env})
+			Image: *image, Cpuset: *cpuset, FullJSON: *fullJSON, Env: env, PromRW: *promRW, GrafanaURL: *grafana})
 		if err != nil {
 			die(2, "run %s: %v", d, err)
 		}

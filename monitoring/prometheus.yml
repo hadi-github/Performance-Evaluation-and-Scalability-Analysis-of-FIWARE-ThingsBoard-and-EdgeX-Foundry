@@ -1,23 +1,63 @@
-# Prometheus on the load-generator host. The SUT exporters live on ramonavm2 (monitoring/exporters).
+# Prometheus on the load-generator host (ramonavm1). It scrapes the exporters on the SUT (ramonavm2,
+# monitoring/exporters) and receives the k6 stream by remote write (benchctl run -prom-rw ...).
 # Only one platform runs at a time, so the exporters of the other two platforms are expected to be DOWN.
+#
+# Labels (docs/metrics-dictionary.md):
+#   host      ramonavm1 | ramonavm2
+#   role      loadgen | sut | monitoring
+#   platform  thingsboard | fiware | edgex      (SUT containers; from the compose project)
+#   tier      application | supporting | monitoring   (SUT containers; from the compose service, see below)
+#   service   compose service (tb-core, orion, core-data, postgres, ...);  container = container name (one per replica)
+# No message, sequence, device, URL or token labels anywhere. The k6 stream carries run_id/plan_id/adapter
+# (one value per run) and scenario (= step name).
 global:
-  scrape_interval: 5s        # short runs (10 min) need fine-grained samples
+  scrape_interval: 5s
+  scrape_timeout: 4s
   evaluation_interval: 5s
   external_labels:
     lab: iot-bench
 
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
 scrape_configs:
+  # ---- the monitoring stack itself (ramonavm1, core 3)
   - job_name: prometheus
     static_configs:
       - targets: ['127.0.0.1:9090']
+        labels: { host: ramonavm1, role: monitoring }
+  - job_name: grafana
+    static_configs:
+      - targets: ['127.0.0.1:3000']
+        labels: { host: ramonavm1, role: monitoring }
 
-  # ---- load generator (ramonavm1)
+  # ---- load generator host
   - job_name: loadgen-node
     static_configs:
       - targets: ['127.0.0.1:9100']
         labels: { host: ramonavm1, role: loadgen }
 
-  # ---- SUT (ramonavm2): host and per-container resources
+  - job_name: loadgen-cadvisor
+    static_configs:
+      - targets: ['127.0.0.1:8089']
+        labels: { host: ramonavm1, role: loadgen }
+    metric_relabel_configs:
+      # k6 run containers (k6-<run_id>) and the monitoring stack only
+      - source_labels: [name]
+        regex: (k6-.+|monitoring-.+)
+        action: keep
+      - source_labels: [name]
+        target_label: container
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service
+      - source_labels: [name]
+        regex: k6-.+
+        target_label: service
+        replacement: k6
+      - regex: (container_label_.+|name|id|image)
+        action: labeldrop
+
+  # ---- SUT host and containers (ramonavm2)
   - job_name: node
     static_configs:
       - targets: ['87.107.191.107:9100']
@@ -28,38 +68,60 @@ scrape_configs:
       - targets: ['87.107.191.107:8089']
         labels: { host: ramonavm2, role: sut }
     metric_relabel_configs:
-      # keep only containers of the benchmark stacks and the exporters, drop the cgroup hierarchy noise
+      # benchmark stacks and the exporters only (cAdvisor runs with --docker_only, so no parent cgroups appear:
+      # every kept series is one container, and summing over containers never double counts)
       - source_labels: [container_label_com_docker_compose_project]
         regex: (tb|fiware|edgex|exporters)
         action: keep
-      # short, stable label names for dashboards
       - source_labels: [container_label_com_docker_compose_project]
         target_label: project
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: tb
+        target_label: platform
+        replacement: thingsboard
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: (fiware|edgex)
+        target_label: platform
       - source_labels: [container_label_com_docker_compose_service]
         target_label: service
       - source_labels: [name]
         target_label: container
+      # tier: every platform container is "supporting" unless it is an application-tier service
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: (tb|fiware|edgex)
+        target_label: tier
+        replacement: supporting
+      - source_labels: [container_label_com_docker_compose_service]
+        regex: (tb-core|tb-rule-engine|tb-http-transport|orion|iot-agent|core-data|device-rest)
+        target_label: tier
+        replacement: application
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: exporters
+        target_label: tier
+        replacement: monitoring
+      - regex: (container_label_.+|name|id|image)
+        action: labeldrop
 
-  # ---- SUT: the load balancer, per backend and per replica (server) — the same HAProxy port for all platforms
+  # ---- SUT: the load balancer (HAProxy native exporter), per backend and per replica (server)
   - job_name: haproxy
     static_configs:
       - targets: ['87.107.191.107:8404']
         labels: { host: ramonavm2, role: sut }
 
-  # ---- SUT: stateful tiers (one platform at a time)
-  - job_name: postgres          # ThingsBoard or EdgeX (both publish their exporter on 9187)
+  # ---- SUT: stateful tier (one platform at a time; both ThingsBoard and EdgeX publish postgres-exporter on 9187)
+  - job_name: postgres
     static_configs:
       - targets: ['87.107.191.107:9187']
         labels: { host: ramonavm2, role: sut }
-  - job_name: kafka             # ThingsBoard
+  - job_name: kafka
     static_configs:
       - targets: ['87.107.191.107:9308']
         labels: { host: ramonavm2, role: sut, platform: thingsboard }
-  - job_name: mongodb           # FIWARE
+  - job_name: mongodb
     static_configs:
       - targets: ['87.107.191.107:9216']
         labels: { host: ramonavm2, role: sut, platform: fiware }
-  - job_name: nats              # EdgeX
+  - job_name: nats
     static_configs:
       - targets: ['87.107.191.107:7777']
         labels: { host: ramonavm2, role: sut, platform: edgex }

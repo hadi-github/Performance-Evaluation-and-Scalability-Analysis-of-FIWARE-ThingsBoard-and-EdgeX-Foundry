@@ -21,12 +21,14 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-30d}
+      - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-20GB}   # whichever limit is hit first
       - --web.enable-remote-write-receiver   # k6 -o experimental-prometheus-rw
       - --web.enable-lifecycle
       - --web.listen-address=127.0.0.1:9090
     network_mode: host
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
 
   grafana:
@@ -68,6 +70,29 @@ services:
       - --web.listen-address=127.0.0.1:9100
     volumes:
       - /:/host:ro,rslave
+
+  # Containers on the load host (k6 runs, Prometheus, Grafana): CPU/memory for the interference checks.
+  cadvisor:
+    image: ghcr.io/google/cadvisor:${CADVISOR_VERSION:-v0.60.6}
+    restart: unless-stopped
+    cpuset: "${MONITORING_CPUSET:-3}"
+    mem_limit: 256m
+    memswap_limit: 256m
+    privileged: true
+    network_mode: host
+    command:
+      - --listen_ip=127.0.0.1
+      - --port=8089
+      - --docker_only=true
+      - --housekeeping_interval=5s
+      - --enable_metrics=cpu,memory,network,oom_event
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
 
 volumes:
   prometheus-data:
