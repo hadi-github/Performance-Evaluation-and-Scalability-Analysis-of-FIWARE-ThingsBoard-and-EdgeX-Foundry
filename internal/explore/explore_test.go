@@ -60,8 +60,8 @@ func TestPassWithConstantDelay(t *testing.T) {
 	if res.Steps[0].Verdict != "warm-up" || res.Steps[1].Verdict != "PASS" || res.Steps[2].Verdict != "PASS" {
 		t.Fatalf("%+v", res.Steps)
 	}
-	// 200 ms in flight at 10/s: about 2 outstanding, flat
-	if o := res.Steps[1].OutstandingM1; o < 1.5 || o > 2.5 || math.Abs(res.Steps[1].OutstandingM3-o) > 0.5 {
+	// 200 ms in flight at 10/s: exactly 2 outstanding at every instant (no bias from schedule-aligned sampling)
+	if o := res.Steps[1].OutstandingM1; math.Abs(o-2) > 1e-9 || math.Abs(res.Steps[1].OutstandingM3-o) > 1e-9 {
 		t.Fatalf("outstanding %v / %v", res.Steps[1].OutstandingM1, res.Steps[1].OutstandingM3)
 	}
 	if res.HighestPassRate != 10 || res.SinkUnique != int(r.TotalTicks) {

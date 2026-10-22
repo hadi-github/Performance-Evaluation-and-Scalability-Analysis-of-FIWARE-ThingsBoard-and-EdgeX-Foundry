@@ -34,7 +34,6 @@ const (
 	TrendSlackMs         = 50.0
 	OutstandingWindowS   = 10.0
 	OutstandingSlackS    = 1.0
-	sampleStepMs         = 100.0
 )
 
 // SinkObs is one sink observation (first receipts are derived here).
@@ -182,30 +181,32 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 		}
 		win[i] = window{t0, 1000 / st.TickRate}
 	}
-	sentBy := func(t float64) float64 { // planned messages scheduled <= t
-		n := 0.0
-		for i, st := range r.Steps {
-			if t < win[i].t0 {
-				continue
-			}
-			k := math.Floor((t-win[i].t0)/win[i].period) + 1
-			n += math.Min(k, float64(st.Ticks))
-		}
-		return n
-	}
-	reachedBy := func(t float64) float64 {
-		return float64(sort.SearchFloat64s(recv, math.Nextafter(t, math.Inf(1))))
-	}
+	// Exact time-average of sent(t) - reached(t) over [from, to): each event at time e before `to` adds
+	// to - max(from, e) to the integral. Point sampling would be biased by one message whenever the sample instants
+	// line up with the send schedule (they do: whole multiples of the tick period after the scenario start).
 	avgOutstanding := func(from, to float64) float64 {
-		s, n := 0.0, 0
-		for t := from; t < to; t += sampleStepMs {
-			s += sentBy(t) - reachedBy(t)
-			n++
-		}
-		if n == 0 {
+		if to <= from {
 			return math.NaN()
 		}
-		return s / float64(n)
+		area := 0.0
+		for i, st := range r.Steps {
+			if to <= win[i].t0 {
+				continue
+			}
+			last := math.Min(math.Ceil((to-win[i].t0)/win[i].period), float64(st.Ticks))     // k with sched(k) < to
+			before := math.Min(math.Max(math.Ceil((from-win[i].t0)/win[i].period), 0), last) // k with sched(k) < from
+			area += before * (to - from)
+			for k := before; k < last; k++ {
+				area += to - (win[i].t0 + k*win[i].period)
+			}
+		}
+		lo := sort.SearchFloat64s(recv, from)
+		hi := sort.SearchFloat64s(recv, to)
+		area -= float64(lo) * (to - from)
+		for _, e := range recv[lo:hi] {
+			area -= to - e
+		}
+		return area / (to - from)
 	}
 
 	stopped := false
