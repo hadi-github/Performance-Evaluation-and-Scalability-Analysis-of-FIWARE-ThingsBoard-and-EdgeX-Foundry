@@ -1,0 +1,14 @@
+{
+  "amends": "results/exploratory/EXPL-tb-k4b/manifest.json",
+  "amended_manifest_sha256": "7a32237b53860a04be5583a949ebbf081ccf308f655e118ba7e2b37e34e7909a",
+  "date_utc": "2026-10-22",
+  "reason": "The ThingsBoard memory deviation (decision D11, user decision 2026-10-22) was committed to workloads/plans/expl-thingsboard-k4.json after ramonavm1's last deploy (671262e), so this run's manifest does not list it. It was applied to the deployment.",
+  "deviations_added": [
+    "ThingsBoard container memory raised for the exploratory runs (user decision 2026-10-22, D11): tb-core and tb-rule-engine 1536m, tb-http-transport 768m (TB_CORE_MEM / TB_RULE_ENGINE_MEM / TB_HTTP_TRANSPORT_MEM); JVM heap flags unchanged (-Xmx512m). At 1 GB, tb-core was OOM-killed during device provisioning (EXPL-tb-k4, 09:41 UTC)."
+  ],
+  "evidence": [
+    {"file": "results/exploratory/sut-logs/tb-prep.sh", "sha256": "79b1b4d0936bf611ad60b4f243cbc85391a44b3a81d4b7ec6c496d5cbf1f5d4b", "shows": "exports TB_CORE_MEM=1536m TB_RULE_ENGINE_MEM=1536m TB_HTTP_TRANSPORT_MEM=768m before make up"},
+    {"file": "results/exploratory/sut-logs/tb-prep.log", "sha256": "e579e08647cda7458b1b7699edcc7b9e11a745a631b0ab74e7b55ddea416fd34", "shows": "resource check: tb-core 1536MB, tb-rule-engine 1536MB, tb-http-transport 768MB; docker inspect mem=1610612736/805306368"},
+    {"commit": "c689191", "shows": "plan deviation text added to workloads/plans/expl-thingsboard-k*.json after the 671262e deploy"}
+  ]
+}
