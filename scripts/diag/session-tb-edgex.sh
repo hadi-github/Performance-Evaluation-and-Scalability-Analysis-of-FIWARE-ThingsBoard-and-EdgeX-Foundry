@@ -90,6 +90,12 @@ edgex_run() {
   v2 "cd $R && mkdir -p /root/diag && cd edgex && COMPOSE_FILE=$cf scripts/provision-then-scale.sh prepare $n 1000 $id /root/diag/$id.gate.json > /root/diag/$id.prepare.log 2>&1; echo prepare rc=\$?; tail -1 /root/diag/$id.prepare.log"
   # exporters attach to the platform network, which exists only after the first cold start (idempotent)
   v2 "cd $R && scripts/monitoring.sh exporters-up edgex >/dev/null 2>&1; docker ps --format '{{.Names}}' | grep -c exporters- | sed 's/^/exporters running: /'"
+  edgex_after_prepare "$plan" "$id" "$cf" "$mode"
+}
+
+# edgex_after_prepare <plan> <run_id> <compose_files> [nosink]: everything after provision-then-scale (resumable)
+edgex_after_prepare() {
+  local plan=$1 id=$2 cf=$3 mode=${4:-sink}
   if [[ $mode == nosink ]]; then v2 "cd $R/edgex && COMPOSE_FILE=$cf docker compose --profile export stop app-http-export 2>&1 | tail -1"; fi
   v2 "docker exec edgex-database-1 psql -U postgres -d edgex_db -Atc \"select name, setting from pg_settings where name in ('synchronous_commit','fsync','wal_sync_method','track_wal_io_timing','track_io_timing','shared_preload_libraries','commit_delay','wal_writer_delay')\" > /root/diag/$id.pgsettings.tsv; cat /root/diag/$id.pgsettings.tsv | tr '\n' ' '; echo"
   collect_run edgex "$plan" "$id"
@@ -100,6 +106,16 @@ edgex_run() {
   v2 "cd /root/diag && tar cf - $id.gate.json $id.check.json $id.history.ndjson $id.prepare.log $id.pgsettings.tsv" | v1 "cd $R/results/diag && tar xf -"
   v1 "cd $R/results/diag && ../../scripts/persist-series.sh $id > $id.persist.tsv && grep -c -v '^#' $id.persist.tsv"
   explore_run "$id" -history "$id.history.ndjson" -gate "$id.gate.json" -check "$id.check.json" -persist "$id.persist.tsv"
+}
+
+edgex_resume() { # after the SSH timeout at DIAG-edgex-k4-r500b's collector start (deployment already prepared)
+  local PGS=compose.yaml:diag/compose.diag-pgstat.yaml NOS=compose.yaml:diag/compose.diag-pgstat.yaml:diag/compose.diag-nosync.yaml
+  edgex_after_prepare diag-edgex-k4-r500 DIAG-edgex-k4-r500b $PGS
+  edgex_run 4 diag-edgex-k4-r500-nosync DIAG-edgex-k4-r500-nosync $NOS
+  edgex_run 1 diag-edgex-k1-r200 DIAG-edgex-k1-r200 $PGS
+  edgex_run 1 diag-edgex-k1-r200-nosync DIAG-edgex-k1-r200-nosync $NOS
+  edgex_run 4 diag-edgex-k4-obs-sink-r200 DIAG-edgex-k4-obs-sink-r200 compose.yaml
+  edgex_run 4 diag-edgex-k4-obs-nosink-r200 DIAG-edgex-k4-obs-nosink-r200 compose.yaml nosink
 }
 
 edgex_all() {
