@@ -47,6 +47,9 @@ case "${1:-}" in
         \"subject\": {\"entities\": [{\"idPattern\": \".*\", \"type\": \"Sensor\"}], \"condition\": {\"attrs\": [\"seq\"]}},
         \"notification\": {\"http\": {\"url\": \"$SINK/fiware\"}, \"attrs\": [\"seq\", \"run_id\", \"scheduled_send_ms\"],
                           \"attrsFormat\": \"keyValues\"}}"
+    # Each Orion replica learns the subscription on its next subscription-cache refresh (-subCacheIval, default
+    # 60 s); before that only the replica that created it notifies (EXPL-fiware-trace: 50 of 200 at N=4).
+    echo "waiting 65 s for every Orion replica to refresh its subscription cache"; sleep 65
     ;;
   edgex) echo "EdgeX: start the export service: (cd edgex && docker compose --profile export up -d app-http-export)" ;;
   *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
