@@ -54,3 +54,6 @@ plan("fiware", 4, "diag-fiware-k4-r100", 100, 100, [ORION_WAIT, MONGO_PROFILE])
 plan("fiware", 4, "diag-fiware-k4-r100-cpuprof", 100, 100, [ORION_WAIT,
      "DIAG: V8 CPU profiler (inspector via SIGUSR1) on fiware-iot-agent-1 for 60 s at steady load "
      "(scripts/diag/node-cpuprof.js); adds CPU to that replica in that minute."])
+plan("fiware", 4, "diag-fiware-k4-r100-cpuprof2", 100, 100, [ORION_WAIT,
+     "DIAG: V8 CPU profiler (inspector via SIGUSR1 sent from the host) on fiware-iot-agent-1 for 60 s at steady load "
+     "(scripts/diag/node-cpuprof.js); retry of DIAG-fiware-k4-r100-cpuprof, whose image has no kill binary."])
