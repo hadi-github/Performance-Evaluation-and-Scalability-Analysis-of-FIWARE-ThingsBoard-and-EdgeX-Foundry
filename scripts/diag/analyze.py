@@ -305,6 +305,14 @@ def fiware(base, run, sut, t0, t1, rate, ack):
         d["messages_sent_in_window"] = ack
         d["orion_tx_per_message"] = da / ack if ack else None
         d["orion_sample_interval_s"] = 10
+        # whole run (H-F3 duplicate check): first sample (before k6 setup) to last (after the sink drained), all
+        # replicas, vs every message sent; window edges cannot bias this
+        summ = load(f"{base}/{run}/k6-summary.json")
+        sent = sum(s.get("attempted") or 0 for s in summ["steps"])
+        whole = sum(max(v)[1] - min(v)[1] for v in by_c.values())
+        d["orion_openiot_incoming_tx_whole_run"] = whole
+        d["messages_sent_whole_run"] = sent
+        d["orion_tx_minus_sent_whole_run"] = whole - sent
     try:
         res = prom_range('max by (name) (container_memory_rss{name=~"fiware-iot-agent.*"})', t0, t1)
         d["iot_agent_rss_mb_avg"] = {json.loads(k)["name"]: v / 2**20 for k, v in avg_series(res).items()}
