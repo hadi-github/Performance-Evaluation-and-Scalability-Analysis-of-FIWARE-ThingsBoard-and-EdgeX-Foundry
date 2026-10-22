@@ -57,3 +57,6 @@ plan("fiware", 4, "diag-fiware-k4-r100-cpuprof", 100, 100, [ORION_WAIT,
 plan("fiware", 4, "diag-fiware-k4-r100-cpuprof2", 100, 100, [ORION_WAIT,
      "DIAG: V8 CPU profiler (inspector via SIGUSR1 sent from the host) on fiware-iot-agent-1 for 60 s at steady load "
      "(scripts/diag/node-cpuprof.js); retry of DIAG-fiware-k4-r100-cpuprof, whose image has no kill binary."])
+plan("fiware", 4, "diag-fiware-k4-r100-cpuprof3", 100, 100, [NOSINK["fiware"],
+     "DIAG: V8 CPU profiler (inspector via SIGUSR1 sent from the host) on fiware-iot-agent-1 for 60 s at steady load, "
+     "after a cold start (1000 devices); cpuprof2's profile was truncated and the registry had ~5000 devices."])

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "plan_id": "diag-fiware-k4-r100-cpuprof3",
+  "purpose": "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result. diag-fiware-k4-r100-cpuprof3: warm-up 120 s at 100, then 180 s at 100 msg/s.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fiware",
+  "target": {
+    "base_url": "http://87.107.191.107:1026",
+    "north_url": "http://87.107.191.107:4041",
+    "south_url": "http://87.107.191.107:7896"
+  },
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 50,
+    "max": 50
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 100,
+        "duration_s": 120,
+        "vus": 150
+      },
+      {
+        "phase": "sweep",
+        "rate": 100,
+        "duration_s": 180,
+        "vus": 150
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {},
+  "deviations": [
+    "Outbound delivery to the Go sink on ramonavm1 configured for the measurement (scripts/outbound.sh); setup, not tuning.",
+    "1000 devices round-robin (one device's messages >= 1 s apart at 1000 msg/s).",
+    "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result.",
+    "DIAG observer run WITHOUT the sink path: no Orion subscription.",
+    "DIAG: V8 CPU profiler (inspector via SIGUSR1 sent from the host) on fiware-iot-agent-1 for 60 s at steady load, after a cold start (1000 devices); cpuprof2's profile was truncated and the registry had ~5000 devices."
+  ]
+}

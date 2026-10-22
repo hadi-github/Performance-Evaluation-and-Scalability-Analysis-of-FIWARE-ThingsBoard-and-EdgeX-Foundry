@@ -16,7 +16,7 @@ http.get('http://127.0.0.1:9229/json/list', (res) => {
       await send('Profiler.start');
       setTimeout(async () => {
         const r = await send('Profiler.stop');
-        process.stdout.write(JSON.stringify(r.profile)); ws.close(); process.exit(0);
+        ws.close(); process.stdout.write(JSON.stringify(r.profile), () => process.exit(0)); // exit only after the pipe drained
       }, secs * 1000);
     });
   });
