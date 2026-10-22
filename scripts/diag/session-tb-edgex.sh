@@ -22,7 +22,7 @@ tb_up() {
 tb_jmx() {
   v2 "docker run --rm --network tb_default --cpuset-cpus 0 -e KAFKA_HEAP_OPTS=-Xmx128m --entrypoint /opt/kafka/bin/kafka-run-class.sh \
         apache/kafka:4.0.0 org.apache.kafka.tools.JmxTool --jmx-url service:jmx:rmi:///jndi/rmi://kafka:9999/jmxrmi \
-        --object-name 'kafka.network:type=RequestMetrics,name=RequestsPerSec,request=*' --attributes Count --one-time true 2>&1 | tail -2"
+        --object-name 'kafka.network:type=RequestMetrics,name=RequestsPerSec,*' --attributes Count --one-time true 2>&1 | tail -2"
 }
 
 tb_idle() { # H-T1: 5 min without load after start-up

@@ -239,14 +239,17 @@ def tb(base, run, sut, t0, t1, rate, ack):
 def tb_idle(base, run):
     sut = f"{base}/sut/{run}"
 
-    def jmx(p):
-        rows = list(csv.reader(l for l in open(p) if not l.strip().isdigit() and l.strip()))
-        hdr = [h for h in rows if h and h[0] == "time"]
+    def jmx(p):  # JmxTool CSV: "time" (epoch ms) + one Count column per (request, version); summed per request
+        rows = [r for r in csv.reader(l for l in open(p) if l.strip() and not l.strip().isdigit())]
+        hdr = next((r for r in rows if r and r[0] == "time"), None)
         if not hdr:
             return None, {}
-        h = hdr[0]; v = rows[rows.index(h) + 1]
-        t = [int(l) for l in open(p) if l.strip().isdigit()][0]
-        return t, {re.sub(r".*request=([A-Za-z]+).*", r"\1", k): float(x) for k, x in zip(h[1:], v[1:])}
+        v = rows[rows.index(hdr) + 1]
+        counts = {}
+        for k, x in zip(hdr[1:], v[1:]):
+            req = re.search(r"request=([A-Za-z]+)", k).group(1)
+            counts[req] = counts.get(req, 0) + float(x)
+        return int(v[0]), counts
     ta, a = jmx(f"{sut}/jmx-a.csv")
     tb_, b = jmx(f"{sut}/jmx-b.csv")
     d = {"window_s": (tb_ - ta) / 1000 if ta and tb_ else None}
