@@ -314,10 +314,10 @@ def fiware(base, run, sut, t0, t1, rate, ack):
         d["messages_sent_whole_run"] = sent
         d["orion_tx_minus_sent_whole_run"] = whole - sent
     try:
-        res = prom_range('max by (name) (container_memory_rss{name=~"fiware-iot-agent.*"})', t0, t1)
-        d["iot_agent_rss_mb_avg"] = {json.loads(k)["name"]: v / 2**20 for k, v in avg_series(res).items()}
-        res = prom_range('max by (name) (container_memory_working_set_bytes{name=~"fiware-iot-agent.*"})', t0, t1)
-        d["iot_agent_working_set_mb_avg"] = {json.loads(k)["name"]: v / 2**20 for k, v in avg_series(res).items()}
+        res = prom_range('max by (container) (container_memory_rss{container=~"fiware-iot-agent.*"})', t0, t1)
+        d["iot_agent_rss_mb_avg"] = {json.loads(k)["container"]: v / 2**20 for k, v in avg_series(res).items()}
+        res = prom_range('max by (container) (container_memory_working_set_bytes{container=~"fiware-iot-agent.*"})', t0, t1)
+        d["iot_agent_working_set_mb_avg"] = {json.loads(k)["container"]: v / 2**20 for k, v in avg_series(res).items()}
     except Exception as e:  # noqa: BLE001
         d["iot_agent_rss_mb_avg"] = f"query failed: {e}"
     return d
