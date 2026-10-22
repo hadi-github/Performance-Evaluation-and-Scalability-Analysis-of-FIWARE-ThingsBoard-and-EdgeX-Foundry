@@ -5,8 +5,11 @@
 //   explicit_failure  any other HTTP response
 //   unknown           no HTTP response: timeout, connection reset, any transport error (status 0)
 // setup() provisions the devices (not measured) and returns plain JSON state shared with every VU.
+// Sends discard response bodies (discardResponseBodies) unless the adapter needs them, so every setup/cleanup
+// request asks for its body explicitly (responseType: 'text').
 import http from 'k6/http';
 import exec from 'k6/execution';
+import { sleep } from 'k6';
 
 const JSON_HDR = { 'Content-Type': 'application/json' };
 
@@ -69,7 +72,7 @@ const fixture = {
 function tbLogin(cfg) {
   const res = must(http.post(cfg.target.base_url + '/api/auth/login', JSON.stringify({
     username: __ENV.TB_USER || 'tenant@thingsboard.org', password: __ENV.TB_PASS || 'tenant',
-  }), { headers: JSON_HDR, tags: { name: 'setup' } }), [200], 'ThingsBoard login');
+  }), { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text' }), [200], 'ThingsBoard login');
   return res.json('token');
 }
 
@@ -77,7 +80,7 @@ const thingsboard = {
   successStatus: 200,
   needsBody: () => false,
   setup(cfg) {
-    const auth = { headers: Object.assign({ 'X-Authorization': 'Bearer ' + tbLogin(cfg) }, JSON_HDR), tags: { name: 'setup' } };
+    const auth = { headers: Object.assign({ 'X-Authorization': 'Bearer ' + tbLogin(cfg) }, JSON_HDR), tags: { name: 'setup' }, responseType: 'text' };
     const devices = [];
     for (let i = 0; i < cfg.devices; i++) {
       const d = must(http.post(cfg.target.base_url + '/api/device',
@@ -103,7 +106,7 @@ const thingsboard = {
     return classifyStatus(res, 200);
   },
   teardown(cfg, st) {
-    const auth = { headers: { 'X-Authorization': 'Bearer ' + tbLogin(cfg) }, tags: { name: 'cleanup' } };
+    const auth = { headers: { 'X-Authorization': 'Bearer ' + tbLogin(cfg) }, tags: { name: 'cleanup' }, responseType: 'text' };
     for (const d of st.devices) http.del(cfg.target.base_url + '/api/device/' + d.id, null, auth);
   },
 };
@@ -120,7 +123,7 @@ const fiware = {
     const hdr = Object.assign({ 'Content-Type': 'application/json' }, FW_HDR);
     must(http.post(cfg.target.north_url + '/iot/services', JSON.stringify({
       services: [{ apikey, entity_type: FW_TYPE, resource: '/iot/d' }],
-    }), { headers: hdr, tags: { name: 'setup' } }), [201], 'create service group');
+    }), { headers: hdr, tags: { name: 'setup' }, responseType: 'text' }), [201], 'create service group');
     const devices = [];
     for (let i = 0; i < cfg.devices; i++) devices.push(deviceName(cfg.run_id, i));
     for (let off = 0; off < devices.length; off += 100) {
@@ -136,7 +139,7 @@ const fiware = {
         ],
       }));
       must(http.post(cfg.target.north_url + '/iot/devices', JSON.stringify({ devices: batch }),
-        { headers: hdr, tags: { name: 'setup' }, timeout: '60s' }), [201], 'provision devices');
+        { headers: hdr, tags: { name: 'setup' }, responseType: 'text', timeout: '60s' }), [201], 'provision devices');
     }
     return { apikey, devices };
   },
@@ -153,10 +156,10 @@ const fiware = {
   },
   teardown(cfg, st) {
     for (const id of st.devices) {
-      http.del(cfg.target.north_url + '/iot/devices/' + id, null, { headers: FW_HDR, tags: { name: 'cleanup' } });
+      http.del(cfg.target.north_url + '/iot/devices/' + id, null, { headers: FW_HDR, tags: { name: 'cleanup' }, responseType: 'text' });
     }
     http.del(cfg.target.north_url + '/iot/services?resource=/iot/d&apikey=' + st.apikey, null,
-      { headers: FW_HDR, tags: { name: 'cleanup' } });
+      { headers: FW_HDR, tags: { name: 'cleanup' }, responseType: 'text' });
   },
 };
 
@@ -172,7 +175,7 @@ const edgex = {
       name: EDGEX_PROFILE, manufacturer: 'bench', model: 'v1', labels: ['bench'],
       deviceResources: [{ name: 'reading', isHidden: false, properties: { valueType: 'Object', readWrite: 'RW', mediaType: 'application/json' } }],
       deviceCommands: [],
-    } }]), { headers: JSON_HDR, tags: { name: 'setup' } }), [207], 'create device profile');
+    } }]), { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text' }), [207], 'create device profile');
     const ps = p.json('0.statusCode');
     if (ps !== 201 && ps !== 409) exec.test.abort('device profile: statusCode ' + ps + ' ' + p.body);
     const devices = [];
@@ -182,10 +185,24 @@ const edgex = {
         name, serviceName: 'device-rest', profileName: EDGEX_PROFILE, adminState: 'UNLOCKED', operatingState: 'UP',
         protocols: { other: { Address: 'bench' } },
       } }));
-      const r = must(http.post(meta + '/device', JSON.stringify(batch), { headers: JSON_HDR, tags: { name: 'setup' }, timeout: '60s' }),
+      const r = must(http.post(meta + '/device', JSON.stringify(batch), { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text', timeout: '60s' }),
         [207], 'create devices');
       const bad = r.json().find((x) => x.statusCode !== 201);
       if (bad) exec.test.abort('create devices: ' + JSON.stringify(bad));
+    }
+    // device-rest learns new devices from a system event over the message bus. Probe the first and the last device
+    // until 8 consecutive readings are accepted (the LB spreads probes over replicas). Probes carry run_id
+    // "<run_id>-probe" and seq -1, so reconciliation never counts them as messages of this run.
+    for (const dev of [devices[0], devices[devices.length - 1]]) {
+      let ok = 0;
+      for (let t = 0; t < 120 && ok < 8; t++) {
+        const res = http.post(cfg.target.ingress_url + '/api/v3/resource/' + dev + '/reading',
+          JSON.stringify({ run_id: cfg.run_id + '-probe', seq: -1, scheduled_send_ms: 0, temperature: 0, humidity: 0, pressure: 0 }),
+          { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text' });
+        if (edgex.classify(res).outcome === 'ack_success') ok++;
+        else { ok = 0; sleep(0.5); }
+      }
+      if (ok < 8) exec.test.abort('device-rest never accepted readings for ' + dev);
     }
     return { devices };
   },
@@ -205,7 +222,7 @@ const edgex = {
   },
   teardown(cfg, st) {
     for (const d of st.devices) {
-      http.del(cfg.target.metadata_url + '/api/v3/device/name/' + d, null, { tags: { name: 'cleanup' } });
+      http.del(cfg.target.metadata_url + '/api/v3/device/name/' + d, null, { tags: { name: 'cleanup' }, responseType: 'text' });
     }
   },
 };

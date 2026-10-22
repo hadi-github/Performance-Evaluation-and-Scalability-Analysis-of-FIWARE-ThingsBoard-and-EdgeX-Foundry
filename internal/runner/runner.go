@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -46,6 +47,7 @@ type Manifest struct {
 	Resolved      *plan.Resolved    `json:"resolved_plan"`
 	K6            map[string]string `json:"k6"`
 	Git           map[string]string `json:"git"`
+	ScriptsSHA256 string            `json:"k6_scripts_sha256"` // content of workloads/k6 as executed (independent of git)
 	Host          map[string]string `json:"generator_host"`
 	Cpuset        string            `json:"generator_cpuset"`
 	CPUsLimit     string            `json:"generator_cpus_limit,omitempty"`
@@ -120,6 +122,29 @@ func k6Info(image string) (map[string]string, error) {
 		"image_id": run("docker", "image", "inspect", "--format", "{{.Id}}", image),
 		"version":  run("docker", "run", "--rm", image, "version"),
 	}, nil
+}
+
+// scriptsHash hashes every file under dir (relative path + content, sorted), i.e. the k6 code actually executed.
+func scriptsHash(dir string) string {
+	h := sha256.New()
+	var files []string
+	_ = filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
+		if err == nil && !d.IsDir() {
+			files = append(files, p)
+		}
+		return nil
+	})
+	sort.Strings(files)
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			return "unreadable: " + err.Error()
+		}
+		rel, _ := filepath.Rel(dir, f)
+		fmt.Fprintf(h, "%s\x00%d\x00", rel, len(b))
+		h.Write(b)
+	}
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // ---- generator sampling: per-core busy fraction from /proc/stat, k6 container memory from its cgroup
@@ -286,6 +311,7 @@ func Run(o Options) (string, *Manifest, error) {
 	m := &Manifest{SchemaVersion: 1, RunID: runID, PlanID: p.PlanID, PilotOnly: p.PilotOnly,
 		PlanSHA256: hex.EncodeToString(sum[:]), Resolved: r, K6: k6, Git: gitInfo(o.RepoRoot), Host: hostInfo(),
 		Cpuset: o.Cpuset, CPUsLimit: o.CPUs, FullJSON: o.FullJSON,
+		ScriptsSHA256: scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")),
 		Connection: map[string]any{"keep_alive": p.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
 			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": p.RequestTimeMs}}
 	for _, kv := range o.Env {
