@@ -332,8 +332,13 @@ func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath string)
 	if runVerdict != "" {
 		out["run_verdict"] = runVerdict
 	}
-	b, _ := json.MarshalIndent(out, "", " ")
-	_ = os.WriteFile(filepath.Join(dir, "explore.json"), append(b, '\n'), 0o644)
+	b, err := json.MarshalIndent(out, "", " ")
+	if err != nil {
+		die(2, "explore.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "explore.json"), append(b, '\n'), 0o644); err != nil {
+		die(2, "%v", err)
+	}
 	if runVerdict != "" {
 		fmt.Printf("== RUN VERDICT %s: %s\n", res.RunID, runVerdict)
 	}

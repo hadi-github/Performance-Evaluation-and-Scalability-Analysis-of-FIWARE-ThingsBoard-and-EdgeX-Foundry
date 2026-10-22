@@ -1,6 +1,7 @@
 package explore
 
 import (
+	"encoding/json"
 	"math"
 	"strings"
 	"testing"
@@ -61,7 +62,7 @@ func TestPassWithConstantDelay(t *testing.T) {
 		t.Fatalf("%+v", res.Steps)
 	}
 	// 200 ms in flight at 10/s: exactly 2 outstanding at every instant (no bias from schedule-aligned sampling)
-	if o := res.Steps[1].OutstandingM1; math.Abs(o-2) > 1e-9 || math.Abs(res.Steps[1].OutstandingM3-o) > 1e-9 {
+	if o := float64(res.Steps[1].OutstandingM1); math.Abs(o-2) > 1e-9 || math.Abs(float64(res.Steps[1].OutstandingM3)-o) > 1e-9 {
 		t.Fatalf("outstanding %v / %v", res.Steps[1].OutstandingM1, res.Steps[1].OutstandingM3)
 	}
 	if res.HighestPassRate != 10 || res.SinkUnique != int(r.TotalTicks) {
@@ -169,5 +170,18 @@ func TestCPUBounds(t *testing.T) {
 		if c.Container == "lb" && c.Complete {
 			t.Fatal("restarted container must be incomplete")
 		}
+	}
+}
+
+// a minute without responses has a NaN p99; the result must still encode (EXPL-fiware-k4 wrote an empty explore.json)
+func TestNaNEncodes(t *testing.T) {
+	r, s, h := setup(1)
+	h.Steps[1].AckByMinute[2].P99 = report.F(math.NaN())
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil)
+	if res.Steps[1].Verdict != "FAIL" {
+		t.Fatalf("%+v", res.Steps[1])
+	}
+	if _, err := json.Marshal(res); err != nil {
+		t.Fatal(err)
 	}
 }

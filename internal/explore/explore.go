@@ -54,9 +54,9 @@ type Snapshot struct {
 }
 
 type MinuteStats struct {
-	Minute int     `json:"minute"`
-	Count  float64 `json:"count"`
-	P99Ms  float64 `json:"ack_p99_ms"`
+	Minute int      `json:"minute"`
+	Count  float64  `json:"count"`
+	P99Ms  report.F `json:"ack_p99_ms"`
 }
 
 type ContainerCPU struct {
@@ -86,11 +86,11 @@ type Step struct {
 	Attempted      float64        `json:"attempted"`
 	AckSuccess     float64        `json:"ack_success"`
 	Unsuccessful   float64        `json:"unsuccessful_ratio"`
-	SendLagP99Ms   float64        `json:"send_lag_p99_ms"`
+	SendLagP99Ms   report.F       `json:"send_lag_p99_ms"`
 	Minutes        []MinuteStats  `json:"minutes"`
-	OutstandingM1  float64        `json:"outstanding_avg_last10s_min1"`
-	OutstandingM3  float64        `json:"outstanding_avg_last10s_min3"`
-	OutstandingMin []float64      `json:"outstanding_avg_last10s_by_minute"`
+	OutstandingM1  report.F       `json:"outstanding_avg_last10s_min1"`
+	OutstandingM3  report.F       `json:"outstanding_avg_last10s_min3"`
+	OutstandingMin []report.F     `json:"outstanding_avg_last10s_by_minute"`
 	CPU            []ContainerCPU `json:"cpu,omitempty"`
 	Pools          []PoolBound    `json:"pool_bounds,omitempty"`
 	MinB           float64        `json:"utilization_law_bound,omitempty"`
@@ -216,17 +216,17 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 		}
 		hs, ss := h.Steps[i], sum.Steps[i]
 		step := Step{Index: st.Index, Name: st.Name, Rate: st.Rate, Attempted: ss.Attempted, AckSuccess: ss.AckSuccess,
-			SendLagP99Ms: float64(hs.SendLagMs.P99)}
+			SendLagP99Ms: hs.SendLagMs.P99}
 		if ss.Attempted > 0 {
 			step.Unsuccessful = (ss.ExplicitFailure + ss.Unknown) / ss.Attempted
 		}
 		for _, m := range hs.AckByMinute {
-			step.Minutes = append(step.Minutes, MinuteStats{Minute: m.Minute, Count: m.Count, P99Ms: float64(m.P99)})
+			step.Minutes = append(step.Minutes, MinuteStats{Minute: m.Minute, Count: m.Count, P99Ms: m.P99})
 		}
 		mins := int(math.Ceil(float64(st.DurationS) / 60))
 		for m := 1; m <= mins; m++ {
 			end := win[i].t0 + float64(m)*60000
-			step.OutstandingMin = append(step.OutstandingMin, avgOutstanding(end-OutstandingWindowS*1000, end))
+			step.OutstandingMin = append(step.OutstandingMin, report.F(avgOutstanding(end-OutstandingWindowS*1000, end)))
 		}
 		if len(step.OutstandingMin) >= 3 {
 			step.OutstandingM1, step.OutstandingM3 = step.OutstandingMin[0], step.OutstandingMin[2]
@@ -268,20 +268,21 @@ func judge(step *Step, st plan.Step, hs report.StepHealth) string {
 		step.Reasons = append(step.Reasons, fmt.Sprintf("only %d minutes of latency data (need 3)", len(step.Minutes)))
 	} else {
 		for _, m := range step.Minutes {
-			if m.Count == 0 || math.IsNaN(m.P99Ms) || m.P99Ms > MaxMinuteP99Ms {
+			if p := float64(m.P99Ms); m.Count == 0 || math.IsNaN(p) || p > MaxMinuteP99Ms {
 				step.Reasons = append(step.Reasons, fmt.Sprintf("minute %d ack p99 %.1f ms > 1 s (n=%.0f)", m.Minute, m.P99Ms, m.Count))
 			}
 		}
-		p1, p3 := step.Minutes[0].P99Ms, step.Minutes[2].P99Ms
+		p1, p3 := float64(step.Minutes[0].P99Ms), float64(step.Minutes[2].P99Ms)
 		if limit := math.Max(TrendFactor*p1, p1+TrendSlackMs); p3 > limit {
 			step.Reasons = append(step.Reasons, fmt.Sprintf("ack p99 trend: minute 3 %.1f ms > max(1.5 x %.1f, %.1f + 50) = %.1f ms", p3, p1, p1, limit))
 		}
 	}
-	if len(step.OutstandingMin) < 3 || math.IsNaN(step.OutstandingM1) || math.IsNaN(step.OutstandingM3) {
+	o1, o3 := float64(step.OutstandingM1), float64(step.OutstandingM3)
+	if len(step.OutstandingMin) < 3 || math.IsNaN(o1) || math.IsNaN(o3) {
 		step.Reasons = append(step.Reasons, "outstanding work not computable")
-	} else if limit := step.OutstandingM1 + st.Rate*OutstandingSlackS; step.OutstandingM3 > limit {
+	} else if limit := o1 + st.Rate*OutstandingSlackS; o3 > limit {
 		step.Reasons = append(step.Reasons, fmt.Sprintf("outstanding work grows: minute 3 %.1f > minute 1 %.1f + rate x 1 s = %.1f",
-			step.OutstandingM3, step.OutstandingM1, limit))
+			o3, o1, limit))
 	}
 	if len(step.Reasons) > 0 {
 		return "FAIL"
