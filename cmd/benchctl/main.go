@@ -95,6 +95,8 @@ func main() {
 	sinkFile := fs.String("sink", "", "sink NDJSON (cmd/sink)")
 	cpuFile := fs.String("cpu", "", "CPU snapshot TSV (monitoring/exporters/cpu-snapshot.sh --loop)")
 	history := fs.String("history", "", "history export NDJSON (scripts/history-ids.sh)")
+	gate := fs.String("gate", "", "explore: setup gate JSON; pass=false makes the run INVALID (edgex/scripts/provision-then-scale.sh)")
+	check := fs.String("check", "", "explore: post-run platform check JSON; defect=true makes the run FAIL (platform defect)")
 	var env multi
 	fs.Var(&env, "env", "KEY=VALUE passed to k6 (repeatable; names are recorded, values are not)")
 	_ = fs.Parse(args)
@@ -205,7 +207,7 @@ func main() {
 		fmt.Printf("authoritative send lag (k6 sample time - http_req_duration - scheduled): n %d  p50 %.3f  p99 %.3f  max %.3f  min %.3f ms\n",
 			len(s), arrivals.Quantile(s, 0.5), arrivals.Quantile(s, 0.99), arrivals.Quantile(s, 1), arrivals.Quantile(s, 0))
 	case "explore":
-		runExplore(*dir, *sinkFile, *cpuFile, *history)
+		runExplore(*dir, *sinkFile, *cpuFile, *history, *gate, *check)
 	default:
 		die(2, "unknown command %q", cmd)
 	}
@@ -232,6 +234,17 @@ func readStore(path string) ([]reconcile.Stored, error) {
 	return out, nil
 }
 
+func readJSON(path string, v any) json.RawMessage {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	if err := json.Unmarshal(b, v); err != nil {
+		die(2, "%s: %v", path, err)
+	}
+	return b
+}
+
 func readSnapshots(path string) ([]explore.Snapshot, error) {
 	if path == "" {
 		return nil, nil
@@ -256,7 +269,7 @@ func readSnapshots(path string) ([]explore.Snapshot, error) {
 	return out, nil
 }
 
-func runExplore(dir, sinkPath, cpuPath, historyPath string) {
+func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath string) {
 	r, sum, h, err := report.Evaluate(dir)
 	if err != nil || sum == nil {
 		die(2, "run %s: %v (summary present: %v)", dir, err, sum != nil)
@@ -291,8 +304,39 @@ func runExplore(dir, sinkPath, cpuPath, historyPath string) {
 			out["history_reconciliation"] = rec
 		}
 	}
+	// run-level verdicts declared with the EdgeX procedure: a failed setup gate makes the run INVALID; a platform defect
+	// seen after the run (core-metadata panic/restart) makes it FAIL, whatever the per-step results
+	runVerdict := ""
+	if gatePath != "" {
+		var g struct {
+			Pass    bool     `json:"pass"`
+			Reasons []string `json:"reasons"`
+		}
+		raw := readJSON(gatePath, &g)
+		out["setup_gate"] = raw
+		if !g.Pass {
+			runVerdict = "INVALID (setup failure): " + strings.Join(g.Reasons, "; ")
+		}
+	}
+	if checkPath != "" {
+		var c struct {
+			Defect  bool   `json:"defect"`
+			Verdict string `json:"verdict"`
+		}
+		raw := readJSON(checkPath, &c)
+		out["platform_check"] = raw
+		if c.Defect && runVerdict == "" {
+			runVerdict = c.Verdict
+		}
+	}
+	if runVerdict != "" {
+		out["run_verdict"] = runVerdict
+	}
 	b, _ := json.MarshalIndent(out, "", " ")
 	_ = os.WriteFile(filepath.Join(dir, "explore.json"), append(b, '\n'), 0o644)
+	if runVerdict != "" {
+		fmt.Printf("== RUN VERDICT %s: %s\n", res.RunID, runVerdict)
+	}
 
 	fmt.Printf("== explore %s: highest passing %v msg/s, first non-pass %v msg/s (%s); sink: %d of %d planned reached, %d duplicate receipts\n",
 		res.RunID, res.HighestPassRate, res.FirstFailRate, res.FirstFailVerdict, res.ReachedSinkOfPlan, res.Planned, res.SinkDuplicates)

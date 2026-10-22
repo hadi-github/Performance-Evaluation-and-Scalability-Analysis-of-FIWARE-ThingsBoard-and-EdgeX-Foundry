@@ -82,5 +82,11 @@
     "max_core_busy": 0
   },
   "cleanup": false,
-  "test_faults": {}
+  "test_faults": {},
+  "deviations": [
+    "Outbound delivery to the Go sink on ramonavm1 configured for the measurement (scripts/outbound.sh); setup, not tuning.",
+    "1000 devices round-robin (one device's messages >= 1 s apart at 1000 msg/s).",
+    "Provision-then-scale (user decision 2026-10-22): devices are created at one device-rest replica, then the deployment is scaled to N (edgex/scripts/provision-then-scale.sh), because adding a device with several replicas makes core-metadata panic (docs/findings/edgex-device-validation-panic.md). Same procedure at every k. Setup gate before the run; a core-metadata panic/restart during the run makes the run FAIL (platform defect).",
+    "app-service-configurable http-export (profile export) added in the application pool for outbound observation."
+  ]
 }

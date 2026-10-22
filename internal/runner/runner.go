@@ -47,6 +47,7 @@ type Manifest struct {
 	PlanID        string            `json:"plan_id"`
 	PilotOnly     bool              `json:"pilot_only"`
 	PlanSHA256    string            `json:"plan_sha256"`
+	Deviations    []string          `json:"deviations,omitempty"` // from the plan
 	Resolved      *plan.Resolved    `json:"resolved_plan"`
 	K6            map[string]string `json:"k6"`
 	Git           map[string]string `json:"git"`
@@ -313,7 +314,7 @@ func Run(o Options) (string, *Manifest, error) {
 	if err != nil {
 		return dir, nil, err
 	}
-	m := &Manifest{SchemaVersion: 1, RunID: runID, PlanID: p.PlanID, PilotOnly: p.PilotOnly,
+	m := &Manifest{SchemaVersion: 1, RunID: runID, PlanID: p.PlanID, PilotOnly: p.PilotOnly, Deviations: p.Deviations,
 		PlanSHA256: hex.EncodeToString(sum[:]), Resolved: r, K6: k6, Git: gitInfo(o.RepoRoot), Host: hostInfo(),
 		Cpuset: o.Cpuset, CPUsLimit: o.CPUs, FullJSON: o.FullJSON, PromRW: o.PromRW,
 		ScriptsSHA256: scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")),

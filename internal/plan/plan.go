@@ -35,6 +35,7 @@ type Plan struct {
 	HistogramMs   []float64  `json:"histogram_ms,omitempty"` // obsolete (latency is now exact k6 Trends); accepted and ignored
 	Cleanup       bool       `json:"cleanup"`
 	TestFaults    TestFaults `json:"test_faults"`
+	Deviations    []string   `json:"deviations,omitempty"` // procedure deviations, copied into the run manifest
 }
 
 // Target: base URL(s) of the system under test. Credentials never live here; adapters read them from env.

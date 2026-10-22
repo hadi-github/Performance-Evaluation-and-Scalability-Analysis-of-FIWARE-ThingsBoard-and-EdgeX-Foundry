@@ -23,7 +23,7 @@ WHERE s.key = (SELECT key_id FROM key_dictionary WHERE key = 'seq') AND r.str_v 
 SQL
     ;;
   edgex)
-    docker exec -i edgex-postgres-1 psql -U postgres -d edgex_db -At -v ON_ERROR_STOP=1 <<SQL
+    docker exec -i edgex-database-1 psql -U postgres -d edgex_db -At -v ON_ERROR_STOP=1 <<SQL
 SELECT json_build_object('run_id', objectvalue->>'run_id', 'seq', (objectvalue->>'seq')::bigint)
 FROM core_data.reading
 WHERE objectvalue->>'run_id' = '$run';

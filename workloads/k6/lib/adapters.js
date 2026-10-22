@@ -171,17 +171,25 @@ const edgex = {
   needsBody: () => true, // a 207 answer must be parsed item by item
   setup(cfg) {
     const meta = cfg.target.metadata_url + '/api/v3';
-    const p = must(http.post(meta + '/deviceprofile', JSON.stringify([{ apiVersion: 'v3', profile: {
-      name: EDGEX_PROFILE, manufacturer: 'bench', model: 'v1', labels: ['bench'],
-      deviceResources: [{ name: 'reading', isHidden: false, properties: { valueType: 'Object', readWrite: 'RW', mediaType: 'application/json' } }],
-      deviceCommands: [],
-    } }]), { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text' }), [207], 'create device profile');
-    const ps = p.json('0.statusCode');
-    if (ps !== 201 && ps !== 409) exec.test.abort('device profile: statusCode ' + ps + ' ' + p.body);
+    const get = { tags: { name: 'setup' }, responseType: 'none' };
+    // Existing profile/devices are reused, never re-posted: with several device-rest replicas, adding a device makes
+    // core-metadata panic (docs/findings/edgex-device-validation-panic.md), so provisioning happens before scaling
+    // out (edgex/scripts/provision-then-scale.sh) and this setup then creates nothing.
+    if (must(http.get(meta + '/deviceprofile/name/' + EDGEX_PROFILE, get), [200, 404], 'get device profile').status === 404) {
+      const p = must(http.post(meta + '/deviceprofile', JSON.stringify([{ apiVersion: 'v3', profile: {
+        name: EDGEX_PROFILE, manufacturer: 'bench', model: 'v1', labels: ['bench'],
+        deviceResources: [{ name: 'reading', isHidden: false, properties: { valueType: 'Object', readWrite: 'RW', mediaType: 'application/json' } }],
+        deviceCommands: [],
+      } }]), { headers: JSON_HDR, tags: { name: 'setup' }, responseType: 'text' }), [207], 'create device profile');
+      const ps = p.json('0.statusCode');
+      if (ps !== 201 && ps !== 409) exec.test.abort('device profile: statusCode ' + ps + ' ' + p.body);
+    }
     const devices = [];
     for (let i = 0; i < cfg.devices; i++) devices.push(deviceName(cfg.run_id, i));
-    for (let off = 0; off < devices.length; off += 100) {
-      const batch = devices.slice(off, off + 100).map((name) => ({ apiVersion: 'v3', device: {
+    const missing = devices.filter((name) =>
+      must(http.get(meta + '/device/name/' + name, get), [200, 404], 'get device ' + name).status === 404);
+    for (let off = 0; off < missing.length; off += 100) {
+      const batch = missing.slice(off, off + 100).map((name) => ({ apiVersion: 'v3', device: {
         name, serviceName: 'device-rest', profileName: EDGEX_PROFILE, adminState: 'UNLOCKED', operatingState: 'UP',
         protocols: { other: { Address: 'bench' } },
       } }));
