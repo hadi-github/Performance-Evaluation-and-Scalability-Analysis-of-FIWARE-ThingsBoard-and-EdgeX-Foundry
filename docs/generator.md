@@ -130,6 +130,12 @@ The automated fault tests prove each category (`tests/integration`).
 5. **Shared randomness.** `randomSeed()` gives every VU the same sequence, and which VU runs which iteration is not
    deterministic. All randomness is therefore `hash(seed, seq)` (Go and JS bit-identical, tested).
 
-## Calibration and Poisson
+## Operating rules from calibration (docs/calibration.md)
 
-See `docs/calibration.md`.
+- **Cores and GC.** Run k6 with `GOGC=400` (`-env GOGC=400`). With the default GC, the p99 send lag fails the
+  10 ms gate even at 500/s on 2 cores.
+- **Ceiling.** About 1 core per 1,000 req/s: ~1,000/s on 2 cores, ~1,500 (2,000 borderline) on 3 cores.
+- **VU pool.** Size it from measured ack latency (`rate × p99.9 latency × 2`), never generously: memory and GC
+  pauses grow with VUs × steps (200 VUs × 30 steps: 5.2 GB and 3 invalid steps; 50 VUs: 1.6 GB, all valid).
+- **Grafana stays stopped during runs** on the load host. Prometheus (core 3) used ~10% of its core at 1,500/s.
+- **Arrivals.** Poisson via thinning costs 4-10× iterations: ~500/s on 3 cores. Constant stays the default.

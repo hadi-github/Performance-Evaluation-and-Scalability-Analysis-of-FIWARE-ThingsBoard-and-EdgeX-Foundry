@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "plan_id": "calibration-boundaries-v50",
+  "purpose": "Generator calibration: 30 short steps at one rate, to count step-boundary losses (rate x duration - 1). Pilot only. Variant: 50-VU pool (memory/GC scales with VUs x steps).",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fixture",
+  "target": {
+    "base_url": "http://87.107.191.107:18080"
+  },
+  "devices": 100,
+  "request_timeout_ms": 2000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 50,
+    "max": 50
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "b00",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b01",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b02",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b03",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b04",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b05",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b06",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b07",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b08",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b09",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b10",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b11",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b12",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b13",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b14",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b15",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b16",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b17",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b18",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b19",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b20",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b21",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b22",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b23",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b24",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b25",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b26",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b27",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b28",
+        "rate": 1000,
+        "duration_s": 10
+      },
+      {
+        "phase": "b29",
+        "rate": 1000,
+        "duration_s": 10
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "histogram_ms": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    7,
+    10,
+    15,
+    20,
+    30,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300,
+    500,
+    750,
+    1000,
+    1500,
+    2000,
+    3000,
+    5000,
+    10000
+  ],
+  "cleanup": false,
+  "test_faults": {}
+}
