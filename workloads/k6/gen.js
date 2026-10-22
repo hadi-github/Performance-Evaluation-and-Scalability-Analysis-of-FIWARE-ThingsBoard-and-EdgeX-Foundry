@@ -5,8 +5,12 @@
 //   seq               = s.seq_offset + i
 //   scheduled_send_ms = (scenario start) + i * 1000 / s.tick_rate
 // That mapping is exact only while no iteration is dropped (docs/k6-feasibility.md); a run with
-// dropped_iterations > 0 is therefore INVALID. k6 may run one extra boundary iteration per step (i == ticks); it is
-// not sent and is counted as "beyond plan". One iteration = at most one HTTP request; no retries, no sleeps.
+// dropped_iterations > 0 is therefore INVALID. One iteration = at most one HTTP request; no retries, no sleeps.
+//
+// Step boundary guard: the executor runs GUARD_S longer than the step, and only iterations i < ticks are sent;
+// later ones return immediately ("beyond plan"). Without the guard k6 ran rate x duration - 1 iterations in 1 of
+// 10 one-minute steps: the last tick's timer fired after the scenario deadline and was neither started nor counted
+// as dropped (docs/calibration.md). With it, the last planned tick is never near a deadline.
 //
 // Outputs (no per-message console logging for successes, no IDs in metric tags):
 //   - counters per step: attempted, ack_success, explicit_failure, unknown, early sends, beyond-plan, thinned ticks;
@@ -53,6 +57,7 @@ function bucket(v) {
   return EDGES.length;
 }
 
+const GUARD_S = 1;
 const scenarios = {};
 const thresholds = {};
 for (const s of cfg.steps) {
@@ -60,7 +65,7 @@ for (const s of cfg.steps) {
     executor: 'constant-arrival-rate',
     rate: s.tick_rate,
     timeUnit: '1s',
-    duration: s.duration_s + 's',
+    duration: (s.duration_s + GUARD_S) + 's',
     startTime: s.start_s + 's',
     preAllocatedVUs: cfg.vus.pre_allocated,
     maxVUs: cfg.vus.max,
