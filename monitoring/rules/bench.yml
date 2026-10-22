@@ -44,13 +44,14 @@ groups:
               rate({__name__=~"k6_g_(ack_success|explicit_failure|unknown|early|beyond|thinned)_s[0-9]+_total"}[30s]),
               "outcome", "$1", "__name__", "k6_g_(ack_success|explicit_failure|unknown|early|beyond|thinned)_s[0-9]+_total"),
               "step", "$1", "__name__", "k6_g_[a-z_]+_s([0-9]+)_total"))
-      # bucketed send lag / ack latency k6_g_{lag,ack}_s<step>_le<edge>_total -> histogram, step, le labels
-      # (non-cumulative bucket counts; edges in ms, "inf" = overflow; 0p5 = 0.5)
-      - record: bench:k6_latency_bucket:rate30s
+      # send lag / ack latency p99 from the k6 Trends g_lag_ms{s} and g_ack_ms{s,m} -> histogram, step, minute labels.
+      # k6 computes the quantile itself over all samples of that tag set so far (cumulative within the step/minute);
+      # it is not mergeable across series. The authoritative values are in health.json.
+      - record: bench:k6_latency_p99_ms
         expr: |
-          sum by (run_id, plan_id, histogram, step, le) (
+          max by (run_id, plan_id, histogram, step, minute) (
             label_replace(label_replace(label_replace(
-              rate({__name__=~"k6_g_(lag|ack)_s[0-9]+_le[0-9a-z]+_total"}[30s]),
-              "histogram", "$1", "__name__", "k6_g_(lag|ack)_s.*"),
-              "step", "$1", "__name__", "k6_g_[a-z]+_s([0-9]+)_le.*"),
-              "le", "$1", "__name__", "k6_g_[a-z]+_s[0-9]+_le([0-9a-z]+)_total"))
+              {__name__=~"k6_g_(lag|ack)_ms_p99"},
+              "histogram", "$1", "__name__", "k6_g_(lag|ack)_ms_p99"),
+              "step", "$1", "s", "(.*)"),
+              "minute", "$1", "m", "(.*)"))

@@ -863,8 +863,8 @@
   {
    "id": 15,
    "type": "timeseries",
-   "title": "Send lag (actual JS send \u2212 scheduled), bucket counts/s by upper edge (ms)",
-   "description": "Non-cumulative bucket rates from the generator histogram (edges from the plan, 'inf' = overflow, 0p5 = 0.5). Gate: p99 <= 10 ms per step, evaluated offline from exact counts (health.json).",
+   "title": "Send lag p99 (actual JS send \u2212 scheduled) per step, ms",
+   "description": "k6 Trend g_lag_ms{s}: exact p99 over the step's samples so far (computed by k6, not mergeable). Gate: p99 <= 10 ms per step, evaluated offline from the end-of-run summary (health.json).",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -875,8 +875,8 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (le) (bench:k6_latency_bucket:rate30s{run_id=~\"$run_id\",histogram=\"lag\"})",
-     "legendFormat": "le {{le}}",
+     "expr": "bench:k6_latency_p99_ms{run_id=~\"$run_id\",histogram=\"lag\"}",
+     "legendFormat": "step {{step}}",
      "refId": "A",
      "range": true,
      "instant": false,
@@ -891,11 +891,11 @@
    },
    "fieldConfig": {
     "defaults": {
-     "unit": "short",
+     "unit": "ms",
      "custom": {
-      "fillOpacity": 40,
+      "fillOpacity": 10,
       "stacking": {
-       "mode": "normal"
+       "mode": "none"
       },
       "showPoints": "never",
       "spanNulls": false
@@ -921,8 +921,8 @@
   {
    "id": 16,
    "type": "timeseries",
-   "title": "Acknowledgement latency (HTTP response \u2212 scheduled), bucket counts/s (ms)",
-   "description": "Starts at the scheduled time (includes send lag). This is acknowledgement, not persistence or sink observation. The provisional P1 platform budget is 500 ms (not frozen).",
+   "title": "Acknowledgement latency p99 (HTTP response \u2212 scheduled) per step and minute, ms",
+   "description": "k6 Trend g_ack_ms{s,m}, m = minute of the step by scheduled send time (0-based). Starts at the scheduled time (includes send lag). Acknowledgement, not persistence or sink observation.",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -933,8 +933,8 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum by (le) (bench:k6_latency_bucket:rate30s{run_id=~\"$run_id\",histogram=\"ack\"})",
-     "legendFormat": "le {{le}}",
+     "expr": "bench:k6_latency_p99_ms{run_id=~\"$run_id\",histogram=\"ack\"}",
+     "legendFormat": "step {{step}} min {{minute}}",
      "refId": "A",
      "range": true,
      "instant": false,
@@ -949,11 +949,11 @@
    },
    "fieldConfig": {
     "defaults": {
-     "unit": "short",
+     "unit": "ms",
      "custom": {
-      "fillOpacity": 40,
+      "fillOpacity": 10,
       "stacking": {
-       "mode": "normal"
+       "mode": "none"
       },
       "showPoints": "never",
       "spanNulls": false
@@ -1048,17 +1048,72 @@
   },
   {
    "id": 18,
-   "type": "text",
-   "title": "Scheduled \u2192 sink observation latency",
+   "type": "timeseries",
+   "title": "Sink observations (per s)",
+   "description": "Messages the platform exported to the Go sink (outbound observation). Observation latency and outstanding work are computed offline by benchctl explore.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(sink_received_total[30s]))",
+     "legendFormat": "unique+dup received",
+     "refId": "A",
+     "range": true,
+     "instant": false,
+     "format": "time_series"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(sink_duplicates_total[30s]))",
+     "legendFormat": "duplicates",
+     "refId": "B",
+     "range": true,
+     "instant": false,
+     "format": "time_series"
+    }
+   ],
    "gridPos": {
     "w": 6,
     "h": 7,
     "x": 12,
     "y": 49
    },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "fillOpacity": 10,
+      "stacking": {
+       "mode": "none"
+      },
+      "showPoints": "never",
+      "spanNulls": false
+     }
+    },
+    "overrides": []
+   },
    "options": {
-    "mode": "markdown",
-    "content": "**Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/tooling-interfaces.md`. Needs the Go sink and outbound delivery per platform."
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
    }
   },
   {

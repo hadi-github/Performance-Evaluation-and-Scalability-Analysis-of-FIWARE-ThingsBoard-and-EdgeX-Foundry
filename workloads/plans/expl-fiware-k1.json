@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "plan_id": "expl-fiware-k1",
+  "purpose": "Exploratory capacity check (fiware, k1): does the platform exceed 500 msg/s? Warm-up 120 s at 50, then 3-minute constant-rate steps; judged offline by benchctl explore with the rule declared in docs/exploratory-capacity.md. 1000 devices round-robin so one device's messages are >= 1 s apart at 1000 msg/s (ThingsBoard keys telemetry by device and arrival ms). Not a paper result.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fiware",
+  "target": {
+    "base_url": "http://87.107.191.107:1026",
+    "north_url": "http://87.107.191.107:4041",
+    "south_url": "http://87.107.191.107:7896"
+  },
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 50,
+    "max": 50
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 50,
+        "duration_s": 120,
+        "vus": 75
+      },
+      {
+        "phase": "sweep",
+        "rate": 50,
+        "duration_s": 180,
+        "vus": 75
+      },
+      {
+        "phase": "sweep",
+        "rate": 100,
+        "duration_s": 180,
+        "vus": 150
+      },
+      {
+        "phase": "sweep",
+        "rate": 200,
+        "duration_s": 180,
+        "vus": 300
+      },
+      {
+        "phase": "sweep",
+        "rate": 350,
+        "duration_s": 180,
+        "vus": 525
+      },
+      {
+        "phase": "sweep",
+        "rate": 500,
+        "duration_s": 180,
+        "vus": 750
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {}
+}

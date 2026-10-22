@@ -173,21 +173,25 @@ def overview():
 
         # 3 ---------------------------------------------------------------------------------------------
         row("3. Latency (only qualified sources; never substituted)"),
-        panel("Send lag (actual JS send − scheduled), bucket counts/s by upper edge (ms)", [
-            ('sum by (le) (bench:k6_latency_bucket:rate30s{' + RUN + ',histogram="lag"})', "le {{le}}")],
-            "short", w=12, h=8, stack=True,
-            desc="Non-cumulative bucket rates from the generator histogram (edges from the plan, 'inf' = overflow, "
-                 "0p5 = 0.5). Gate: p99 <= 10 ms per step, evaluated offline from exact counts (health.json)."),
-        panel("Acknowledgement latency (HTTP response − scheduled), bucket counts/s (ms)", [
-            ('sum by (le) (bench:k6_latency_bucket:rate30s{' + RUN + ',histogram="ack"})', "le {{le}}")],
-            "short", w=12, h=8, stack=True,
-            desc="Starts at the scheduled time (includes send lag). This is acknowledgement, not persistence or "
-                 "sink observation. The provisional P1 platform budget is 500 ms (not frozen)."),
+        panel("Send lag p99 (actual JS send − scheduled) per step, ms", [
+            ('bench:k6_latency_p99_ms{' + RUN + ',histogram="lag"}', "step {{step}}")],
+            "ms", w=12, h=8,
+            desc="k6 Trend g_lag_ms{s}: exact p99 over the step's samples so far (computed by k6, not mergeable). "
+                 "Gate: p99 <= 10 ms per step, evaluated offline from the end-of-run summary (health.json)."),
+        panel("Acknowledgement latency p99 (HTTP response − scheduled) per step and minute, ms", [
+            ('bench:k6_latency_p99_ms{' + RUN + ',histogram="ack"}', "step {{step}} min {{minute}}")],
+            "ms", w=12, h=8,
+            desc="k6 Trend g_ack_ms{s,m}, m = minute of the step by scheduled send time (0-based). Starts at the "
+                 "scheduled time (includes send lag). Acknowledgement, not persistence or sink observation."),
         panel("k6 http_req_duration (diagnostic: actual send → response; precomputed per 5 s push, NOT mergeable)", [
             ('max by (scenario) (k6_http_req_duration_p99{' + RUN + ',name="send"})', "p99 {{scenario}}"),
             ('max by (scenario) (k6_http_req_duration_p50{' + RUN + ',name="send"})', "p50 {{scenario}}")],
             "s", w=12, h=7, desc="Per-interval quantiles computed by k6; never average them into a run p99."),
-        text("Scheduled → sink observation latency", UNAVAILABLE + " Needs the Go sink and outbound delivery per platform.", w=6, h=7),
+        panel("Sink observations (per s)", [
+            ('sum(rate(sink_received_total[30s]))', "unique+dup received"),
+            ('sum(rate(sink_duplicates_total[30s]))', "duplicates")], "short", w=6, h=7,
+            desc="Messages the platform exported to the Go sink (outbound observation). Observation latency and "
+                 "outstanding work are computed offline by benchctl explore."),
         text("History-write / committed-visibility latency", UNAVAILABLE + " Needs qualified database instrumentation.", w=6, h=7),
 
         # 4 ---------------------------------------------------------------------------------------------
