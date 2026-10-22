@@ -3,7 +3,7 @@
 #
 #   scripts/deploy-generator.sh [root@host] [--jump root@ramonavm2] [--allow-dirty]   (SSH_KEY=path: identity to use)
 #
-# Ships `git archive HEAD` (never the working tree) plus bin/{benchctl,fixture-target} and GIT_REV ("<sha> <dirty>"),
+# Ships `git archive HEAD` (never the working tree) plus bin/{benchctl,fixture-target,sink} and GIT_REV ("<sha> <dirty>"),
 # so every manifest written there names the exact commit. Refuses a dirty tree unless --allow-dirty (then GIT_REV
 # says dirty=true, although the shipped files are still exactly HEAD). Untracked files on the host (.env,
 # results/) are kept.
@@ -23,6 +23,7 @@ tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/bin"
 CGO_ENABLED=0 go build -trimpath -o "$tmp/bin/benchctl" ./cmd/benchctl
 CGO_ENABLED=0 go build -trimpath -o "$tmp/bin/fixture-target" ./cmd/fixture-target
+CGO_ENABLED=0 go build -trimpath -o "$tmp/bin/sink" ./cmd/sink
 git archive --format=tar HEAD -o "$tmp/repo.tar"
 echo "$(git rev-parse HEAD) $dirty" > "$tmp/GIT_REV"
 tar czf "$tmp/bundle.tgz" -C "$tmp" bin repo.tar GIT_REV

@@ -370,8 +370,14 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 		}
 		h.Steps = append(h.Steps, sh)
 	}
-	if s.VUsPeak >= float64(r.VUs.Max) {
-		h.Warnings = append(h.Warnings, fmt.Sprintf("peak VUs %.0f reached vus.max %d: no headroom left", s.VUsPeak, r.VUs.Max))
+	// Largest pool any single step can use (steps may override the plan's vus); overlapping steps can add up.
+	maxPool := r.VUs.Max
+	for _, st := range r.Steps {
+		maxPool = max(maxPool, st.VUs)
+	}
+	h.VUsMax = maxPool
+	if s.VUsPeak >= float64(maxPool) {
+		h.Warnings = append(h.Warnings, fmt.Sprintf("peak VUs %.0f reached the largest step pool %d: no headroom left", s.VUsPeak, maxPool))
 	}
 	if len(h.Reasons) > 0 {
 		h.Valid = false

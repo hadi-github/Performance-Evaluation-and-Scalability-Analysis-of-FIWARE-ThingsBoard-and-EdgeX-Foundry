@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "plan_id": "expl-dryrun",
+  "purpose": "Exploratory check dry run: full pipeline (generator, fixture forwarding to the sink, explore, reconcile) with known answers. Not a platform result.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "fixture",
+  "target": {
+    "base_url": "http://87.107.191.107:18080"
+  },
+  "devices": 100,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 50,
+    "max": 50
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 50,
+        "duration_s": 60,
+        "vus": 75
+      },
+      {
+        "phase": "sweep",
+        "rate": 50,
+        "duration_s": 180,
+        "vus": 75
+      },
+      {
+        "phase": "sweep",
+        "rate": 100,
+        "duration_s": 180,
+        "vus": 150
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {}
+}
