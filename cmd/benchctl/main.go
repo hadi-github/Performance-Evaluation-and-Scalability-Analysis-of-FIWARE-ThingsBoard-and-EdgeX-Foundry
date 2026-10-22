@@ -96,6 +96,7 @@ func main() {
 	cpuFile := fs.String("cpu", "", "CPU snapshot TSV (monitoring/exporters/cpu-snapshot.sh --loop)")
 	history := fs.String("history", "", "history export NDJSON (scripts/history-ids.sh)")
 	gate := fs.String("gate", "", "explore: setup gate JSON; pass=false makes the run INVALID (edgex/scripts/provision-then-scale.sh)")
+	persist := fs.String("persist", "", "explore: cumulative stored-count series TSV (time_ms, count), e.g. scripts/persist-series.sh; adds verdict_persistence (D23)")
 	check := fs.String("check", "", "explore: post-run platform check JSON; defect=true makes the run FAIL (platform defect)")
 	var env multi
 	fs.Var(&env, "env", "KEY=VALUE passed to k6 (repeatable; names are recorded, values are not)")
@@ -207,7 +208,7 @@ func main() {
 		fmt.Printf("authoritative send lag (k6 sample time - http_req_duration - scheduled): n %d  p50 %.3f  p99 %.3f  max %.3f  min %.3f ms\n",
 			len(s), arrivals.Quantile(s, 0.5), arrivals.Quantile(s, 0.99), arrivals.Quantile(s, 1), arrivals.Quantile(s, 0))
 	case "explore":
-		runExplore(*dir, *sinkFile, *cpuFile, *history, *gate, *check)
+		runExplore(*dir, *sinkFile, *cpuFile, *history, *gate, *check, *persist)
 	default:
 		die(2, "unknown command %q", cmd)
 	}
@@ -245,6 +246,34 @@ func readJSON(path string, v any) json.RawMessage {
 	return b
 }
 
+// readStoreSeries reads "time_ms<TAB>count" lines ('#' starts a comment).
+func readStoreSeries(path string) ([]explore.StorePoint, error) {
+	if path == "" {
+		return nil, nil
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var out []explore.StorePoint
+	for _, l := range strings.Split(string(b), "\n") {
+		if l = strings.TrimSpace(l); l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		f := strings.Fields(l)
+		if len(f) < 2 {
+			return nil, fmt.Errorf("%s: bad line %q", path, l)
+		}
+		t, err1 := strconv.ParseFloat(f[0], 64)
+		c, err2 := strconv.ParseFloat(f[1], 64)
+		if err1 != nil || err2 != nil {
+			return nil, fmt.Errorf("%s: bad line %q", path, l)
+		}
+		out = append(out, explore.StorePoint{TMs: t, Count: c})
+	}
+	return out, nil
+}
+
 func readSnapshots(path string) ([]explore.Snapshot, error) {
 	if path == "" {
 		return nil, nil
@@ -269,7 +298,7 @@ func readSnapshots(path string) ([]explore.Snapshot, error) {
 	return out, nil
 }
 
-func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath string) {
+func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath, persistPath string) {
 	r, sum, h, err := report.Evaluate(dir)
 	if err != nil || sum == nil {
 		die(2, "run %s: %v (summary present: %v)", dir, err, sum != nil)
@@ -291,7 +320,14 @@ func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath string)
 	if err != nil {
 		die(2, "%v", err)
 	}
-	res := explore.Evaluate(r, sum, h, obs, snaps)
+	store, err := readStoreSeries(persistPath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	res := explore.Evaluate(r, sum, h, obs, snaps, store)
+	if res.Persist != nil {
+		res.Persist.Source = persistPath
+	}
 	out := map[string]any{"explore": res}
 	if historyPath != "" {
 		stored, err := readStore(historyPath)
@@ -359,10 +395,21 @@ func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath string)
 		if s.MinBContainer != "" {
 			fmt.Printf("  bound %.0f msg/s (%s)", s.MinB, s.MinBContainer)
 		}
+		if s.VerdictPersist != "" {
+			var po []string
+			for _, o := range s.OutstandingPersistMin {
+				po = append(po, fmt.Sprintf("%.1f", o))
+			}
+			fmt.Printf("\n  %-26s persistence: %-13s outstanding/min [%s]", "", s.VerdictPersist, strings.Join(po, " "))
+		}
 		fmt.Println()
 		for _, reason := range s.Reasons {
 			fmt.Println("      - " + reason)
 		}
+	}
+	if p := res.Persist; p != nil {
+		fmt.Printf("  persistence (D23): highest passing %v msg/s, first non-pass %v msg/s (%s); %d points, median spacing %.0f ms, stored at last point %.0f\n",
+			p.HighestPassRate, p.FirstFailRate, p.FirstFailVerdict, p.Points, p.MedianSpacingMs, p.StoredAtLastPoint)
 	}
 	if rec, ok := out["history_reconciliation"].(*reconcile.Result); ok {
 		fmt.Printf("  history: planned %d, stored unique %d, ack_lost %d, persisted_despite_unknown %d, duplicates %d, orphans %d\n",

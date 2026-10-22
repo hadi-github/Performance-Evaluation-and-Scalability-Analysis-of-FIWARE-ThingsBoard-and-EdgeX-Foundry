@@ -57,7 +57,7 @@ func sinkFor(r *plan.Resolved, sum *report.Summary, delayMs func(seq int64) floa
 
 func TestPassWithConstantDelay(t *testing.T) {
 	r, s, h := setup(2)
-	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 200 }), nil)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 200 }), nil, nil)
 	if res.Steps[0].Verdict != "warm-up" || res.Steps[1].Verdict != "PASS" || res.Steps[2].Verdict != "PASS" {
 		t.Fatalf("%+v", res.Steps)
 	}
@@ -80,7 +80,7 @@ func TestOutstandingGrowthFails(t *testing.T) {
 			return 100
 		}
 		return 100 + float64(seq-off)*2 // +2 ms per message = +20 ms per second
-	}), nil)
+	}), nil, nil)
 	st := res.Steps[1]
 	if st.Verdict != "FAIL" || !strings.Contains(strings.Join(st.Reasons, ";"), "outstanding work grows") {
 		t.Fatalf("%+v", st)
@@ -99,7 +99,7 @@ func TestOutstandingGrowthWithinSlackPasses(t *testing.T) {
 			return 600
 		}
 		return 100
-	}), nil)
+	}), nil, nil)
 	if res.Steps[1].Verdict != "PASS" {
 		t.Fatalf("%+v", res.Steps[1])
 	}
@@ -119,7 +119,7 @@ func TestLatencyTrendBorders(t *testing.T) {
 		h.Steps[1].AckByMinute[0].P99 = report.F(c.p1)
 		h.Steps[1].AckByMinute[1].P99 = report.F(c.p1)
 		h.Steps[1].AckByMinute[2].P99 = report.F(c.p3)
-		res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil)
+		res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, nil)
 		if (res.Steps[1].Verdict == "PASS") != c.pass {
 			t.Fatalf("p1 %v p3 %v: %s %v", c.p1, c.p3, res.Steps[1].Verdict, res.Steps[1].Reasons)
 		}
@@ -133,7 +133,7 @@ func TestUnsuccessfulRatio(t *testing.T) {
 	}{{1.8, true}, {1.9, false}} { // 1800 attempted: 0.1% = 1.8
 		r, s, h := setup(1)
 		s.Steps[1].Unknown = c.bad
-		res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil)
+		res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, nil)
 		if (res.Steps[1].Verdict == "PASS") != c.pass {
 			t.Fatalf("bad %v: %s %v", c.bad, res.Steps[1].Verdict, res.Steps[1].Reasons)
 		}
@@ -143,7 +143,7 @@ func TestUnsuccessfulRatio(t *testing.T) {
 func TestGeneratorFailureIsInvalid(t *testing.T) {
 	r, s, h := setup(2)
 	h.Steps[1].Checks = append(h.Steps[1].Checks, report.Check{Name: "send_lag_p99", Pass: false, Gate: true, Detail: "p99 25 ms"})
-	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, nil)
 	if res.Steps[1].Verdict != "INVALID" || res.Steps[2].Verdict != "not evaluated" || res.FirstFailVerdict != "INVALID" {
 		t.Fatalf("%+v", res.Steps)
 	}
@@ -160,7 +160,7 @@ func TestCPUBounds(t *testing.T) {
 		{TimeS: ts + 180, Container: "db", ID: "d", UsageUsec: 180e6, StartedAt: "x", Cpuset: "2-3"}, // 180 CPU-s
 		{TimeS: ts + 180, Container: "lb", ID: "l2", UsageUsec: 5e6, StartedAt: "y", Cpuset: "1"},    // restarted
 	}
-	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), snaps)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), snaps, nil)
 	st := res.Steps[1]
 	// app: D = 0.05, B = 4/0.05 = 80; db: D = 0.1, B = 2/0.1 = 20 -> bottleneck db
 	if st.MinBContainer != "db" || math.Abs(st.MinB-20) > 1e-9 {
@@ -177,11 +177,66 @@ func TestCPUBounds(t *testing.T) {
 func TestNaNEncodes(t *testing.T) {
 	r, s, h := setup(1)
 	h.Steps[1].AckByMinute[2].P99 = report.F(math.NaN())
-	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, nil)
 	if res.Steps[1].Verdict != "FAIL" {
 		t.Fatalf("%+v", res.Steps[1])
 	}
 	if _, err := json.Marshal(res); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// stored counter sampled every 5 s, offset by gate traffic before the run
+func storeFor(r *plan.Resolved, sum *report.Summary, lagMs float64, maxRate float64) []StorePoint {
+	var sched []float64
+	for i, st := range r.Steps {
+		for k := int64(0); k < st.Ticks; k++ {
+			sched = append(sched, sum.Steps[i].ScenarioStartMs+float64(k)*1000/st.TickRate)
+		}
+	}
+	const offset = 4000.0
+	var out []StorePoint
+	end := sched[len(sched)-1] + 600000
+	for t := t0 - 30000; t <= end; t += 5000 {
+		n := 0.0
+		for _, s := range sched {
+			if s+lagMs <= t {
+				n++
+			}
+		}
+		if maxRate > 0 { // persistence throughput cap from the warm-up start
+			n = math.Min(n, maxRate*math.Max(0, t-t0)/1000)
+		}
+		out = append(out, StorePoint{TMs: t, Count: offset + n})
+	}
+	return out
+}
+
+func TestPersistenceKeepsUp(t *testing.T) {
+	r, s, h := setup(2)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, storeFor(r, s, 300, 0))
+	for _, st := range res.Steps[1:] {
+		if st.Verdict != "PASS" || st.VerdictPersist != "PASS" {
+			t.Fatalf("%+v", st)
+		}
+		// 300 ms at 10/s = 3 outstanding; the 5 s sampling interpolates the staircase: within 1 message
+		if o := float64(st.OutstandingPersistMin[2]); math.Abs(o-3) > 1 {
+			t.Fatalf("persistence outstanding %v", o)
+		}
+	}
+	if res.Persist.Baseline < 3999 || res.Persist.Baseline > 4001 || res.Persist.MedianSpacingMs != 5000 {
+		t.Fatalf("%+v", res.Persist)
+	}
+}
+
+func TestPersistenceCeilingFailsWhileSinkPasses(t *testing.T) {
+	r, s, h := setup(2)
+	res := Evaluate(r, s, h, sinkFor(r, s, func(int64) float64 { return 50 }), nil, storeFor(r, s, 0, 7)) // stores 7/s of 10/s
+	st := res.Steps[1]
+	if st.Verdict != "PASS" || st.VerdictPersist != "FAIL" || res.Steps[2].VerdictPersist != "not evaluated" {
+		t.Fatalf("%+v", st)
+	}
+	if res.Persist.FirstFailRate != 10 || res.Persist.HighestPassRate != 0 || res.HighestPassRate != 10 {
+		t.Fatalf("%+v %+v", res.Persist, res)
 	}
 }

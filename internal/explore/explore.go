@@ -36,6 +36,13 @@ const (
 	OutstandingSlackS    = 1.0
 )
 
+// StorePoint is one sample of a cumulative stored-message counter (D23: goodput at persistence), e.g. the
+// postgres-exporter series pg_stat_user_tables_n_tup_ins of EdgeX's core_data.reading table.
+type StorePoint struct {
+	TMs   float64
+	Count float64
+}
+
 // SinkObs is one sink observation (first receipts are derived here).
 type SinkObs struct {
 	RunID  string
@@ -95,6 +102,10 @@ type Step struct {
 	Pools          []PoolBound    `json:"pool_bounds,omitempty"`
 	MinB           float64        `json:"utilization_law_bound,omitempty"`
 	MinBContainer  string         `json:"bottleneck_container,omitempty"`
+	// D23: the same rule with outstanding work measured at persistence instead of the sink (only with a store series)
+	VerdictPersist        string     `json:"verdict_persistence,omitempty"`
+	ReasonsPersist        []string   `json:"reasons_persistence,omitempty"`
+	OutstandingPersistMin []report.F `json:"outstanding_persistence_avg_last10s_by_minute,omitempty"`
 }
 
 type Result struct {
@@ -108,6 +119,20 @@ type Result struct {
 	SinkOtherRun      int     `json:"sink_other_run_ids"`
 	Planned           int64   `json:"planned_messages"`
 	ReachedSinkOfPlan int     `json:"planned_reached_sink"`
+	// D23 persistence evaluation (present only with a store series)
+	Persist *PersistSummary `json:"persistence,omitempty"`
+}
+
+type PersistSummary struct {
+	Source            string  `json:"source"`
+	Points            int     `json:"points"`
+	MedianSpacingMs   float64 `json:"median_sample_spacing_ms"` // time resolution of the stored count
+	Baseline          float64 `json:"baseline_count_at_warmup_start"`
+	StoredAtLastPoint float64 `json:"stored_at_last_point"`
+	LastPointMs       float64 `json:"last_point_ms"`
+	HighestPassRate   float64 `json:"highest_passing_rate"`
+	FirstFailRate     float64 `json:"first_failing_rate"`
+	FirstFailVerdict  string  `json:"first_failing_verdict"`
 }
 
 func cpusetCores(cs string) int {
@@ -140,7 +165,11 @@ func nearest(snaps []Snapshot, t float64) map[string]Snapshot {
 
 // Evaluate applies the rule. health and summary come from the run directory; obs are all sink observations
 // (any run); snaps the CPU snapshot series of the SUT during the run (may be empty).
-func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []SinkObs, snaps []Snapshot) *Result {
+//
+// store, if not empty, is a cumulative stored-message counter of the platform; the rule is then also applied with
+// outstanding work = sent - stored (D23), the stored count taken relative to its value at the warm-up start and
+// interpolated linearly between samples.
+func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []SinkObs, snaps []Snapshot, store []StorePoint) *Result {
 	res := &Result{RunID: r.RunID, Planned: r.TotalTicks}
 
 	// first sink receipt per seq of this run
@@ -184,10 +213,7 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 	// Exact time-average of sent(t) - reached(t) over [from, to): each event at time e before `to` adds
 	// to - max(from, e) to the integral. Point sampling would be biased by one message whenever the sample instants
 	// line up with the send schedule (they do: whole multiples of the tick period after the scenario start).
-	avgOutstanding := func(from, to float64) float64 {
-		if to <= from {
-			return math.NaN()
-		}
+	sentArea := func(from, to float64) float64 {
 		area := 0.0
 		for i, st := range r.Steps {
 			if to <= win[i].t0 {
@@ -200,6 +226,13 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 				area += to - (win[i].t0 + k*win[i].period)
 			}
 		}
+		return area
+	}
+	avgOutstanding := func(from, to float64) float64 {
+		if to <= from {
+			return math.NaN()
+		}
+		area := sentArea(from, to)
 		lo := sort.SearchFloat64s(recv, from)
 		hi := sort.SearchFloat64s(recv, to)
 		area -= float64(lo) * (to - from)
@@ -209,7 +242,55 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 		return area / (to - from)
 	}
 
-	stopped := false
+	// persistence: stored(t) piecewise linear through the samples, relative to the warm-up start
+	var avgPersist func(from, to float64) float64
+	if len(store) > 0 {
+		sort.Slice(store, func(a, b int) bool { return store[a].TMs < store[b].TMs })
+		at := func(t float64) float64 {
+			j := sort.Search(len(store), func(k int) bool { return store[k].TMs >= t })
+			switch {
+			case j == 0:
+				return store[0].Count
+			case j == len(store):
+				return store[len(store)-1].Count
+			}
+			a, b := store[j-1], store[j]
+			return a.Count + (b.Count-a.Count)*(t-a.TMs)/(b.TMs-a.TMs)
+		}
+		base := at(win[0].t0)
+		var gaps []float64
+		for k := 1; k < len(store); k++ {
+			gaps = append(gaps, store[k].TMs-store[k-1].TMs)
+		}
+		sort.Float64s(gaps)
+		last := store[len(store)-1]
+		res.Persist = &PersistSummary{Points: len(store), Baseline: base, StoredAtLastPoint: last.Count - base, LastPointMs: last.TMs}
+		if len(gaps) > 0 {
+			res.Persist.MedianSpacingMs = gaps[len(gaps)/2]
+		}
+		storedArea := func(from, to float64) float64 { // integral of stored(t) - base over [from, to)
+			pts := []float64{from}
+			for _, p := range store {
+				if p.TMs > from && p.TMs < to {
+					pts = append(pts, p.TMs)
+				}
+			}
+			pts = append(pts, to)
+			area := 0.0
+			for k := 1; k < len(pts); k++ {
+				area += (at(pts[k-1]) + at(pts[k]) - 2*base) / 2 * (pts[k] - pts[k-1])
+			}
+			return area
+		}
+		avgPersist = func(from, to float64) float64 {
+			if to <= from {
+				return math.NaN()
+			}
+			return (sentArea(from, to) - storedArea(from, to)) / (to - from)
+		}
+	}
+
+	stopped, stoppedPersist := false, false
 	for i, st := range r.Steps {
 		if i >= len(h.Steps) || i >= len(sum.Steps) {
 			break
@@ -230,6 +311,34 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 		}
 		if len(step.OutstandingMin) >= 3 {
 			step.OutstandingM1, step.OutstandingM3 = step.OutstandingMin[0], step.OutstandingMin[2]
+		}
+
+		if avgPersist != nil {
+			p := step // judged with the same rule, outstanding work at persistence
+			p.Reasons, p.OutstandingMin = nil, nil
+			for m := 1; m <= mins; m++ {
+				end := win[i].t0 + float64(m)*60000
+				p.OutstandingMin = append(p.OutstandingMin, report.F(avgPersist(end-OutstandingWindowS*1000, end)))
+			}
+			if len(p.OutstandingMin) >= 3 {
+				p.OutstandingM1, p.OutstandingM3 = p.OutstandingMin[0], p.OutstandingMin[2]
+			}
+			step.OutstandingPersistMin = p.OutstandingMin
+			switch {
+			case st.Phase == "warmup":
+				step.VerdictPersist = "warm-up"
+			case stoppedPersist:
+				step.VerdictPersist = "not evaluated"
+			default:
+				step.VerdictPersist = judge(&p, st, hs)
+				step.ReasonsPersist = p.Reasons
+				if step.VerdictPersist != "PASS" {
+					stoppedPersist = true
+					res.Persist.FirstFailRate, res.Persist.FirstFailVerdict = st.Rate, step.VerdictPersist
+				} else {
+					res.Persist.HighestPassRate = st.Rate
+				}
+			}
 		}
 
 		switch {
