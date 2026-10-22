@@ -129,18 +129,24 @@ def edgex(base, run, sut, t0, t1, rate, ack):
             f = line.rstrip("\n").split("\t")
             if len(f) < 8 or not f[0].isdigit() or not (t0 <= int(f[0]) <= t1) or f[2] not in ips:
                 continue
-            r = act.setdefault(ips[f[2]], {"samples": 0, "pids": set(), "by_state": {}})
+            r = act.setdefault(ips[f[2]], {"samples": 0, "pids": set(), "by_state": {}, "by_pid": {}})
             key = f[4] + ("/" + f[5] + ":" + f[6] if f[5] else "")
             r["by_state"][key] = r["by_state"].get(key, 0) + 1
             r["samples"] += 1
             r["pids"].add(f[1])
+            bp = r["by_pid"].setdefault(f[1], {})
+            bp[key] = bp.get(key, 0) + 1
     ticks = None
     if os.path.exists(f"{sut}/pg-activity.tsv"):
         ticks = len({line.split("\t")[0][:-3] for line in open(f"{sut}/pg-activity.tsv")
                      if line[:1].isdigit() and t0 <= int(line.split("\t")[0]) <= t1})
     d["pg_activity"] = {"sample_interval_s": 1, "samples_in_window": ticks, "by_core_data_replica": {
         c: {"connections": len(r["pids"]),
-            "share_by_state": {k: v / r["samples"] for k, v in sorted(r["by_state"].items(), key=lambda kv: -kv[1])}}
+            "share_by_state": {k: v / r["samples"] for k, v in sorted(r["by_state"].items(), key=lambda kv: -kv[1])},
+            # the connection doing the work (fewest plain-idle samples): one goroutine persists per replica
+            "busiest_connection_share_by_state": (lambda bp: {k: v / sum(bp.values()) for k, v in
+                                                              sorted(bp.items(), key=lambda kv: -kv[1])})(
+                min(r["by_pid"].values(), key=lambda bp: bp.get("idle/Client:ClientRead", 0) / sum(bp.values())))}
         for c, r in sorted(act.items())}}
     # NATS: bytes per event and pending at the subscriber
     varz = [(r["t_ms"], r["data"]) for r in ndjson(f"{sut}/http.ndjson") if r.get("src") == "nats_varz"]
