@@ -1,0 +1,21 @@
+# DIAG ONLY (docs/hypotheses.md H-E1): Postgres statistics for the diagnostics runs. Durability unchanged.
+# Use: COMPOSE_FILE=compose.yaml:diag/compose.diag-pgstat.yaml. Never merged into compose.yaml / .env.example.
+# Sources: PostgreSQL 16 docs, pg_stat_statements (F.32) and Runtime Statistics (track_io_timing, track_wal_io_timing).
+services:
+  database:
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-300}
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-512MB}
+      - -c
+      - log_statement=none
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.track=all
+      - -c
+      - track_io_timing=on
+      - -c
+      - track_wal_io_timing=on

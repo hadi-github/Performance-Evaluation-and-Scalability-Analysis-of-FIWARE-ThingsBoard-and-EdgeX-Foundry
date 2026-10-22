@@ -1,0 +1,7 @@
+# DIAG ONLY (docs/hypotheses.md H-T1): JMX on the Kafka broker to read kafka.network RequestMetrics. No effect on
+# durability or delivery. Use: COMPOSE_FILE=compose.yaml:diag/compose.diag-kafka-jmx.yaml.
+# Source: Apache Kafka 4.0 docs, 6.7 Monitoring (JMX_PORT; kafka.network:type=RequestMetrics,name=RequestsPerSec).
+services:
+  kafka:
+    environment:
+      JMX_PORT: "9999"

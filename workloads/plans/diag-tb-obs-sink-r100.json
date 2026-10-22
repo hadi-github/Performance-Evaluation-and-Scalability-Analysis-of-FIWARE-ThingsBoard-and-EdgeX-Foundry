@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "plan_id": "diag-tb-obs-sink-r100",
+  "purpose": "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result. diag-tb-obs-sink-r100: warm-up 120 s at 50, then 180 s at 100 msg/s.",
+  "pilot_only": true,
+  "seed": 20261022,
+  "adapter": "thingsboard",
+  "target": {
+    "base_url": "http://87.107.191.107:8080"
+  },
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 50,
+    "max": 50
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 50,
+        "duration_s": 120,
+        "vus": 75
+      },
+      {
+        "phase": "sweep",
+        "rate": 100,
+        "duration_s": 180,
+        "vus": 150
+      }
+    ]
+  },
+  "health": {
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 10,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {},
+  "deviations": [
+    "Outbound delivery to the Go sink on ramonavm1 configured for the measurement (scripts/outbound.sh); setup, not tuning.",
+    "1000 devices round-robin (one device's messages >= 1 s apart at 1000 msg/s).",
+    "ThingsBoard container memory raised for the exploratory runs (user decision 2026-10-22, D11): tb-core and tb-rule-engine 1536m, tb-http-transport 768m (TB_CORE_MEM / TB_RULE_ENGINE_MEM / TB_HTTP_TRANSPORT_MEM); JVM heap flags unchanged (-Xmx512m). At 1 GB, tb-core was OOM-killed during device provisioning (EXPL-tb-k4, 09:41 UTC).",
+    "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result.",
+    "DIAG ONLY: Kafka JMX port 9999 (thingsboard/diag/compose.diag-kafka-jmx.yaml) to read request metrics."
+  ]
+}
