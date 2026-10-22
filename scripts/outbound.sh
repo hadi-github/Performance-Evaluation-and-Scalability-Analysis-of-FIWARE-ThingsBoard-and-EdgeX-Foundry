@@ -3,6 +3,8 @@
 # This is setup required by the measurement (research/notes/decisions.md: telemetry semantics), not tuning.
 #
 #   scripts/outbound.sh thingsboard   REST API Call node after "Save Timeseries" -> Success in the root rule chain
+#   scripts/outbound.sh thingsboard-remove   remove that node (observer-overhead runs without the sink path)
+#   ThingsBoard: with EVIDENCE=<file>, the root rule chain metadata after the change is written there.
 #   scripts/outbound.sh fiware        Orion subscription on all Sensor entities -> sink (keyValues)
 #   scripts/outbound.sh edgex         nothing to configure here: the app-service-configurable export service
 #                                     (edgex/compose.yaml profile "export") carries the sink URL
@@ -12,13 +14,24 @@ SUT="${SUT:-87.107.191.107}"
 SINK="${SINK_URL:-http://87.107.191.32:18090}"
 
 case "${1:-}" in
-  thingsboard)
+  thingsboard|thingsboard-remove)
     TB="http://$SUT:8080"
     jwt=$(curl -fsS -X POST "$TB/api/auth/login" -H 'Content-Type: application/json' \
       -d "{\"username\":\"${TB_USER:-tenant@thingsboard.org}\",\"password\":\"${TB_PASS:-tenant}\"}" | jq -r .token)
     H=(-H "X-Authorization: Bearer $jwt" -H 'Content-Type: application/json')
     root=$(curl -fsS "${H[@]}" "$TB/api/ruleChains?pageSize=50&page=0&type=CORE" | jq -r '.data[] | select(.root) | .id.id')
     meta=$(curl -fsS "${H[@]}" "$TB/api/ruleChain/$root/metadata")
+    if [[ "$1" == thingsboard-remove ]]; then
+      idx=$(jq '[.nodes[].name] | index("bench sink")' <<<"$meta")
+      [[ "$idx" != null ]] || { echo "no 'bench sink' node"; exit 0; }
+      new=$(jq --argjson i "$idx" '.nodes |= del(.[$i])
+        | .connections |= [.[] | select(.toIndex != $i and .fromIndex != $i)
+                              | .toIndex -= (if .toIndex > $i then 1 else 0 end)
+                              | .fromIndex -= (if .fromIndex > $i then 1 else 0 end)]' <<<"$meta")
+      curl -fsS "${H[@]}" -X POST "$TB/api/ruleChain/metadata" -d "$new" | jq -c '{nodes: [.nodes[].name], connections: (.connections | length)}'
+      [[ -z "${EVIDENCE:-}" ]] || curl -fsS "${H[@]}" "$TB/api/ruleChain/$root/metadata" > "$EVIDENCE"
+      exit 0
+    fi
     if jq -e '.nodes[] | select(.name == "bench sink")' <<<"$meta" >/dev/null; then
       echo "root rule chain already has the 'bench sink' node"; exit 0
     fi
@@ -34,6 +47,7 @@ case "${1:-}" in
           "credentials": {"type": "anonymous"}}}]
       | .connections += [{"fromIndex": $save, "toIndex": (.nodes | length - 1), "type": "Success"}]' <<<"$meta")
     curl -fsS "${H[@]}" -X POST "$TB/api/ruleChain/metadata" -d "$new" | jq -c '{nodes: [.nodes[].name], connections: (.connections | length)}'
+    [[ -z "${EVIDENCE:-}" ]] || curl -fsS "${H[@]}" "$TB/api/ruleChain/$root/metadata" > "$EVIDENCE"
     ;;
   fiware)
     ORION="http://$SUT:1026"
@@ -52,5 +66,5 @@ case "${1:-}" in
     echo "waiting 65 s for every Orion replica to refresh its subscription cache"; sleep 65
     ;;
   edgex) echo "EdgeX: start the export service: (cd edgex && docker compose --profile export up -d app-http-export)" ;;
-  *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac
