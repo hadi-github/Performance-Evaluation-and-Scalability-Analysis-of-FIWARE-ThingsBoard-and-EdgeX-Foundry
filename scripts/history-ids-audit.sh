@@ -40,11 +40,14 @@ SQL
       exit 0
     fi
     check_run "${run:?run_id or describe}"
+    # Live-verified 2026-10-28 against the pinned EdgeX schema: core_data.reading has NO devicename column;
+    # the device name comes from core_data.device_info (id, devicename, …) joined via reading.device_info_id.
     docker exec -i edgex-database-1 psql -U postgres -d edgex_db -At -v ON_ERROR_STOP=1 <<SQL
-SELECT json_build_object('run_id', objectvalue->>'run_id', 'seq', (objectvalue->>'seq')::bigint,
-                         'device', devicename, 'ts', origin / 1000000.0)
-FROM core_data.reading
-WHERE objectvalue->>'run_id' = '$run';
+SELECT json_build_object('run_id', r.objectvalue->>'run_id', 'seq', (r.objectvalue->>'seq')::bigint,
+                         'device', di.devicename, 'ts', r.origin / 1000000.0)
+FROM core_data.reading r
+JOIN core_data.device_info di ON di.id = r.device_info_id
+WHERE r.objectvalue->>'run_id' = '$run';
 SQL
     ;;
   fiware)
