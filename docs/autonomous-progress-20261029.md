@@ -87,3 +87,16 @@ rule, and no SLO exists. Narrowing U needs a direct SUT→load probe (key path n
 ### Access notes
 The load host remained reachable only via the jump route throughout; two brief SSH dropouts early in the
 session (retried successfully). All live work completed.
+
+### Bonus task — D29a WAL block live verification — VERIFIED (closes the last pending item from auto-20261027)
+- EdgeX stack up + `provision-then-scale.sh prepare 1 20 edgewal-20261029` (gate PASS), diag collector started.
+- First attempt: pg-counters EMPTY — root cause: the stack's postgres lacks `shared_preload_libraries`
+  (`pg_stat_statements must be loaded via shared_preload_libraries`); the shipped DIAG-only overlay
+  `edgex/diag/compose.diag-pgstat.yaml` provides it (plus track_wal_io_timing). Database recreated WITH the
+  overlay (data volume preserved; durability unchanged — the overlay is the project's own documented diag
+  mechanism), collector restarted as `edgewal2-20261029`.
+- 600 labelled readings at 20 r/s during the window (sent=600 fails=0); collector captured 10 samples/91.8 s.
+- `benchctl resources` with `-pg-counters`: **WAL status ok** — commits/s 15.4386, syncs/s 7.1313,
+  ms/sync 4.4863, share 0.0320; independent recomputation from the raw counters identical.
+- Evidence: `results/auto-20261029/wal/` (raw counters, resources output, verify driver, README with the
+  overlay note). Stack stopped afterwards; the adopted benchmark config remains the plain compose.
