@@ -1,0 +1,27 @@
+{
+  "session_id": "auto-20261029",
+  "started_utc": "2026-10-28T22:41:54Z (workstation local 2026-10-29)",
+  "deadline_utc": "start + 5h",
+  "baseline_head": "3f2904e",
+  "prior_sessions": ["auto-20261027", "auto-20261028 (records + correction docs)"],
+  "authorization": {
+    "granted": true,
+    "scope": ["access both servers", "implement fixes", "local tests", "bounded live qualification tests", "stop/recreate benchmark services preserving volumes", "generator-only ceiling (explicitly authorized)", "1280 MiB TB qualification candidate (heap unchanged)", "FIWARE 2048 MiB ADOPTED into fixed supporting-tier budget (adequacy-under-load still owed)", "corrected clock probe when connectivity permits (no SSH/security changes)"],
+    "denied": ["main campaign", "platform-version changes", "data resets", "pushes", "SSH auth/security changes", "deleting volumes/data"]
+  },
+  "interpretation_correction": "docs/interpretation-correction-20261029.md (applied to handoff-20261028 + blockers B10)",
+  "hosts": {
+    "sut": {"alias": "ramonavm2", "ip": "87.107.191.107", "uname": "ramona-vm-2", "reachable": "direct"},
+    "load": {"alias": "ramonavm1", "ip": "87.107.191.32", "uname": "ramona-vm-q", "reachable": "via jump: ssh -J ramonavm2 -i ~/.ssh/id_ed25519_vps -o IdentitiesOnly=yes root@87.107.191.32"}
+  },
+  "tasks": [
+    {"id": "A", "desc": "generator-only + receiver qualification (k6->sink loopback, VU sizing, doubling steps, bracket+confirm)", "state": "READY"},
+    {"id": "B", "desc": "1280 MiB TB qualification under isolated cross-host load (VU sizing from observed durations; 50->100 r/s; full evidence)", "state": "READY"},
+    {"id": "C", "desc": "exact memory-budget table k=1..4 at 1280 MiB + owner options", "state": "READY"},
+    {"id": "D", "desc": "FIWARE history tier under load (adopted 2048 MiB) + identity reconciliation", "state": "READY"},
+    {"id": "E", "desc": "EdgeX non-empty history test (labelled run -> export -> reconcile)", "state": "READY"},
+    {"id": "F", "desc": "corrected clock probe (workstation->SUT; SUT->load if key path allows)", "state": "READY"},
+    {"id": "G", "desc": "close-out: blockers, handoff, manifests, commits, precise stop/rollback", "state": "READY"}
+  ],
+  "evidence_root": "results/auto-20261029"
+}

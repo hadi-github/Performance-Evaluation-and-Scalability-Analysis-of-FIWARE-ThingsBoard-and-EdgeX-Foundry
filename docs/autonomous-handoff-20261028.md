@@ -10,9 +10,9 @@
    `results/auto-20261028/pilot/` (V1/V2 CSVs, strict intervals, cgroup notes),
    `docs/pilot-20261028-tb-memory.md`.
 2. **Maximum campaign rate (B10):** **none issued** — the bracket [50 r/s VALID, 100 r/s INVALID] is bounded
-   by the PLATFORM at the current adopted configuration (k=2, 1024 MiB, ~2,400-device registry), not by the
-   generator; the generator-only ceiling (null receiver) remains unmeasured. The sink was validated loss-free
-   to ≥876/s (loopback). After the memory/k decisions land, re-run the bracket at the adopted configuration;
+   by VU starvation at 100 r/s and a clean pass at 50 r/s (CORRECTED 2026-10-29: not a platform-capacity
+   bracket; the increased-VU run had zero loss but 1.1% dropped — see docs/interpretation-correction-20261029.md)
+   configuration (k=2, 1024 MiB, ~2,400-device registry); the generator-only ceiling (null receiver) remains unmeasured. The sink was validated loss-free
    the 2× rule (S3/D34/D37) then defines the campaign rate. Evidence: `results/auto-20261028/ceiling/`.
 3. **FIWARE supporting-tier budget (B4):** proposed addition = timescale 1,536 + quantumleap 512 =
    2,048 MiB on the infra cpuset (no new cores); fits all planned N (N=4 total 9,472 MiB ≤ 14,848).
