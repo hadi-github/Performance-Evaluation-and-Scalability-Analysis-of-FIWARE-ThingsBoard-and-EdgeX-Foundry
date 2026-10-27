@@ -2,7 +2,7 @@
 # Static D28 checks (no containers are started, nothing is deployed):
 #   1. the vendored official files match their recorded SHA-256 and git blob IDs;
 #   2. `docker compose config` renders both HEAD and the working tree;
-#   3. the only differences from HEAD are the intended D28 keys, and heap, CPU, memory, replicas, environment and
+#   3. the only differences from the pinned pre-D28 baseline are the intended D28 keys, and heap, CPU, memory, replicas, environment and
 #      dependencies are identical for every service.
 # Usage: scripts/check-thingsboard-config.sh        exit 0 pass, 1 check failed, 2 tooling error
 set -euo pipefail
@@ -24,16 +24,19 @@ expect_blob "$conf/thingsboard.conf" 6e1a0a45ebeb89e4ee9c2ebdcc79d36f0fbccaee
 expect_blob "$conf/logback.xml" 3642c489fc62d7312958891be7e06bda10160e07
 [[ $blob_ok == 1 ]] || { echo "upstream blob check failed" >&2; exit 1; }
 
-echo "== 2. render HEAD and working-tree compose"
+echo "== 2. render the pinned pre-D28 baseline and the working-tree compose"
 tmp="$(mktemp -d)"
 head_compose="$tb/.compose.head.yaml.tmp"
 trap 'rm -rf "$tmp" "$head_compose"' EXIT
-git -C "$here" show HEAD:thingsboard/compose.yaml > "$head_compose"
+# The D28 baseline is the pre-D28 commit, not HEAD: after any commit that carries the D28 compose the
+# working tree matches HEAD and the intended diff is zero, so "only D28 keys" must be checked from there.
+D28_BASELINE=${D28_BASELINE:-73dea4d5493280125c7d330356a90433d78889d2}
+git -C "$here" show "$D28_BASELINE:thingsboard/compose.yaml" > "$head_compose"
 docker compose --project-directory "$tb" -f "$head_compose" --env-file "$tb/.env.example" config --format json > "$tmp/head.json"
 docker compose --project-directory "$tb" -f "$tb/compose.yaml" --env-file "$tb/.env.example" config --format json > "$tmp/cur.json"
 echo "rendered: $(wc -c < "$tmp/head.json") and $(wc -c < "$tmp/cur.json") bytes"
 
-echo "== 3. differences from HEAD"
+echo "== 3. differences from the pinned pre-D28 baseline"
 python3 - "$tmp/head.json" "$tmp/cur.json" "$conf/thingsboard.conf" "$conf/logback.xml" <<'PY'
 import json, sys, xml.etree.ElementTree as ET
 head, cur = (json.load(open(p)) for p in sys.argv[1:3])
