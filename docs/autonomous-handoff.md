@@ -33,7 +33,8 @@
 | `f2/` | F2 monitors (full + idle), interval CSV (39 fragments, 0 qualifying) |
 | `b9/` | EdgeX bounded smoke run files + raw Prom responses + resources-summary + offline re-check note |
 | `clock/` | read-only SSH-pair offset window-1 (load→SUT), script + output |
-| `d28/`, `fw/` | (created during D28/FIWARE verification; see README inside each) |
+| `d28/` | D28 §5 live-recheck transcript at k=2 (hashes, entrypoint, JVM flags, OOM/restarts) |
+| `fw/` | QL candidate live row summary (per-run identity counts incl. the deliberate drop) |
 
 ## Author decisions still required
 1. F1's k=1 stop-condition → record a deviation (raise TB memory) or accept the stage's infeasibility.
