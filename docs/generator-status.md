@@ -44,8 +44,11 @@ The decisions taken are in `docs/design-decisions.md` (D15-D22).
 
 - **Maximum planned platform rate.** k6 on this host passes §9's "2× max rate" only if the maximum planned rate is
   ≤ ~750/s (≤ ~1000/s if 2000 on 3 cores is accepted). Above that: a Go generator or a larger load host.
-- **Core allocation on the load host:** 3 generator cores leave one core for Prometheus **and** the future sink.
-  This has not been measured with a sink.
+- **Core allocation on the load host:** 3 generator cores (0-2, as in `docs/calibration.md`) leave core 3 for
+  Prometheus, which the sink would then share (the sink defaults to core 2 and must be re-pinned with
+  `SINK_CPU=3`). The DIAG sink runs used 2 generator cores (0-1), sink on core 2 and monitoring on core 3
+  (`scripts/run-with-sink.sh:13`, `scripts/sink.sh:6`, `monitoring/compose.yaml:17`); a 3-generator-core layout with
+  the sink has not been measured.
 - **VU-pool sizing rule** and the late handling of platforms with long acknowledgement tails (memory).
 - **FIWARE history (QuantumLeap)** is still missing, so FIWARE's history cannot be audited.
 - **Prior research notes** were found (`~/catStuff/wrk/iot-performance-evaluation/research/notes/`) but not yet

@@ -1,0 +1,759 @@
+suite,run_id,kind,path,bytes,sha256,verdict,git
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/containers-end.tsv,704,2288f966d0b55c64e70255b6ae2c5697d435f70f79426933dd11cc7305a79208,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/containers.tsv,704,2288f966d0b55c64e70255b6ae2c5697d435f70f79426933dd11cc7305a79208,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/cpu.pid,8,048d621f799fdeccc066e19e62c97584daabae54a67d9e4bc75301a99ebedcee,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/cpu.tsv,337355,ef2b2d01916ed1cb6d3a2f0f2229fcef66c305fb8ac2fb41569e65a1fe4f5214,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/http.ndjson,162479,a5cf7db7edaff3cd707cded7df1befa058789806a5053cfd3350ae92a7eea3e8,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/http.pid,8,aa2c09461205e9a6184074ea32c5ad5400ce03920b18b51e7daf1ba022add2fa,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/pg-activity.tsv,171930,9c3d81fb0caae9760110661315eec9229bb44cc8b93778c9929123e29546a1fe,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/pg-counters.ndjson,169222,467d1101717f2caa51b6096539797fb7a29c0ea04654b2f691189e966e7f1d16,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/pg-counters.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200-nosync/sidecars,74,0036aa8f847d824875b0c12d74db1eea9bd315a0b044886ac075170e36c7b39d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/containers-end.tsv,706,90ddc07693c37848d17de11dff3f646fcbe066d312527b7481fc66bf59bd9a3f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/containers.tsv,706,90ddc07693c37848d17de11dff3f646fcbe066d312527b7481fc66bf59bd9a3f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/cpu.pid,8,ae79f6b21f0c290d1b49a686a83d3772b909dba0cf26628eb77a45251c69d469,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/cpu.tsv,324443,2b3293ef6649734cc4a43e7156be18963d85c969f90b331149e0590fc90ccd0e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/http.ndjson,157804,952bbb4e12a5d190f3cefb1a345db03e165f4fda1b3c6715d855ecfd336f7beb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/http.pid,8,d067bda1597032d79742c6a3785151b0c86ba456085a23bb2f23506d9049bcb8,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/pg-activity.tsv,164789,b708239084e3bbc24864e0d1623e779c32df3bfefd8b5adbf97ae56905a9c928,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/pg-counters.ndjson,165506,ff5b233711d0fdf0e09465987769b81c70286b0b166726fa348fe1266499f5a1,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/pg-counters.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k1-r200/sidecars,60,b958198e75fcfd040193e7b3fb89f667996a07764395cb8a669810540905c9bb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/containers-end.tsv,1174,ac65def0dc0a332d976bc33ccb57f70efd9b1d3402d770efc1560ecde600f221,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/containers.tsv,1174,ac65def0dc0a332d976bc33ccb57f70efd9b1d3402d770efc1560ecde600f221,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/cpu.pid,8,c454411fff8fc6e3728a1eaa41bda3a42023d00e6c9b0fffc4f1749144cca054,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/cpu.tsv,466987,2a2f4f8a623f355dfccf5cc4fd85b9dde3bafcd68f97bba4a04b2605eb0fde6e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/http.ndjson,279285,64e78939d29605e92853ad0109e8677aed302a972efd7465bc0caea36cb8aa5b,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/http.pid,8,864d106dbbe8a91b700fb3b491fea2010716382e895efca496aec19fdc5cc6fc,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/pg-activity.tsv,381457,940c46e5bebf8bb6feb2faf3b0af9af8bcf30be33747d6222c9fb60e88b6110b,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/pg-counters.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/pg-counters.ndjson.err,3710,19d54dcdab6ae4c9bb59a1fd9db1965f3cd9220898afb34b3cb6afb09aa47614,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-nosink-r200/sidecars,82,c682495045f3e593ee85f9098c892deac4194f9292257dcf4427b20b3cc66b56,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/containers-end.tsv,1179,c744d4e85adb2a29e53cd79be8bf414c0bf4d225e28133489abea64501c78a8c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/containers.tsv,1179,c744d4e85adb2a29e53cd79be8bf414c0bf4d225e28133489abea64501c78a8c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/cpu.pid,8,42f46e1374a57669da99d23f3b86b62bfd41e77db320a4d40b63c85334a3ad37,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/cpu.tsv,498102,51128648b5e9ad86ba6bcc393c9810f90b9de1cb887e9fefcee0be624ae0677a,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/http.ndjson,300920,3bade639979f2384a811f4f7d6c85287e6b316506fc21dbe9ebf8e9c2a2d2f21,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/http.pid,8,8ef15ce056063bcfe89b087652edcc4e4c5865511d844d074d9e8a6718c4e35a,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/pg-activity.tsv,381177,beb941acd311239b47ed8c2a325a8f2abd7ed41b6f2034c097931093d761066a,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/pg-counters.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/pg-counters.ndjson.err,3710,19d54dcdab6ae4c9bb59a1fd9db1965f3cd9220898afb34b3cb6afb09aa47614,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-obs-sink-r200/sidecars,78,e4ae18ca30aaa087b00c785c8b14bd48cb4b540f5cd3e89bcb097481682cb168,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/containers-end.tsv,1178,f3c2fb53865e5827e26314267c2cb16162293072fb9518be474e6817d9a3d4ec,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/containers.tsv,1178,f3c2fb53865e5827e26314267c2cb16162293072fb9518be474e6817d9a3d4ec,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/cpu.pid,8,77f16913904e811f55b9c1e734d26a398ef5a917bec5228eb080f7362b231558,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/cpu.tsv,491069,eb1fe6cf1e443c2945f60e4df86fd626a2e61d27d904dd02f4167bfd57f1b1f6,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/http.ndjson,301001,c459eb0b9ae8cac33ccd22a5a0dfecaf53ba64de88378624881820ee20c979c3,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/http.pid,8,875a0566e96ed78498841ec8f0ebd33dca6c8c400107fc77c964486fbcf8e0ef,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/pg-activity.tsv,385405,75bc00cc348fbaa5773ddd669d3f0691c49dd51287cc4ec2e1b7abdf46d8e150,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/pg-counters.ndjson,166659,4bc740dc966e3127f348cbb64f22fc061afaf82a492bbaa3f8b76bf5ae987f30,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/pg-counters.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500-nosync/sidecars,74,dcd1451b6b1cc0a82472300f3e15492708d1188f0a5c013d3a28e591659e0add,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/containers-end.tsv,1175,70f842eaa0374d87ca4fa8c5477a9072ffae1a17b212174daaedf2f9af303ef7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/containers.tsv,1175,70f842eaa0374d87ca4fa8c5477a9072ffae1a17b212174daaedf2f9af303ef7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/cpu.pid,8,6f44db92426aa3a9bf0fe26dd63e171e7052a5811166d657485e7301cfbabb02,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/cpu.tsv,481493,e8af35e6f70cfda15a6354a0ee7d49cf3669a7d1da59d08d3bbb419381f851f9,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/http.ndjson,300429,bde0b8bd001a7d89b2d82d7ff345fb81ae54f24d845b60f252cd81fe03a18244,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/http.pid,8,d70ef09b1a7bb075458b7671f4d5c1e7d62dc3d9d52ec960bdc15f0327718ae1,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/pg-activity.tsv,357339,a7b37e70536483fba0f5c1f87b84d1b5bc3eb6bd89bd74d73c038cc33aeb3d80,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/pg-counters.ndjson,169682,57f9c11ebe545282ae1f29b741bd9f1bef584041582ac5fe03faa6ae8cb9aa41,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/pg-counters.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500/sidecars,60,ef353522ce858aff0910cb10a659d9764e3a8686a05c6fd06a5bec8fb3fd9df4,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/containers-end.tsv,1176,535ab9b6852ec292fd73fa15df840b2d82dd18c186141f23f4a563791beced8f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/containers.tsv,1176,535ab9b6852ec292fd73fa15df840b2d82dd18c186141f23f4a563791beced8f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/cpu.pid,8,bffd7a7b4477364cfd67d3d0e83d633bea8d2235f1d01c8abbc36321d2176cff,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/cpu.tsv,488439,5c5b71072dca8760bc655abd2e570ce9e7a69c991982fe6699ab55243e930d9b,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/http.ndjson,301065,4d95ff8bf9864c9a28a3addb3e61a20176259370109e4ab0ba95aa463b137ccb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/http.pid,8,d253365609ffa02cbb75c03f19fefe3796b183102075748b4bd67acc258219ce,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/pg-activity.tsv,384221,8d86ca9ec18ccd049debab9e9b421ee7cbc5fc268dbc809385ff3033a9fa50b0,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/pg-activity.tsv.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/pg-counters.ndjson,166153,4ff87dfebc5bc6356500ce3ce7ef7d1da4affde27587758cc7a4c964dbf7ffb5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/pg-counters.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/platform,12,2af13362e260e76f2ea198e9870fb71140d91cfe1ae777b4d14ff2113f89bcde,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-edgex-k4-r500b/sidecars,62,e1cf8a4a741da1448342d15a32552d7017fee4fe352ab97a9ebe5c082fce615a,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/containers-end.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/containers.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/cpu.pid,8,5495c2b601768a072f0eb00962024507a7b3d8022de4951c9e60969bc6822961,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/cpu.tsv,360395,559d82f60faeb342d7cb979c91c1003891759b5c402c3e754044456b33ddd514,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/http.ndjson,213030,4a584b4686c7e91e9fc850d78c7590724b1eeecf8951b25e2815bfe7ffd07976,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/http.pid,8,88b9ffdd56fd3b286b6b13f72368897fd38cb70cb4ae284d94a19a4337f326b3,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/iot-agent-1.cpuprofile,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/mongo.ndjson,8804,c00fd118a767ed027e5f33f463df58ec216e3acc09270de64328d1ac18cf3409,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof/sidecars,39,4da2316eaf18c7dbd0f75e104651c8d8fa8e1f05af97437c19dc743b6ade042f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/containers-end.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/containers.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/cpu.pid,8,21b1449fb808c4c819a634b55bf1925b6f3d023fa0fcd2bb2fd3aaf7e23ceea9,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/cpu.tsv,358255,cf74b2393164ebed1b0aaa5b2cbcacaac61399daad6738357b89797a9ffbebce,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/http.ndjson,213002,29d09927fd6970609764d1bfd001723d86a7558a66e9ff729877ee7d77e970e0,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/http.pid,8,415ef260834605ad13910e4f19c5a2ab8c95d4a223c1664f76071789ace5ec1e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/iot-agent-1.cpuprofile,65536,d873ef0feb48b43e34dc11462c87294c30ffba4367d3191635cd65c8c68bc52e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/mongo.ndjson,8804,a30e43e30dd4e8c94fd7fd2560171624caa8e52505b19b9f45c41bfdf307b88c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof2/sidecars,40,5daa4ce693ea1eb0dcffd57786ca4edc748ff773979fa490e368655aeba831c1,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/containers-end.tsv,826,2275fc81a377701c3c3493d133881d4838d427b4301839f7ee38455a2c4421eb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/containers.tsv,826,2275fc81a377701c3c3493d133881d4838d427b4301839f7ee38455a2c4421eb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/cpu.pid,8,8dc23d67fda728450d081ac6c9f99d8d07a0638b179564ce73a458df9be88889,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/cpu.tsv,358996,808a736b33ebdda207c0ab874ed479f07081435d4638ff0aec636ed3b8c89f9e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/http.ndjson,146142,c811e80521354a9c67edf1eaf1b89197504edd5e2238b96805f38cfa96109522,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/http.pid,8,4db6c4415ee6c988c22538a77a4bb0ea873640f586aabe375890b6a830c3a449,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/iot-agent-1.cpuprofile,1351827,ab4d36a62bce24bf122e90d1b93edd1d1f7b55bb41edd4197767e4442a89522c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/mongo.ndjson,8462,3983de0d503db632e50f519dd1abd9eabf8a928fc00df6dcb34d9a57e7c8e021,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100-cpuprof3/sidecars,40,aeee7ee841f25de8692eccb50a8429f7ebb605d12f0b150ff72dc71c4d68ad2d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/containers-end.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/containers.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/cpu.pid,8,281bfc82828d9fcafc44cab140c58ee33c3528e6819a67d6ec6c40c7662ac7d7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/cpu.tsv,354231,54f12b14ec973e5c8e70e1ef9e44ce86eb26707191b598b5651b72c3219858eb,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/http.ndjson,205508,c2c123f4c296d9c8d686cfe1d55c23e913313f99511925a03d6a06663678cb41,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/http.pid,8,eb9c742d60e3cdda4725f97cff5a3902e30525ec3464771499d47fb41a901c62,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/mongo.ndjson,11821,58eb7b1de56a47a6ec9e62b708b6f4797d5faa284ee8db8d25f732616b009a6c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-k4-r100/sidecars,31,9abd33c480ec84ed92715fa61b00bbf4ff232f0aec79e2146acb19bce46a2110,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/containers-end.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/containers.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/cpu.pid,8,58fb1e3030b9b5a4a347a77480b25f13679772c85491724cf10944ee0e8bf10d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/cpu.tsv,356842,8af0cc65380608f7f7fbceeb2d7b2ca5b80347884e1e0cd5f170dc150387bf10,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/http.ndjson,44688,1f993c91de581827c6b8e2867bcb1d2ac2b33692045cb461e137e2246b8577ef,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/http.pid,8,bb014d568671564a744fde9046023e337ec43c0b55dd9e3c03158bc0fc2d4c9f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/mongo.ndjson,23231,9b7fbb46c4fcd396001b71b3049d62186d58468173fd9023cd0418f74e0508b6,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-nosink-r50/sidecars,38,1a806064406fc4e96027457920ed0ac24f1b16bc9a0b79b86d6e4a32333e9bc4,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/containers-end.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/containers.tsv,825,6bdc42fe612490961e8f1e8aa7e41754220dd0576de8754c365700cc5f256549,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/cpu.pid,8,9bdd04bdd9bfc3b35522c41494bd2ce65bb4a6050fc5cc93ca3e58f62df9ca97,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/cpu.tsv,361374,620be265a2d080bd4dd48c8959c9f92885abdbcac59ea1d9fa81d57e02eb4b10,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/http.ndjson,207738,896932458de4ab949b79b325b5bc1c07229c875a704cabd847371fc8debcd466,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/http.pid,8,87671f4fdbd980146d5350b53853aa84ba7373afe0f14e224d94e07719c4153e,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/mongo.ndjson,8843,23c357432688a345412c918faef890dde3f39310b6cfde0d23eecf3b5206824c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/mongo.ndjson.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/platform,14,6cd423b993c8746e1090867d13122502fcdc0abed8ddc309488466325a46d36f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-fiware-obs-sink-r50/sidecars,36,30fddba88ac2fb46e2baf3e52dcb00f519158d390724a6533b68e70df4cda04c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/containers-end.tsv,547,492bf7e0dfbeb86267af243f1a90e9794bf4bb7c17cc869e85182a5fac1adcf6,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/containers.tsv,547,492bf7e0dfbeb86267af243f1a90e9794bf4bb7c17cc869e85182a5fac1adcf6,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/cpu.pid,8,1e778fdd09339302e0c1127603f9ac01e9027f892ca262083899f251e786150b,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/cpu.tsv,139568,b64300116bd99d95849359790bce8191c8720728be6b3aed9fb50d342533b155,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/http.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/http.pid,8,af448456f42ae86784b197fe06fa78c91f9f6bd593640cd7433e7c83ed26fd81,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/jmx-a.csv,435,a202ba906e0600c9ed1b7e2b6fe3d13f356d7cb968be9e351f3f10a982b8eb5d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/jmx-b.csv,435,b2e76d8dcf82f7b2ff02b4cc89774e4fe6053cd9f752fcb7de72395028a38803,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/kafka-groups.txt,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/kafka-topics.txt,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/platform,15,8edb62b8b10090e5fbe0b646c827472f38f1977a46fc7d106b06f22d38f260e5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/sidecars,25,26d93a51f2e4ef262733a9c5def0eae28b4e41f998b5c3f7e0107b6a1943a45f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/tb-jvm.txt,1524,0ac9adec94e195b395e94084fee008f6a2f03e9bb24621a230b98de6db53b917,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/tb-queues.txt,3245,ae986b72079a14eb703a4ddc50e1611fd8fba2cf4e335b5dad2e3750cc47a5d7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/valkey.txt,38530,bd0cb334f1682ccf6bc76896b492a670d32afdc9830029f890871700bf1aab58,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle/valkey.txt.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/containers-end.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/containers.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/cpu.pid,8,a394493771df287ddb0327b836949840d5add8112f035c75bbdce54abf5abf26,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/cpu.tsv,259821,d56dc2c4298779dab2d9af347055c564bdb69929454b221a283885d0e21e0f78,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/http.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/http.pid,8,8f25839304f12b181780da5e6c84a3ae600cd3a40d10095da337b9d659f33f76,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/jmx-a.csv,2462,55f2c97734eaf0e33117686bacd82d17c6caf21bb3465b54ba3c5898aeab4e5c,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/jmx-b.csv,2466,8a7eb445d1588979a50b4da1b08ab17e9b78ee9d14c916bf822ac4ba6f537fb7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/kafka-groups.txt,21103,97534d14a265992fec9602465eb50a89330b4f078ab70c57a08b0f3ebbc83f58,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/kafka-topics.txt,33576,2b07f0719e421cb35a81aa7c40d57e985c9cb5ea911ff5ebb24fdfdbcb07698d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/platform,15,8edb62b8b10090e5fbe0b646c827472f38f1977a46fc7d106b06f22d38f260e5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/sidecars,26,f7a74982e5c49b392602754c2db1478848f663d95f6d96d3f81f0a4751be6601,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/tb-jvm.txt,7696,6dbe3042bbedda035cdaf65a359543d612903af4c07531fae4d1ea4f8bcc7788,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/tb-queues.txt,3245,e62aed7539c015f7d452e273fd71b1f0feaa5f871fb3cdaba24ba03f9480917d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/valkey.txt,38683,5221d4a52ed405b3eb818529f2670b05910e5d989e6b242352f55f69d8fdd260,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-idle2/valkey.txt.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/containers-end.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/containers.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/cpu.pid,8,54160f5112b4f0546907020b23400de68af3528c0332b51da93916bc51a0e996,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/cpu.tsv,323883,c2d1a2691b70d4fc92d5f6dec2492bbfbf870d52fa335e3f716843088ae4a5b0,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/gc/tb-tb-core-1/gc.log,293765,035f7ad819814a7cac439954d0a24da709d2cc068666571ef6637f56e91afe09,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/gc/tb-tb-rule-engine-1/gc.log,284847,b2e719f0cb25f455632619c1ae39ab49a504f572c4d8fe7f1cbbd8939267c20d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/http.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/http.pid,8,7e61457e070b924ee44a69268d7f4b713265635705c7ff54fadfb62d8c41d4cf,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/platform,15,8edb62b8b10090e5fbe0b646c827472f38f1977a46fc7d106b06f22d38f260e5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/sidecars,36,3840e24146a835659ea06474d4d02094519e3e533857f1c7f1326d5a2aef39b2,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/tb-rulechain-without-sink.json,3965,57eb73fdb08094ad98841ffe02f574a9bb40dde54632d0e3d84f6e8cf7ad7d3d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/valkey.txt,51581,37ba3bddab5bacd2e663a585d1a92b9d6a4a3d144d50f05925521924a84fbf0d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-nosink-r100/valkey.txt.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/containers-end.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/containers.tsv,587,56c064b36cff2df0dbf49b8fe0230049449dd9d8428e25a73ae5fb19226e392d,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/cpu.pid,8,0d206c943470983b44bc91f3e79ec1346e9f93042bcbc9381f2c2da4462c1bba,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/cpu.tsv,340467,06ddaeb237b69d8ff56273a15d2f2196019872d7d238450367d1c5debf559da3,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/gc/tb-tb-core-1/gc.log,211563,e1f3bbf01a118f2712a6784c35601c31f7351b53ace986938f02630d0e8910c7,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/gc/tb-tb-rule-engine-1/gc.log,204825,bf1e1e33c5f435c913eeaa88f9f19a8b2b17fd25dd7d151ff9b45268a379675f,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/http.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/http.pid,8,80addf1569a63d4c9ee55166a33581e9d2e25487babb1583fe039e2e901fe410,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/platform,15,8edb62b8b10090e5fbe0b646c827472f38f1977a46fc7d106b06f22d38f260e5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/sidecars,34,6267c7e20dd279dd59731d71a727b83a211ed314094a563997011c081610d563,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/tb-rulechain-with-sink.json,4808,309866ac8ce6de44268bccf2a314782a601a37c4976edac3ad4eb0f9b757caaa,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/valkey.txt,53458,752ddcc022779268029ef5fa2e460d22dfbf9231e1231afa6f15a41d435a7fd5,N/A,
+diag,(collection) sut,supporting,results/diag/sut/DIAG-tb-obs-sink-r100/valkey.txt.err,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,N/A,
+diag,(collection) sut,supporting,results/diag/sut/fiware-static/DIAG-fiware-idle-60s.txt,370,de6397b1e021a58bbe968e04ec2f3963401a9e7ead09705903d38ab46674aa27,N/A,
+diag,(collection) sut,supporting,results/diag/sut/fiware-static/DIAG-fiware-procmodel.txt,5209,d1e292bf10913a3c84bcaf92b22bbc8bad62ffcaa94653f8657e176f43feb1f9,N/A,
+diag,(unattached),required,results/diag/DIAG-tb-idle.diag.json,877,733bbac43121fd4a038974576fa2069c057b0a2173697757da46de3cc929a965,UNVERIFIED,
+diag,(unattached),required,results/diag/DIAG-tb-idle2.diag.json,1892,3ed969990e19c9ccfacf56b3a2d8b0ec6b20fcd8909c3bec71f30fc5cf0ab917,UNVERIFIED,
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.check.json,367,07a06db73aa0996d73e54ce125250e356c1005f15eb7bafa6d67939573e03d08,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.diag.json,5637,c57927b04c8036940a1d70c5a7983dbbf595cedb71def59fa8ad34cefd9d4fb6,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.gate.json,404,a2a480500ffbdb18931a983d279d0411f13e3ffeda6b7623f4ad5fda7067ac39,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.history.ndjson,2046890,3d02944210886a4f153f10406db7aacd58a1d01536a31c2a71ad2432a0f33eb0,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.persist.tsv,2175,f82efa2a08e66404193a2ecd3951cb6a149364fa0e936440c4adfb77ce893cb2,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,supporting,results/diag/DIAG-edgex-k1-r200.pgsettings.tsv,179,a3d54429edc59b937385d7624dbb9405510a4fe2ef2e9fc1cf4f089f4d18de67,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,raw,results/diag/DIAG-edgex-k1-r200.prepare.log,5850,3a97dbe06af10a834f9ac4211575c52096cbd499961e10200864e8b9722214a1,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.run.txt,441,b0ee577260c80497faff32afba817570fc7ad80b82ddf223b5fd03a5f7197763,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200.sink.ndjson,4345593,08da060d20ba559e0c2d2095c2874dc3c4876fe10f265da9105ff4fc3dd80749,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,raw,results/diag/DIAG-edgex-k1-r200.sink.ndjson.log,156,7737b3a771070c60b2024d82fe9b167101fce0f59b6a11d2aadfb78d9cce758e,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,supporting,results/diag/DIAG-edgex-k1-r200/explore.json,6756,607dda10faec149ef29085002b20d65c5f5c10ba9f78b109bec88e12ca96ddbc,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,supporting,results/diag/DIAG-edgex-k1-r200/gen-cpu.ndjson,43290,68eff247b2e5800fc13fbaa24f77363481c230b5151b594fe0df9962ed482a80,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/health.json,4855,aab994053c1197ac5b8e04d7be31730087e05f6ba8812af7fc40811b706673e2,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,raw,results/diag/DIAG-edgex-k1-r200/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,raw,results/diag/DIAG-edgex-k1-r200/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,supporting,results/diag/DIAG-edgex-k1-r200/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/k6-summary.json,2027,39dae13b96973fdc9e025d5d4f0d55408f5615459897f0105c174eee71802145,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/manifest.json,10525,a53b46ce15dce7af6f2d916e04a2f53b4a2c09dd674fcd0fad2180d8f15cb73f,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/plan.json,2125,3b670ebb9fdc485b54f0948710285fa2505f2fc13e8f3cddaf8417630a70d543,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200,required,results/diag/DIAG-edgex-k1-r200/resolved.json,2571,0e4488ab35310be4623c90e5428f91cc61e730fcb78d9754ee45a7e4ad9c5764,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.check.json,367,80aa04a4c524dec34e4afeca81fe117a1be24b8f351aa102302182dbd97db875,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.diag.json,5357,2051e0673f7422617f6e60b6247e5c22d4d6f9d105360385fa29f91702fbdde9,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.gate.json,411,901acab21359a5b1cc702963c7f1d611216fb833b6b5171565d5716d69dd7bc2,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.history.ndjson,2340890,b4686957a2cabdc901e2e69ce57e4cbfea8218ed2aab95ed76e1db9d55bbc2f4,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.persist.tsv,2064,b6de0bca5224928ef759814ba4fa4d6e3c182cb3d6445b7c4865251280f91453,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,supporting,results/diag/DIAG-edgex-k1-r200-nosync.pgsettings.tsv,180,103a1fe349f87652fc3b4b83e409f7b45a6014b39bbe91986810a8f1f8afcf3c,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,raw,results/diag/DIAG-edgex-k1-r200-nosync.prepare.log,4902,4b32fb8e715bc1ac16244b2f377523f7eb4b649ad5e42ae069da719b6883d91b,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.run.txt,456,29261dbb7a6a951cee19200965d840541394849f45756902c41bd0691f26d585,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync.sink.ndjson,4639548,1455dae7f98564fde41a4e73ce517f05ee4d4b0fef5ca3961850090ae2e8998c,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,raw,results/diag/DIAG-edgex-k1-r200-nosync.sink.ndjson.log,163,010364424441770a58b0ed0b7076f39562398b3fd53fa1feab58c5e640ca67cb,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,supporting,results/diag/DIAG-edgex-k1-r200-nosync/explore.json,6623,c5b750c7733ea386be7fe237c627e249587091651297b6332ab13822377c5033,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,supporting,results/diag/DIAG-edgex-k1-r200-nosync/gen-cpu.ndjson,43444,049a42b089f7915aa05f9d6ea548c93c39984d8f184e9d6c17c73129b5788b98,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/health.json,4847,f36ed49c855e0ff4b7ddc4560c461e8b6b8946fbec6fe9c0e9cf84ab85360abf,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,raw,results/diag/DIAG-edgex-k1-r200-nosync/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,raw,results/diag/DIAG-edgex-k1-r200-nosync/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,supporting,results/diag/DIAG-edgex-k1-r200-nosync/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/k6-summary.json,2046,ecf1e2ca3144e945ccbedefb9f532aaf2f828b86ea71826f45e3eb3439bb7b44,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/manifest.json,10908,96332d38481cc122eff0c98c004ced4c31d62d5de5472478a38ccab16929b6de,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/plan.json,2315,938ef4f9d218308bd4285e516a56036fd148eb67717ca57a65a9d8918ae12460,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k1-r200-nosync,required,results/diag/DIAG-edgex-k1-r200-nosync/resolved.json,2766,5a4fea1dddeb75fcbd304325555cb8cfb1d6e266bd61af348f9fcf2e33264b60,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.check.json,365,ebc0e71339cfc73b43f1562dc8e4645df776de39e9a2636269e40248c5986b6b,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.diag.json,7763,2626dbcf278d079dbee32535cf31485a8bc2880a0f1b5007145ce7c67a3cda25,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.gate.json,743,bbb491acbf3f9f908fee5568e578c89abfcc5353f05f16f0908f765eea631127,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.history.ndjson,2508890,c68cd45c31d4a57c2fd8703b188f97b5086ecefe4a20fb9904d5b43ea243aefa,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.persist.tsv,2105,5c992dfadfa21bfaee055029c2a3388f8f02042b4abed1367c05d65c88033e47,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,supporting,results/diag/DIAG-edgex-k4-obs-nosink-r200.pgsettings.tsv,163,74d1de9937ca2499af0333d63d2d924935c6e173dfdbd2fb2d39cb94b3d52486,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,raw,results/diag/DIAG-edgex-k4-obs-nosink-r200.prepare.log,7061,d80aeaa44910178df67663d04a7d7c5bf450f006c38b57b5e92faeac424c09f7,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.run.txt,459,ee028617c517547b909112f55a1a717143f060698771ce8fc50d1a5c05a2a5df,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,raw,results/diag/DIAG-edgex-k4-obs-nosink-r200.sink.ndjson.log,163,214844ec26bf3a752c1b82bf00771fadaccf92e8bcb8cf0cf60ec035fd2cca14,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,supporting,results/diag/DIAG-edgex-k4-obs-nosink-r200/explore.json,3799,a3b4122e3ac89136810f37dba2b6d6c9a36ef7449d8d1905220594ec64d61c53,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,supporting,results/diag/DIAG-edgex-k4-obs-nosink-r200/gen-cpu.ndjson,42504,aa9409c291a6d5478baea0e6c5433483effea533d71753e257611a2211868541,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/health.json,4839,0d605833ff2b86028f787489313af6f9302cc72a0a7a1b725b4190187fd83f21,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,raw,results/diag/DIAG-edgex-k4-obs-nosink-r200/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,raw,results/diag/DIAG-edgex-k4-obs-nosink-r200/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,supporting,results/diag/DIAG-edgex-k4-obs-nosink-r200/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/k6-summary.json,2050,e16713f5816b8da56ea89bef61b4e5ebb75eb6176c88403f631fac4eddbd074f,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/manifest.json,10465,34b796f6a4a613e4271d6410f8faffd594a2b3bcea876f0d8cb341a5b0cfbe08,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/plan.json,2092,abd381a6585038a6132741f066db3f7d80bfa315067811eb9e990704564c3d75,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-nosink-r200,required,results/diag/DIAG-edgex-k4-obs-nosink-r200/resolved.json,2549,4c6b641e1129d2334e53fd7410c582f5b693f9e6e870ea50d1d7267e9e2dc578,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.check.json,367,40d767e3eadf25c7327aa576afa9247a999abd3c40e7456a8327a4a579225521,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.diag.json,8617,f7e4452dc33ba3352f9d1dfc3541188fad96f8d76b3c2f91543f77c39bf3cc48,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.gate.json,742,934ea488fd34ddcfcb6010f4d0130588490469ddcd23db4d44b0e2200b206f93,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.history.ndjson,2424890,3ac08cb8062e222f94d5c3c7441462a1839f3ae8f58f92ac733444455ac1e5b2,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.persist.tsv,2103,af0e8037b3e0865b825cc43ffbd823a50a0e55c2ba3d8677d7594c6c82c4960a,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,supporting,results/diag/DIAG-edgex-k4-obs-sink-r200.pgsettings.tsv,163,74d1de9937ca2499af0333d63d2d924935c6e173dfdbd2fb2d39cb94b3d52486,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,raw,results/diag/DIAG-edgex-k4-obs-sink-r200.prepare.log,6114,5a3f5806e71e142c0b3175f91ee37e51f8914e0a106a919bcd77b21401d64220,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.run.txt,459,d10bc9b20ae6309831f1d69dddfbfe5cd9dc5acc263c93212b3ac5ab0bf937ff,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200.sink.ndjson,4723494,ea5ce9ca03c24dab59139fd4232ef4b04171eaec1d61309d2f1c3c2218fb8391,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,raw,results/diag/DIAG-edgex-k4-obs-sink-r200.sink.ndjson.log,165,3efa0376d70ecb85e09c1787e89d3bf327cfedd389f3a09dbb490b743f87d5da,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,supporting,results/diag/DIAG-edgex-k4-obs-sink-r200/explore.json,8649,c7cad048951f2e3b7b41f93445413432a1b8f57cf8d2a2e6b9dd94795a641c04,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,supporting,results/diag/DIAG-edgex-k4-obs-sink-r200/gen-cpu.ndjson,43098,07f7d1ff4db4798c8e9fc87ce90abaf580c5c65376500fe73c0c3597f4eaa9be,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/health.json,4857,6ee0b94989a9e782d515eb5d245584d972513f9d95ed177447854df84211bd15,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,raw,results/diag/DIAG-edgex-k4-obs-sink-r200/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,raw,results/diag/DIAG-edgex-k4-obs-sink-r200/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,supporting,results/diag/DIAG-edgex-k4-obs-sink-r200/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/k6-summary.json,2063,7a438ff78f603355ce54b32b5abfbe8f9e06fcd2ffb2bf744733467e5aac6975,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/manifest.json,10264,20d2c2267dfc2b3a88ce393082b58fef771d54054d8742d8e3ebcf4ffa102bad,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/plan.json,1983,2cec2178103d3384b30736a63d92b06d34c010758124174a98b298fc3a1ed53e,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-obs-sink-r200,required,results/diag/DIAG-edgex-k4-obs-sink-r200/resolved.json,2440,d1376232eb325fb6a0efb33f00f71e2ee022717dfb9c8a9579b691a3fc22af63,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.check.json,367,c0f5a53242e51b2bae6b35771d3895ffbb9fcea1331fc8ac0d12be749f2ad2fc,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.diag.json,10241,d251fa95e251c4ea6f40a16970ab7d9e5e7f913c9727cfa940dfaae8d3f9582e,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.gate.json,733,c0d29a0a09e172d1633e30621e6765326809d83b7b46983d976312ef82be2184,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.history.ndjson,4692890,5063571731e16b0fcf6d8dd6f189dcdd8fb868ffe90c417d0291297677daf8fd,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.persist.tsv,255,a1465c54965cf8ff4f4a9df6645044ceb07674df1c10f505397adb0028aadd3e,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,supporting,results/diag/DIAG-edgex-k4-r500.pgsettings.tsv,179,a3d54429edc59b937385d7624dbb9405510a4fe2ef2e9fc1cf4f089f4d18de67,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,raw,results/diag/DIAG-edgex-k4-r500.prepare.log,4613,08b2ca05cfa628885f384fae2da11a1d3cfaa67e07a7fbbcdac3df21c17a03ae,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.run.txt,441,99f5429b64859ff4529fd367e2b8bf258a97aaf50487630f2cbd10f6282f52de,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500.sink.ndjson,9946828,8a21c4301cd47b902989508a78bef7aa673eba7bd521650ac79642f8e55a2005,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,raw,results/diag/DIAG-edgex-k4-r500.sink.ndjson.log,156,369094089d6daae264fa32de0c5495ba6808f56b78b7a5fb7e53872c5218c933,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,supporting,results/diag/DIAG-edgex-k4-r500/gen-cpu.ndjson,43292,2e7957403e79545e81ccbea3f6176ca2bff4c5f504904c3698815a1bbf043171,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/health.json,4836,5595784516e8ca325cda7bf9b908697d818a476ae710b2abf6769c8e021804da,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,raw,results/diag/DIAG-edgex-k4-r500/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,raw,results/diag/DIAG-edgex-k4-r500/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,supporting,results/diag/DIAG-edgex-k4-r500/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/k6-summary.json,2030,f6f50990ffd13786cc06c727e1c5ef66a0e954b5df54be138cf162dfaabbdf09,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/manifest.json,10506,4026ea56fc70d4f0a90aefd6eea72f8ae03570a03921bef36159ee681316cdf7,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/plan.json,2125,6f9600bb6740a805ec634cc467edb3fdf49bc8c726019b183c6faddb476adfbc,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500,required,results/diag/DIAG-edgex-k4-r500/resolved.json,2571,725004788f431d1717303f96cf7d038e6402a7feaf823134ae19a55580e78d69,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.check.json,365,134ad1f17ce748214705bcfb866929de384d02f22627b193302e1ad17d95457d,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.diag.json,8710,4dae595fa5c23010fdd0e409f2315a7e49d19d4e8692c3728b9df67ee3e19e16,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.gate.json,739,875cafd18e87131ebc23b35604412c8f93d8c778549547ec4575fb0721b2a207,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.history.ndjson,5364890,1ff6476eafd21e6c083c69d0c7b64d064ed20975b8f8fced205e346c26a9c668,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.persist.tsv,2165,2ff3196faa07b74f54b85701e6296b54eacbbfe1f1ca63c924d2a4efb6cd640b,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,supporting,results/diag/DIAG-edgex-k4-r500-nosync.pgsettings.tsv,180,103a1fe349f87652fc3b4b83e409f7b45a6014b39bbe91986810a8f1f8afcf3c,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,raw,results/diag/DIAG-edgex-k4-r500-nosync.prepare.log,7061,fc75b52c812413f813c18bcaa1333552212ddff43967e9a85fc824ac3f7e2f13,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.run.txt,455,c3dc72e9acd632a3dc75afcf37e76bf86ae2b934f9f421146a5712294fc21cbe,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync.sink.ndjson,10618965,7a3fabe694076cb7ae6baee19d3d6b6ef2f62f9bcef458e4490deeb8d8f39b6d,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,raw,results/diag/DIAG-edgex-k4-r500-nosync.sink.ndjson.log,163,b1b77d4e130346443d605d753fe8831b58c93f31f748715ca23dd10ef8153318,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,supporting,results/diag/DIAG-edgex-k4-r500-nosync/explore.json,8641,2b798d1f43aea0baec05abab5f197c8ec7751a98be1c459c107e09f07cc033c1,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,supporting,results/diag/DIAG-edgex-k4-r500-nosync/gen-cpu.ndjson,43034,b609cef4894337a30d2ea0aefd7c68142ab323961f0abf4d76b2a46bf10ea889,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/health.json,4820,b59c7b7a6bc0c8e95e0c8965249d09f86c92f1caa4499c52c0d0579d3697d9db,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,raw,results/diag/DIAG-edgex-k4-r500-nosync/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,raw,results/diag/DIAG-edgex-k4-r500-nosync/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,supporting,results/diag/DIAG-edgex-k4-r500-nosync/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/k6-summary.json,2044,3c33f1b8296d3fa6f3d6eee61bcf6ab533343c04a1714b96879def51b9ba9548,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/manifest.json,10881,e987415242f81c7b0ed024c4a44279b585b1266801f365dda9fd74d718c8bf8a,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/plan.json,2315,0fd07a7de0ff3f45ed2d399c22bb7ecf133553ddc27abc3f1624b72e4f12cc57,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500-nosync,required,results/diag/DIAG-edgex-k4-r500-nosync/resolved.json,2766,998a3a3ec0ce57a7b3f27a348dd5714c2fe64e0bd862b7fe7f62c30e9b8fcf56,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.check.json,367,d6b352692dc45b247cfc635bee474b3ab55f9131a01bbfb11fad6245b0e8feef,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.diag.json,10133,991fc20d34234420ecaa90a6929e274212884b236dfe26d0c6101480747e2e54,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.gate.json,734,339d2f17b1948217eac0428b3b0aa859fe69d0dec41ff478217c4adabd11e5ae,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.history.ndjson,4788890,0c0145140aad405344a334d37c7f0a6dcc70b14e07cfd1437fcf97e063922376,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.persist.tsv,2277,c647a189f5ee30334b6cf5c3fc24d7868c6ed2113463ebbb91446302b4141110,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,supporting,results/diag/DIAG-edgex-k4-r500b.pgsettings.tsv,179,a3d54429edc59b937385d7624dbb9405510a4fe2ef2e9fc1cf4f089f4d18de67,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,raw,results/diag/DIAG-edgex-k4-r500b.prepare.log,7199,2ef36e4d2fbc89db0b1a682373d131ecd03e831fc6aa7cd520f1535a49ea2c6b,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.run.txt,443,1d9ff8bff112677ae560b36dd80c2f4bc949713b5cdd4ab2398572334b0db135,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b.sink.ndjson,10042870,c4b19810e3d223a6f1ad75d28b9cb57cd9368ce67da0200b407aed0dfcad4a55,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,raw,results/diag/DIAG-edgex-k4-r500b.sink.ndjson.log,157,c557f633fc14d43d2784e029d78e504919ba44e2275a05b0302203d2bd4cfe4f,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,supporting,results/diag/DIAG-edgex-k4-r500b/explore.json,8749,56637ee7684ec8dcfb503fdf32f6b949b43aa67ab203e9bd76fa0556b4e8db35,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,supporting,results/diag/DIAG-edgex-k4-r500b/gen-cpu.ndjson,43184,d474067ac6b0f949dd78e2025b9816dbd7f44c76a064eb311296a5d15e138326,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/health.json,4834,33f45dfea29d698e20745f9a6be80daea4b0313b1d9e1e8f1b92954809ac17aa,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,raw,results/diag/DIAG-edgex-k4-r500b/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,raw,results/diag/DIAG-edgex-k4-r500b/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,supporting,results/diag/DIAG-edgex-k4-r500b/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/k6-summary.json,2032,946bb7be1e332743e2263ad25f30226f33b4e76195e3e8ed031a12bf42098111,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/manifest.json,10506,799dbaa0158d6a07f6624c66aeec2392a18be213b6ca66a1213f43d4425ff9da,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/plan.json,2125,6f9600bb6740a805ec634cc467edb3fdf49bc8c726019b183c6faddb476adfbc,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,61b6f22ff6ec
+diag,DIAG-edgex-k4-r500b,required,results/diag/DIAG-edgex-k4-r500b/resolved.json,2572,3db62e34497dcddf18abcc4529dd7842150b0d6a153e6fb287b3685345480133,VALID,61b6f22ff6ec
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100.diag.json,13532,de796a811e3cc5fbf2966c22f05851b10851c77dbfc47947149071f5512047ee,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100.run.txt,447,815b262cce453027cd300616353aa1e62b34220ba9c378012d386e2b15d8d253,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100.sink.ndjson,3160910,8be47fbbcfc4f173b91149d759025f4c0419f19db386d9c2517b971ad4855306,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,raw,results/diag/DIAG-fiware-k4-r100.sink.ndjson.log,157,42a35b2f1688e4c5976b6d898e25b2abeab68c953e858120794598e3bbfb2eb6,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,supporting,results/diag/DIAG-fiware-k4-r100/explore.json,5055,b0e7cb02897f2111ed29dacb1131bb8ab6c47a3061222f6019007bf2dd64237e,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,supporting,results/diag/DIAG-fiware-k4-r100/gen-cpu.ndjson,43662,961e9c18107aaf8098fd5006b8e745b331aac20ab2408da3e2e7a2feb5f1508b,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/health.json,5007,f1bfa2eb48c9d97d83ac11ecfbe49b5a60ad6bff1d2a81755ecd4fb708864b0f,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,raw,results/diag/DIAG-fiware-k4-r100/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,raw,results/diag/DIAG-fiware-k4-r100/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,supporting,results/diag/DIAG-fiware-k4-r100/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/k6-summary.json,2097,7cb24f65eb0d60f014ee7811e43e0696a2968ad053d462c35e459be5bdf19dcc,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/manifest.json,9970,9317830a3e7be69fa7dccbe2484a13f66841ee7772a3f8c03a2f643e1340f500,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/plan.json,1803,badb9545d1a680383d41609464029e2288a97f53d6b1000e72ff8d6626b8540f,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100,required,results/diag/DIAG-fiware-k4-r100/resolved.json,2258,3f7bd7a22a76d8cec199fcb5de4e04446d988649253c82e0c1fbde77b09b880f,VALID,aa5a97a582d1
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof.diag.json,2415,2fbe87fbec255626a218c969a581599bb1ff0517172adec7296da14b607aea77,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof.run.txt,465,a5a52e23f610916dc3217887fe6bad7efccf6c21fe9c98c0848687774610e70e,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof.sink.ndjson,3400746,e7b2d00ac669cbc23514e88a5f7babaae2095f46db7926c265a1536e0a3cca60,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,raw,results/diag/DIAG-fiware-k4-r100-cpuprof.sink.ndjson.log,165,7e2b004f94287aad2059240f4570947771efa20eaf276685a2c3404e83cc6477,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof/explore.json,1809,e3c882215c5dce0fcb5916858ef298332ed9a5624ba43558ac0ea4f8fa73d589,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof/gen-cpu.ndjson,43924,e288d094f567b33fa5470c0b2d134ded9eb22375afcbda052f284c5df851e72d,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/health.json,4986,262846acb69079fa215584abf4c1be80490624b6ede805a844db5cf2995772e3,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,raw,results/diag/DIAG-fiware-k4-r100-cpuprof/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,raw,results/diag/DIAG-fiware-k4-r100-cpuprof/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/k6-summary.json,2104,f08bce4c597ae1e460d797440e3adfcff5fde76fbc305d3f4348accd7220603e,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/manifest.json,10136,52d5596ae9f1a71f344dbd0e7d8289456750dadd608a3c854be22e61f9319834,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/plan.json,1888,78681e2516c715368c978a201733c90d05396c04e64703b1116fd4ebd8f0905e,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof,required,results/diag/DIAG-fiware-k4-r100-cpuprof/resolved.json,2351,7fe0f07679578d51b80b8d0a14005a856babf08964e5d4f4402000b533e372ad,VALID,f370025e73c5
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2.diag.json,2774,226921ff176b066cc4ae9d9575fbfc68feeff09697809442aed3d747821ff7e7,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2.run.txt,1157,a42ff8e00de89ec88e3f94aeed51c550b2cc9720dadcb043fcafac2492fd3a2d,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2.sink.ndjson,3382445,06e7cd2ac7d1569e51e20708acc69633155bceb0f291f2320ed0bdefbe561c62,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,raw,results/diag/DIAG-fiware-k4-r100-cpuprof2.sink.ndjson.log,166,c251efef1f9835df8c44afd30d5c7b41701374496b9a54c8a22189386a4909a4,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof2/explore.json,1874,72277744f92033ca2069c485dda50b8ecd4ba8cb35eea43a88be3ee458bcfd77,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof2/gen-cpu.ndjson,44194,a514c548e8cad564b65a460cc858ba85af5e46ded3bcc4956373f39498542c17,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/health.json,5691,5690b972b67b649efd33b63beb49b055cdf4803e5f1cfa231043518ccdb02af0,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,raw,results/diag/DIAG-fiware-k4-r100-cpuprof2/k6-log.ndjson,379,871a61880f5b685e707b6f606ab15dc36e19b958f450b1c8cee60124ba668a30,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,raw,results/diag/DIAG-fiware-k4-r100-cpuprof2/k6-messages.log,379,871a61880f5b685e707b6f606ab15dc36e19b958f450b1c8cee60124ba668a30,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof2/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/k6-summary.json,2134,efc977ea9c8c050c9ab1cd73d889e1e1173a305c06b1240d791fc09d7f85db21,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/manifest.json,10953,a40aa4b88afb7df7ea45320b1d1c8022c8ee81e8196b7390e7c6a2b032bc3455,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/plan.json,1938,b81ee81b227179d54c726ba6f80dedc40bd95cf18b541eb6b994269f3751cb13,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof2,required,results/diag/DIAG-fiware-k4-r100-cpuprof2/resolved.json,2402,823154290b10d650e8b2db28ccd5f54fd8bb32eb72396e0303edb5ef56c70d58,INVALID,b81f9996300e
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3.diag.json,2787,caf911590f90f9113d8f00d4dfa6dae133f02efef65f3825e005ed415a622369,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3.run.txt,461,091e58510b91469e5c34def03c346856475813de6124096082ae49e80defe269,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,raw,results/diag/DIAG-fiware-k4-r100-cpuprof3.sink.ndjson.log,162,4f58d18e6ac83f9451d7a0b121704cdc2869f568f503e419970ff0edd7725294,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof3/explore.json,1669,c5d2bb766580a604be456b81c7667fae6a848c70510f68de557303743fbc5c25,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof3/gen-cpu.ndjson,44230,9bd90df5d7c265ecaa526cc47bd1f6cddaf08e68d626fa098b44a46633f0a321,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/health.json,4948,a56937c31fa07e6676ca21b91ef3cc2b22ad43ee4ca63fbba8e48e18cf269f3a,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,raw,results/diag/DIAG-fiware-k4-r100-cpuprof3/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,raw,results/diag/DIAG-fiware-k4-r100-cpuprof3/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,supporting,results/diag/DIAG-fiware-k4-r100-cpuprof3/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/k6-summary.json,2062,44a5b490743c4b36d61f36687e377bdd6c373db375e48572da9fba9b29ac290a,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/manifest.json,9762,c53639724c82c83656ae9d0b19a72f635c712612a061d74f1b11a4a0ec5fe7e7,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/plan.json,1719,321224a734b7aa0f49d02ed38dff888e11cc1ba60ce87b5622207f4a2b2b6269,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,3ea06644a10b
+diag,DIAG-fiware-k4-r100-cpuprof3,required,results/diag/DIAG-fiware-k4-r100-cpuprof3/resolved.json,2183,a0228ebb4e8a34b7797ee23c3093b44b4cda9551a6553f01ea1c0b0d68067522,VALID,3ea06644a10b
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50.diag.json,2394,ef3c1be72bef2178a9f7ab6f47d34c8e475b13ee4d201e0762e05caaedf7f47c,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50.run.txt,457,92a968a3faf77d557942f4b069edd1386ea8985bc48d2e38768369b8de3e7f22,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,raw,results/diag/DIAG-fiware-obs-nosink-r50.sink.ndjson.log,160,b1a9e01f49e17452482ca823dd19eaccbee3a8d455c5e3b94c86f6c55c8aeb53,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,supporting,results/diag/DIAG-fiware-obs-nosink-r50/explore.json,1639,4240d96b76d0901e86589739836738c1fb473322a0e9308ea24d10ea4ca5c3c8,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,supporting,results/diag/DIAG-fiware-obs-nosink-r50/gen-cpu.ndjson,43552,083f68ff0fa71565a1d6a3c5d5da46e485f66d08d7f3ded1578e2651ea39c3cf,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/health.json,4868,6543c5358dd8a8afe1e4caaf79a9a5dbd97994bdb7181020a5edd489a9efa6d6,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,raw,results/diag/DIAG-fiware-obs-nosink-r50/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,raw,results/diag/DIAG-fiware-obs-nosink-r50/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,supporting,results/diag/DIAG-fiware-obs-nosink-r50/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/k6-summary.json,2015,d5fb0eedd14e759ae32ac9a5021840ee30d3e9aad0310ca3a72b442fd0b63b8e,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/manifest.json,9210,2089cb3dc14037f54bb5b98789df82a41bc9b19b97e7b4e0f0732b7e2b7a8187,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/plan.json,1486,b62b6c9918019ef499c1b0e05592534159b75a8a24a39760b16c16815d338a59,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-nosink-r50,required,results/diag/DIAG-fiware-obs-nosink-r50/resolved.json,1939,e820f77b2e4c4b9b1f17a2c27a82a8007ef74a455c249fb7fe9f6acb0fb1569a,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50.diag.json,2797,896787ab4e52f6512cfa86c13c0b88a0ab45658f28f3a43d67d0882710a742ad,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50.run.txt,457,5459655088de6b3c1b28017c0c256b91eb76d3e33064aa2ca1c0a47941a9e3b1,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50.sink.ndjson,1649774,835cb947554d1e19183d95f783ffa156784aaa271a0483d1980c7ef04cbac8f2,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,raw,results/diag/DIAG-fiware-obs-sink-r50.sink.ndjson.log,162,74a47ab92ded289d3c2665d6640d3a0eedce0381aef7070945a52de08f31dd2f,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,supporting,results/diag/DIAG-fiware-obs-sink-r50/explore.json,4999,4bb5f703d5e8a02be68c4694c6f33f127ee338771ada48c2c2fa916812dc6939,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,supporting,results/diag/DIAG-fiware-obs-sink-r50/gen-cpu.ndjson,44529,ac330de60577eba6ac6a164c73fa34595e07dd01ae59143a27eb99759cb74546,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/health.json,4914,f728dcf56601b321b6c42b9e5685dc83fb93ff1e86aadc40794add48eee2234c,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,raw,results/diag/DIAG-fiware-obs-sink-r50/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,raw,results/diag/DIAG-fiware-obs-sink-r50/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,supporting,results/diag/DIAG-fiware-obs-sink-r50/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/k6-summary.json,2040,d9e264ff981a22f8addd676614278c1c252d26bb391d3cadf78d9349ad6536c2,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/manifest.json,9687,13dec5affc3383b52c54f89abec356b7c538f4c37ff515eaedd708deca062a03,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/plan.json,1704,4f39b37bcdef542ce944c799087f4c44eca3f79e407fcf06494ee3eb952ff83b,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,aa5a97a582d1
+diag,DIAG-fiware-obs-sink-r50,required,results/diag/DIAG-fiware-obs-sink-r50/resolved.json,2155,97bb94a198c9972aa49fd51b737e01fb2a11ea2f33b1704771014ff8933324a7,VALID,aa5a97a582d1
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100.diag.json,2932,9c0e05ff700f153aa6dec8281a5929da1793b14f852ba9ae4c45a204808ba718,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100.history.ndjson,1284890,1a45e474f86ac6921c638b292f55baff17f868257ec0de5da34f10b52703721f,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100.run.txt,450,546a4440a1d4b20331593e4faa35cf422f058b046882acefba5ce7a7d30094dc,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,raw,results/diag/DIAG-tb-obs-nosink-r100.sink.ndjson.log,157,26eed151ea240bcc59c141ae4b48966005ebbcaffa2a4960eaf5af20d2226597,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,supporting,results/diag/DIAG-tb-obs-nosink-r100/explore.json,2065,20bb393a05a992c0b96d2a611cdcecce3c3b1237434c4a05f66df5f5a3e623ea,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,supporting,results/diag/DIAG-tb-obs-nosink-r100/gen-cpu.ndjson,51883,336ac18696a2717ab81f84f3315eefe21c1543fa34673250e8ea85723a1ed1c0,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/health.json,4910,421652811ef8c72e113bd47d104965d490454944b1a67a231af77213f0793952,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,raw,results/diag/DIAG-tb-obs-nosink-r100/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,raw,results/diag/DIAG-tb-obs-nosink-r100/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,supporting,results/diag/DIAG-tb-obs-nosink-r100/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/k6-summary.json,2106,f7d829f7b6248a415f8a6b771bb7be438d38a85583fb1673f110d8f6953e4d28,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/manifest.json,10192,0a4baf817668d762127ca9a679fea798c4f36a55abc429090f1cac8b0d569c7a,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/plan.json,1877,98a1a926a8a75060b37deb95042cf0d5786091568dc411b5a7f2da211dbf6b3c,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,a249513baf3a
+diag,DIAG-tb-obs-nosink-r100,required,results/diag/DIAG-tb-obs-nosink-r100/resolved.json,2332,7672bde4227b2a75ae508a61754fe376ddbd3791499b2059854a2b7c534d56be,VALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100.diag.json,2918,ad2c6f71b8defc4fa308c6b6aacc25416473a7bfa3b857fd605d6235d249162b,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100.history.ndjson,1236890,4e2a6e98d48fd6b347d66ab66fe452ad7be80784df0395445b4f6af89c986be3,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100.run.txt,665,f075ffa50f293fff2f27efb0ab722512eaccfa33b08da521399f936217ae2993,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100.sink.ndjson,2478431,6586a3a9c83138a2355fcdc935e5bcbf7a08aa60c46f29f291d97bf92e7646ef,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,raw,results/diag/DIAG-tb-obs-sink-r100.sink.ndjson.log,159,091ac37f74e63187e3b4aa5b4195c6049f04dfca88d51a64a352c284107e2edf,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,supporting,results/diag/DIAG-tb-obs-sink-r100/explore.json,4541,a359a6f84a2be62e7a6ebd4fa866070d187ef32dc8cc7a53a5f6d49ac03399f9,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,supporting,results/diag/DIAG-tb-obs-sink-r100/gen-cpu.ndjson,54498,d511c1127f8089d37ba119f7402932c0ead2208410c2c1600a08f05849856534,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/health.json,5115,a0bbed7700395c54edb6cef172c6eb75d5e4099ade81aaef95a629473cfa0c1a,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,raw,results/diag/DIAG-tb-obs-sink-r100/k6-log.ndjson,188,41abfe2f0ff464e5212082a1804c77849c4ba86a9337ddbdf3753ce3a3f3d0a5,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,raw,results/diag/DIAG-tb-obs-sink-r100/k6-messages.log,188,41abfe2f0ff464e5212082a1804c77849c4ba86a9337ddbdf3753ce3a3f3d0a5,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,supporting,results/diag/DIAG-tb-obs-sink-r100/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/k6-summary.json,2116,3b35dad3f0caff595ab4620e94ff76f5da3c1636cc1a1183f47f3312176e7e51,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/manifest.json,10183,d7aac30d9eff9c414933682771132105fba9fcbdd1075525dcd5a6ed42485b64,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/plan.json,1768,a1d604093e3c84c70f173b63c4b9e327d62119c961d83b904078052624eed299,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,a249513baf3a
+diag,DIAG-tb-obs-sink-r100,required,results/diag/DIAG-tb-obs-sink-r100/resolved.json,2223,581ead235edaea40dd2069d35b59fc0340d941621f236db7939576c6f29fc800,INVALID,a249513baf3a
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k1.check.json,367,6c9ba0675c1d37b01af4cd80c32d6347c6693403323ba1406d2f8acede4972b5,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k1.gate.json,399,b92746f8a6305c9b60facde22c071072de4d9f82a6501f6c4de8930e3e8d150d,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k1.prepare.log,5850,be74fa958a69f083cec0db953b538a65ef2fa2f8667bf44c17ae4696bd7b297c,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k4.check.json,367,ec1ae86a17451189953d9ff5fc5b982e13b045df16ea6bf1c671b8ea924ec499,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k4.gate.json,728,844593f135dfa903a00408051e25ec267304d5140d7276bab527a656fe15531f,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/EXPL-edgex-k4.prepare.log,5936,1e84a1e3c72222844868d6de30047a732d9cb684fa3f4316113c1d2ab28d3e16,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/edgex-panic-repro.log,741,d6a6316d946cea63864afb5a09dd8c28e48c6d2cb772918376b40fc8e9cc0fe2,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/edgex-prep.sh,2405,b331d29b6cd96d3e935eb64a9e594016bd8f0fef928e97783a62abd947344382,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/fiware-prep.log,6156,29b2a64164f9bef53c49fe3e87a47cd7a5472bdb9a67ccce2726fcb0c3beffee,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/fiware-prep.sh,687,b38441769bd6a5199fd7acc5a83673b435de2b8595963e9f831770107b161217,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/tb-prep.log,9949,e579e08647cda7458b1b7699edcc7b9e11a745a631b0ab74e7b55ddea416fd34,N/A,
+exploratory,(collection) sut-logs,supporting,results/exploratory/sut-logs/tb-prep.sh,915,79b1b4d0936bf611ad60b4f243cbc85391a44b3a81d4b7ec6c496d5cbf1f5d4b,N/A,
+exploratory,(unattached),raw,results/exploratory/edgex-panic-repro.log,741,d6a6316d946cea63864afb5a09dd8c28e48c6d2cb772918376b40fc8e9cc0fe2,UNVERIFIED,
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308.run.txt,544,4a7dcc1ed832dc614a44244fea35c100a9795ac14d74b2851944e01ae7e00f7e,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,supporting,results/exploratory/EXPL-dryrun-090308/gen-cpu.ndjson,57969,567c684fc4048810487471f26b80dd454960ba524c0bc0f28ceef5af7e7941a6,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/health.json,7103,9c9bfb62ed10a6765922024069c30de005cd8e3175046b8f6db1df8f8ffe2f7b,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,raw,results/exploratory/EXPL-dryrun-090308/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,raw,results/exploratory/EXPL-dryrun-090308/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,supporting,results/exploratory/EXPL-dryrun-090308/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/k6-summary.json,2815,226ecec9fd121811e355ddd7f258fe8200019d251b9b00909afad5b5c4601240,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/manifest.json,11077,de5e9eb4725fbe24fe98b5e56474df2ce41d79a46e54e7388300a377429c7ed2,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/plan.json,1102,869e094f2f40e638ebd459a6b070eb0390f44e97811c6fe04be722f830ac85dd,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-090308,required,results/exploratory/EXPL-dryrun-090308/resolved.json,1741,4239682d3e33e044023b896cff5ed02fd59a41410a44c908138b31d5b2ba842c,VALID,6bfa0f27c53d
+exploratory,EXPL-dryrun-091551,supporting,results/exploratory/EXPL-dryrun-091551.fixture-store.ndjson,7690787,2c5f57d29ea5e7a846102e0591068b5031413aca6346850519568bc34cfdf459,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551.run.txt,544,f8a3d3af447fa89d2045b6272fa11c333c41c9c1f24b2a999d69aa2565381598,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551.sink.ndjson,3160697,7362cde77ccf8e87d06f2ed72492e02971283796abd6b9a304816bfdede4f9ca,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,raw,results/exploratory/EXPL-dryrun-091551.sink.ndjson.log,163,5f4f3f38ff0d2a07e19f36d0db11994ac94bc40165e6af971d1f3586a919ef00,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,supporting,results/exploratory/EXPL-dryrun-091551/explore.json,2593,1858bb7792f6b21317c769c9023e14157b56c72251d0958b4addad1e3c79a4fa,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,supporting,results/exploratory/EXPL-dryrun-091551/gen-cpu.ndjson,59053,612ea019d3cc8f2a7ae85383a09ef362c3ca14306e5343561a032f36117a6aae,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/health.json,7128,69a69d2be61911d51af934b712d8e67cd88e43cf87532d899ccc764a8a92d7af,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,raw,results/exploratory/EXPL-dryrun-091551/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,raw,results/exploratory/EXPL-dryrun-091551/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,supporting,results/exploratory/EXPL-dryrun-091551/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/k6-summary.json,2816,6145ac2db66c8b77e4ccc4fc4f3067026e19d3983de3f7652604978c6c87c00e,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/manifest.json,11104,b14d6b1376cf8707d334a4bc8b1721c5348fbc4b08ae4105788a7d80f16dbfba,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/plan.json,1102,869e094f2f40e638ebd459a6b070eb0390f44e97811c6fe04be722f830ac85dd,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,5277342373e7
+exploratory,EXPL-dryrun-091551,required,results/exploratory/EXPL-dryrun-091551/resolved.json,1741,2c88ed2cb2c20d2a645eac133f7b6d449412457031dacec2280a566a3609f946,VALID,5277342373e7
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.check.json,367,6c9ba0675c1d37b01af4cd80c32d6347c6693403323ba1406d2f8acede4972b5,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,supporting,results/exploratory/EXPL-edgex-k1.cpu.tsv,1635666,b02413b4e0e095ab86321584628f6fc71888c2046605259075d04ab6e0555f69,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.gate.json,399,b92746f8a6305c9b60facde22c071072de4d9f82a6501f6c4de8930e3e8d150d,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.history.ndjson,9555430,a6a2b8ddea87c84af63c30040372b4c187ad5c88edabd91a33ae363fc2b38a6a,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.persist.tsv,8266,8dc917499d79370dd39946c4b05177d2c37dadd948676e981e9cadda85ef13f1,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,raw,results/exploratory/EXPL-edgex-k1.prepare.log,5850,be74fa958a69f083cec0db953b538a65ef2fa2f8667bf44c17ae4696bd7b297c,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.run.txt,1015,f7cfed66666ae14bbff3b1775b2fbc745976c3d3bb3678dfc7d83c5c88cb3c5e,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1.sink.ndjson,20115221,2635f8688320c6bc8f3167b2ba53642f5a2f421cd15517a1118811e89b7c09af,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,raw,results/exploratory/EXPL-edgex-k1.sink.ndjson.log,159,08b31decda468852d8a78c68b808b5282a79b0e34a814367eea2174bf5f9c563,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,supporting,results/exploratory/EXPL-edgex-k1/explore.json,99064,0405d7bfae5834ba314b6ec3471e437df408432a8b78803b1ec418a0f08d1560,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,supporting,results/exploratory/EXPL-edgex-k1/gen-cpu.ndjson,143428,d36ea40601c5767f6f3e9f022e0442a5c8f8b198672b155385c446e89b9b333d,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/health.json,14599,2acbb31a282782ca0fbe5bd8a6bc4294199fc55238720ea5b7a8856e3bec4c30,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,raw,results/exploratory/EXPL-edgex-k1/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,raw,results/exploratory/EXPL-edgex-k1/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,supporting,results/exploratory/EXPL-edgex-k1/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/k6-summary.json,5615,8bc1ffad77509284c94b4ff2cac791fe6e4a40ff6e88b7f6f43b4f6a4504bc52,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/manifest.json,21721,57caed348359b998b61326721d2b6b442ab8ecbe996a32a29718104c2b987940,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/plan.json,2554,8779c25fc80ae359d0fb22194ab520c629b24802de0e14d0ca3bc1f27ffe5141,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-edgex-k1,required,results/exploratory/EXPL-edgex-k1/resolved.json,3750,77bb1089a7a02910233b16ef2c645e439f299ddaa29dc733176a3b50e4e4c76a,VALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.check.json,367,ec1ae86a17451189953d9ff5fc5b982e13b045df16ea6bf1c671b8ea924ec499,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,supporting,results/exploratory/EXPL-edgex-k4.cpu.tsv,1968188,933b352ab6b5e74c4dbb7e289e9f6959cd06c6c2abbd6ade840799d6e252cc80,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.gate.json,728,844593f135dfa903a00408051e25ec267304d5140d7276bab527a656fe15531f,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.history-final.ndjson,23648890,71f37abe82b36396316e2c821b1b8e62e6ae8a3080848da13ca77922bf86c825,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.history.ndjson,17219065,1f4009e1132739659505d505e0bd303a9af220aaa4e2b73d146a3b3e6067c43a,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.persist.tsv,8873,1c1fa79b1a457be2688500c2fd106abe2d5abd977c90f8ae50bcaa605cdd0bb0,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,raw,results/exploratory/EXPL-edgex-k4.prepare.log,5936,1e84a1e3c72222844868d6de30047a732d9cb684fa3f4316113c1d2ab28d3e16,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.run.txt,1545,14f925f3f40618a9b945f89ab9b93b8fed6f37525bb6da10ef3189f79e748008,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4.sink.ndjson,52533858,a0f314641529bf5f3f07ba3ee849b36bb1fa28e35e4f8f630690169d5762fb4d,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,raw,results/exploratory/EXPL-edgex-k4.sink.ndjson.log,159,b004a4f69480bd906acc9d12cd7d81001c4ccd97a8e8cc3f6118312a857e86b9,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,supporting,results/exploratory/EXPL-edgex-k4/explore.json,38460,d1f264413fb99445b2623fb6918084ecdeade06323d2f63c7bfa2b6dd85743fe,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,supporting,results/exploratory/EXPL-edgex-k4/gen-cpu.ndjson,194891,77d1830298312c6a30e29b23884e65ffa34f63576a08e91b16707163b89855f2,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/health.json,19773,db6eb30a479532079487421a90c6a82456e173c58c489fdc06477dd51ddbb3d6,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,raw,results/exploratory/EXPL-edgex-k4/k6-log.ndjson,191,5edc10eafd3eb9b1882b63c91e56547de481fd829b4f1cd57e787f4d8047e67a,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,raw,results/exploratory/EXPL-edgex-k4/k6-messages.log,191,5edc10eafd3eb9b1882b63c91e56547de481fd829b4f1cd57e787f4d8047e67a,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,supporting,results/exploratory/EXPL-edgex-k4/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/k6-summary.json,7428,ce5a56a2fb09d3d3a4653afd86f6060adf5fad6635ff2d27c2b16272320d9023,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/manifest.json,27772,43a88b120b39f57b88e34ccf5c2b2d7c3048cfb71da9bdf3c8a87bbfe4f9b252,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/plan.json,2777,73c084df81d49b660a0ffd223cbc98cbfb7218daf5858ce703212ab42ab1558e,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,671262e644e3
+exploratory,EXPL-edgex-k4,required,results/exploratory/EXPL-edgex-k4/resolved.json,4358,b76664ffd628d3430c197ca15f140b7342ab0cf360e20d782751a9af06e0d20d,INVALID,671262e644e3
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2.run.txt,540,303daca16ebce3e29d1f79593b8df686508d8f2f64f6655c22ce293f759d143e,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,raw,results/exploratory/EXPL-edgex-trace2.sink.ndjson.log,158,7be152a70a0c285b99d5838032c997d9fd85cd67d357174bd7b2194311da1a9a,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,supporting,results/exploratory/EXPL-edgex-trace2/gen-cpu.ndjson,525,b9e29c7efbb41468ab4de6479a01319aefde2c4d9022e2f9481164795a9c1b48,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/health.json,2380,173c7120ca355e588adffd986e94f6848ca3b0b2a65d47438ef84aadd8cc637f,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,raw,results/exploratory/EXPL-edgex-trace2/k6-log.ndjson,244,0f256ca74e821fe3df80d023b67b1968c70c78922d9b06862bdbe3f1abe87d0c,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,raw,results/exploratory/EXPL-edgex-trace2/k6-messages.log,244,0f256ca74e821fe3df80d023b67b1968c70c78922d9b06862bdbe3f1abe87d0c,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,supporting,results/exploratory/EXPL-edgex-trace2/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/k6-summary.json,836,2b04f3d796a7ad3675c4038d3947fb721a7ab2f3e14667119de0460c0b022e23,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/manifest.json,5427,43da0be4c560a1f53807393f1dd00ebe99796a26e392fc290202d7e0c49062a9,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/plan.json,1091,fcb09a96a4da5367e640748fd5524d90c51651205d501a08addab680df7bc7cc,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace2,required,results/exploratory/EXPL-edgex-trace2/resolved.json,1292,b478c1bdb3fe052c49cb46fcbe0ec21c10070d7057933526a1a2ad3f07162f5c,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3.run.txt,540,ee4ab1516a97b85da38f5cea820e5dfe42b82df51002fda63bda398e4fa81cb0,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,raw,results/exploratory/EXPL-edgex-trace3.sink.ndjson.log,158,310849e2ca139bea181ac05bb7cffd05979da4618991993e8fcfcebb5c885600,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,supporting,results/exploratory/EXPL-edgex-trace3/gen-cpu.ndjson,520,699abed0d243df9fc96bd4a0bfa4d4e62e0e8996d74ea8fe237a81f417c62376,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/health.json,2380,86b8be1313d92d522864be3cf9cbada40824eda83a86453052b2d771d9718b3c,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,raw,results/exploratory/EXPL-edgex-trace3/k6-log.ndjson,244,4a6576fd98ee195a6e5b6c6aeceee4538d513d3e1c1e02a1209b202827e08700,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,raw,results/exploratory/EXPL-edgex-trace3/k6-messages.log,244,4a6576fd98ee195a6e5b6c6aeceee4538d513d3e1c1e02a1209b202827e08700,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,supporting,results/exploratory/EXPL-edgex-trace3/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/k6-summary.json,834,14afaf2f4a08f5dd5cb28e12552bb887a1b78d512e22aca11bf38665cec2418e,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/manifest.json,5427,67a0d2ffbf2b18d527267a628c11879c24131c8dc3cfdb5c3a56ecf50dfd493a,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/plan.json,1091,fcb09a96a4da5367e640748fd5524d90c51651205d501a08addab680df7bc7cc,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-edgex-trace3,required,results/exploratory/EXPL-edgex-trace3/resolved.json,1292,dff7846e4562d5d224f87fed633071fe1aaf034296880d0ab877d1cb2eb826e1,INVALID,7d06587c6001
+exploratory,EXPL-fiware-k4,supporting,results/exploratory/EXPL-fiware-k4.cpu.tsv,1461268,3fd844d5ea9bc0e0e91ac8d934fe1e678cce6224b6c24df67502566ea61ef682,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4.run.txt,3122,431ef00843d8efc1d99af75c328f83abd4832142bcf91a54d79bac9dc8aa1d5c,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4.sink.ndjson,22995622,045142c5cc34d66d06d566b9ac615983091a5669098ab099b0b3ae09f843e9bf,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,raw,results/exploratory/EXPL-fiware-k4.sink.ndjson.log,160,310ed331d8fdccf0c4aadc78f524e6b67d17ffdb80515ee8eba552df52789b1c,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,supporting,results/exploratory/EXPL-fiware-k4/explore.json,13158,3500ddfe3b699c48190d1667444ed888a7c996bc6b451877eb3649ac3205ccb0,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,supporting,results/exploratory/EXPL-fiware-k4/gen-cpu.ndjson,197056,a6b2fb7ff54e1ccc58a068379157c7886898d5622b2be26591cc64306618727c,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/health.json,21732,e78ffe1a856131bc0543d3b4bf2bdc7102b4f430797078ff66d20e5a196aed90,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,raw,results/exploratory/EXPL-fiware-k4/k6-log.ndjson,66354919,f4718b6d5dd4e08935a38c1dc875c7aba39f064fdf83e8dafbc287eea6f46e09,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,raw,results/exploratory/EXPL-fiware-k4/k6-messages.log,20566315,62a4490505faa625854cf228dca4dbf3516d10785023ec95fba4f6df4c7b2e43,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,supporting,results/exploratory/EXPL-fiware-k4/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/k6-summary.json,7775,2a15eb24959299a48363be583df1291e33c5f33d72e59508b3ce32fdcfaa1401,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/manifest.json,28561,17e03591d6e734c7405ba8a8484a051d6708e13ba222bfe4de421b0419132427,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/plan.json,2216,db47ee69dc236916e4ccde70367793fc5343da89c9bd63cecc2274da0870fecb,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/records.ndjson,33021630,e397164880d0ff6fc89ee3303f64f89fe478b99e2c82e2e68e9cdba0bc28683b,INVALID,671262e644e3
+exploratory,EXPL-fiware-k4,required,results/exploratory/EXPL-fiware-k4/resolved.json,3802,5e70a9963f11b3df9a9300b674ccc641b89ca5242270f5cc9bddb072e63693c2,INVALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace.run.txt,290,0f4972a556646fc5494fb26537d9dae7fdea29735ac166996cb9d2ac56fa7a41,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace.sink.ndjson,5062,6d95eb8aee3f189681135091127f549dcb5a8e0228340707ba08b34051bd8ab4,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,raw,results/exploratory/EXPL-fiware-trace.sink.ndjson.log,159,afcae7c437f0b2b788dbff31b2e6bae0cf47980a2498a5fcddbd9c1a4a95f744,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,supporting,results/exploratory/EXPL-fiware-trace/gen-cpu.ndjson,3257,1d68c6b1a2ae032babb08e66e9d060e9659f4645cfab03221946530616ed6880,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/health.json,2341,88fe7e32264b5d28b8f7a248e70c603841a51a146061844bc0acaf628b0ddffb,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,raw,results/exploratory/EXPL-fiware-trace/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,raw,results/exploratory/EXPL-fiware-trace/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,supporting,results/exploratory/EXPL-fiware-trace/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/k6-summary.json,1029,89e6de9e14d74ec87d593bf4db8cb4624a017f2162210498879236c56ed4b117,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/manifest.json,5496,5614a5e5c916d2ac317f187867835c0aa5897d32c5b7c3021a9a4e7c06f16f08,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/plan.json,1086,73c1bd5fc6ac799025ae60843f27ae4f30e1d1b9e4a7352975aff9bdfc9ac478,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace,required,results/exploratory/EXPL-fiware-trace/resolved.json,1287,1f45fe7a47b6d45c6cd8fef198692d14196bb133e853e90eb0c8f474fe922c5e,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2.run.txt,292,62754e7590adceb05a7db969274387a216db4a041013c2ad7e35709371246b20,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2.sink.ndjson,20445,975a95e3aa94e749762847966ce7750d54e84bc0a192109ab7e18bc867289679,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,raw,results/exploratory/EXPL-fiware-trace2.sink.ndjson.log,161,36d7c36d31fd89c5f4952a884a296b317d47d6b54bbaebbd9b41151392370ddb,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,supporting,results/exploratory/EXPL-fiware-trace2/gen-cpu.ndjson,3352,c0b33757a4d073e2aff28554a0b876d9b47053a37417666c1129f2d783052866,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/health.json,2369,0ea0be48affebe5eef9f73ff5633ad1bed0c9872bfcfab305b66e6318049ea63,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,raw,results/exploratory/EXPL-fiware-trace2/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,raw,results/exploratory/EXPL-fiware-trace2/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,supporting,results/exploratory/EXPL-fiware-trace2/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/k6-summary.json,1027,70baaf1bb056445a4e99a735e80ea1e2bf1290c29470792e5853d8786c71efd3,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/manifest.json,5528,f27bd22e6d63c14ec74790723f5e607115e6757cdd5e3eb3fbc234a5f2b57c17,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/plan.json,1086,73c1bd5fc6ac799025ae60843f27ae4f30e1d1b9e4a7352975aff9bdfc9ac478,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-fiware-trace2,required,results/exploratory/EXPL-fiware-trace2/resolved.json,1288,4d30693a3232d60e57541c5c774f3c914290d4463d0e410359106cdde45be126,VALID,671262e644e3
+exploratory,EXPL-preflight-085930,supporting,results/exploratory/EXPL-preflight-085930/gen-cpu.ndjson,17643,63e28081781c45f02f3b2d2a33b513d2c751e52de42c3bf3cc1c4ea86470898f,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/health.json,4760,9d69bad93ce0985c68d62fc10899ca6debbcde7c0b0ead24a15376d8e66864c5,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,raw,results/exploratory/EXPL-preflight-085930/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,raw,results/exploratory/EXPL-preflight-085930/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,supporting,results/exploratory/EXPL-preflight-085930/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/k6-summary.json,1970,3915fa7d4af514f0d1f3710925b1e94a4ec57287a01bfd92d60d9f156bb2eacf,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/manifest.json,8252,315b8f54454414654321f58e5859630a94fa1c68641deed669ac540679648043,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/plan.json,998,465f6640f5d07ea7a1debb8258c51eaaf862cc868992c37cf869b7bb047c1b05,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,8c700289832e
+exploratory,EXPL-preflight-085930,required,results/exploratory/EXPL-preflight-085930/resolved.json,1455,81d20238643cdf06581b347742b2d63c77fca69324d4b9140af6766416c3a90d,VALID,8c700289832e
+exploratory,EXPL-tb-k4,supporting,results/exploratory/EXPL-tb-k4.cpu.tsv,48707,a49ddd85a4c5e985dac2f5dd1a0fec411552094c07acfca58b7ecd85cef36f4e,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4.history.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4.run.txt,119,fe446f54fc4b16f038c286b3ecc7ffa933b2cf3e01d2cdb2f9a46afc9c339953,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4.sink.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,raw,results/exploratory/EXPL-tb-k4.sink.ndjson.log,151,187799aef204fc3d51aad592cd3296715570bda410c0b7faf18925fd94d43919,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,supporting,results/exploratory/EXPL-tb-k4/explore.invalid-rerun-mistake.json,1,01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,supporting,results/exploratory/EXPL-tb-k4/gen-cpu.ndjson,7661,7b40cec4bfb9c5cc793ac03508aade287058559f3031b555d837ab25565571b7,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/health.json,19425,1cf3c6234d5fcf2198aa1b9aad2be9fadbffcc1519e0eef1c5e24b1ecb249cf9,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,raw,results/exploratory/EXPL-tb-k4/k6-log.ndjson,243,8e74b1ece76920a22bd60a3f1ab1aac9c8c27e5d1f4946da6492cf2c9435e525,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,raw,results/exploratory/EXPL-tb-k4/k6-messages.log,243,8e74b1ece76920a22bd60a3f1ab1aac9c8c27e5d1f4946da6492cf2c9435e525,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,supporting,results/exploratory/EXPL-tb-k4/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/k6-summary.json,6471,d507942168422460b100b2e18d328e1566c4b79e189b6638915d247cdbbc5a7a,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/manifest.json,25529,5e70044491eeb59d387551d1b6153c72ce6c90fedc2dcd520b9cfad634d6b5bd,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/plan.json,1905,e2b55b52848be93efb39f948c61ddca368b33c15ad87c695ca3b9f0f4034ffda,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4,required,results/exploratory/EXPL-tb-k4/resolved.json,3492,ddcef73bdb8f1e2c1f65980ba8734d185d129d05a0d6081195de3c47eb83637e,INVALID,7d06587c6001
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b.amendment.json,1481,96aa8e8188de6c86448ed9405eabf4da8a6e783679120aa7514e6a11ee7a623c,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,supporting,results/exploratory/EXPL-tb-k4b.cpu.tsv,1204892,71b46516f7f08ec823f190a7441a4d9636e1ce45617ac8f3c574425bbaebff49,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b.history.ndjson,11757836,a0a378d85996f3bc1f47f8724e3b25677fdaa277480f85579afb913fb9af0228,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b.run.txt,2086,f39663f1b38c1b957a02b759a4cd9aec8f3fa86b7870131a03b56e133c61c1b3,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b.sink.ndjson,19214540,ddcfba1622fde6bb785d2f79e2cbc9a31076d866d9bcc02a175492d950ca6f67,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,raw,results/exploratory/EXPL-tb-k4b.sink.ndjson.log,157,43b890052161ce982e96f7bc7c4316da69c57f8183554915f97d72280362c724,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,supporting,results/exploratory/EXPL-tb-k4b/explore.json,14762,7ac017ecc9784cb6fea7b17b6967d2564227722c2e19e9c3f5bf63e780a0166f,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,supporting,results/exploratory/EXPL-tb-k4b/gen-cpu.ndjson,204633,749e95bcff4c8a0fd1e2948f3ba3f37648c80590525b9c95cd6178489d4d7585,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/health.json,20607,d71a72ad1cf5dddea423e8c3eef54658fdd49bbd0ae7d7c90b928e5bd8d5ea21,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,raw,results/exploratory/EXPL-tb-k4b/k6-log.ndjson,418970,b5406462e57ae0edd0e9a6ce509247e6e46d4d2659d9357dade4d739dbe69b09,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,raw,results/exploratory/EXPL-tb-k4b/k6-messages.log,126183,f614fd959c0279790afc41cf5e33a009b73ef54bc8398af6b0b4fbff00e5c8dd,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,supporting,results/exploratory/EXPL-tb-k4b/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/k6-summary.json,7793,e08053255a289fc68ef034a70a8243fa515d1b3072ef4cfda797dbc33214a7ec,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/manifest.json,27424,7a32237b53860a04be5583a949ebbf081ccf308f655e118ba7e2b37e34e7909a,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/plan.json,2137,ec64e81c9caf1700a2ef1372d41f879c8cfae729d02c0e982fb2114bf3285fee,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/records.ndjson,210365,e3f27d7a089a0c7d0a6f6c074bd5f4b723224403201378089f0f9f56586980bb,INVALID,671262e644e3
+exploratory,EXPL-tb-k4b,required,results/exploratory/EXPL-tb-k4b/resolved.json,3724,cce9b75f6ce779310fe0d275dd02f6afb733f3e6660d2dbb417bfb9e0069cc6d,INVALID,671262e644e3
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace.run.txt,241,309ab38c9bf9e090b627b4579645943154c7c08d783e521173cac9506501c3a5,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace.sink.ndjson,18640,885893faa45a5cdb984d047a47f35961b66019fc753e409ede43a0ad030b0a8f,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,raw,results/exploratory/EXPL-tb-trace.sink.ndjson.log,156,328fc01166e954fccdcde9ca7edf1ded10853d7bbc6a13da46e0d40c984b2182,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,supporting,results/exploratory/EXPL-tb-trace/gen-cpu.ndjson,4051,d7f6ca6a801b2e7411b72e8637a801de57e2307345e0e9293ae17281e8838a3b,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/health.json,2344,572368ae3ebbe7405f427f42abb8df35baf8a2eb443099d07e7435955040102f,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,raw,results/exploratory/EXPL-tb-trace/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,raw,results/exploratory/EXPL-tb-trace/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,supporting,results/exploratory/EXPL-tb-trace/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/k6-summary.json,1100,6b282cb62d8b783b9fefc8d9168850a620f8b77d0909d9075c990bdee36d1776,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/manifest.json,5561,0c059b42edfe45b39460bd460e81540e4fd2574dc231db89e86ca16487f2d40a,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/plan.json,1074,51c990cbac200535655318513372c61b4c3a4be07befb6d3c3bc63cbb4dffbbb,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,7d06587c6001
+exploratory,EXPL-tb-trace,required,results/exploratory/EXPL-tb-trace/resolved.json,1275,c228faff01869dfab4cdfa8c8c968854889f2a6c80132e6ac05639224b7ece2b,VALID,7d06587c6001
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2.run.txt,243,69dfd7d0a21330be05724d92f4493300557f63331b1f4d54d4dc1cfa97636867,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2.sink.ndjson,18846,fd4b039dc6d1e9369d0f229decafac36c0e33400258564e0f99786ea34c6e7a3,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,raw,results/exploratory/EXPL-tb-trace2.sink.ndjson.log,157,be581b8fbf28cde0e03ef636bc603921ca9d2fa97c1732a5651d32c27a51c98f,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,supporting,results/exploratory/EXPL-tb-trace2/gen-cpu.ndjson,3840,3a0167c4367da79159a5f22e40059e6b0bbbd9d71070417fa57e7820f0ae498a,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/health.json,2340,72ccf267f5da62709e109a97a8d90cc5f58c5cfb16dc10180fbd14aa8ab0de6f,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,raw,results/exploratory/EXPL-tb-trace2/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,raw,results/exploratory/EXPL-tb-trace2/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,supporting,results/exploratory/EXPL-tb-trace2/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/k6-summary.json,1102,1ff4adba19e302d4c5bd6462f2f0c4c541c03efb8a80163651a085721b118a0e,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/manifest.json,5560,7855b9234bd5e0333c1ea1f6f7a679bc5a25d01c9815036eb05ec279e4556645,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/plan.json,1074,51c990cbac200535655318513372c61b4c3a4be07befb6d3c3bc63cbb4dffbbb,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,671262e644e3
+exploratory,EXPL-tb-trace2,required,results/exploratory/EXPL-tb-trace2/resolved.json,1276,8dc0d190790abd331c8bfdbe8e08fc7915a411a9f29beed2344969524340c932,VALID,671262e644e3
+feasibility,A0-baseline,required,results/feasibility/A0-baseline/case.env,177,406bdbc956a5b10bec118c12798ca69ed963ac90140024e1db98f5bc32786311,UNVERIFIED,
+feasibility,A0-baseline,raw,results/feasibility/A0-baseline/k6.json.gz,262617,04f9e354d593ad0380789aec24ec3d5a194555a865d390a58c63e709ba9803ea,UNVERIFIED,
+feasibility,A0-baseline,raw,results/feasibility/A0-baseline/k6.log,834,32fd84df848c3fc74cd0534948623344d3f194563f5a1cef0df35e2e440012b2,UNVERIFIED,
+feasibility,A0-baseline,required,results/feasibility/A0-baseline/target-stats.json,31,1b00505fcca7b382099bfd8bb26e45f7edc0bd32c6ed47a376aa28d6501b6f2d,UNVERIFIED,
+feasibility,A0-baseline,raw,results/feasibility/A0-baseline/target.log,165,1937462484fadabeb94a5a539931edded904b2fc404b9f5cbcc6b127506562d9,UNVERIFIED,
+feasibility,A0-baseline,raw,results/feasibility/A0-baseline/target.ndjson,497796,5685c7c0767bb4bf685120744199d9b41b70bd9dede3ede3b8b4e5bb4c2b1d29,UNVERIFIED,
+feasibility,A1-vu-exhaustion,required,results/feasibility/A1-vu-exhaustion/case.env,193,84c5ee442fa81aaa19f4244de4c8fefcf5fdbda0abeb2716272820e1e24fe127,UNVERIFIED,
+feasibility,A1-vu-exhaustion,raw,results/feasibility/A1-vu-exhaustion/k6.json.gz,39894,ee2c3e47d689b6c5c61c4636bb002b99779032113307824c33c03cc50c200718,UNVERIFIED,
+feasibility,A1-vu-exhaustion,raw,results/feasibility/A1-vu-exhaustion/k6.log,1030,e234a6170fc4ee72fad915df0bd61fddb6d14b5fd79ce07cbb5b9c7baee9c59a,UNVERIFIED,
+feasibility,A1-vu-exhaustion,required,results/feasibility/A1-vu-exhaustion/target-stats.json,30,dd5b566f54084a88e8a709c772ff3e6905c0bbc12f2d47594e45dfbbecc1da5f,UNVERIFIED,
+feasibility,A1-vu-exhaustion,raw,results/feasibility/A1-vu-exhaustion/target.log,169,f2ecd23fd1510a47635e279faef36af61234ccdf421196f8ef605e56b71b6978,UNVERIFIED,
+feasibility,A1-vu-exhaustion,raw,results/feasibility/A1-vu-exhaustion/target.ndjson,59820,f79b4f2b42d1d9ded7598e1cd01b666dbdd4ac032b38be623a22cb743af773d4,UNVERIFIED,
+feasibility,A2-generator-delay,required,results/feasibility/A2-generator-delay/case.env,201,8b13234893e2717b3769c7cca82528678631c6a646845a535eb31ddd6bdcaf01,UNVERIFIED,
+feasibility,A2-generator-delay,raw,results/feasibility/A2-generator-delay/k6.json.gz,213240,d8683edf503c19d685255dbbcc7a43ce915e46b28c85bf163186bc0cca842702,UNVERIFIED,
+feasibility,A2-generator-delay,raw,results/feasibility/A2-generator-delay/k6.log,1039,d83d059619de79a7852be35971f550176ae5dec3df787861f31958991f3696df,UNVERIFIED,
+feasibility,A2-generator-delay,required,results/feasibility/A2-generator-delay/target-stats.json,31,ca4d9dc44983b91d7b3e21b1e015dddfcd2d5f812301d8560b420a36504ace70,UNVERIFIED,
+feasibility,A2-generator-delay,raw,results/feasibility/A2-generator-delay/target.log,172,648803cd191673654bfe1f6d7f1aded2ddfe662fbe01249b4c9becb7edee21e1,UNVERIFIED,
+feasibility,A2-generator-delay,raw,results/feasibility/A2-generator-delay/target.ndjson,351586,fba34b6fdba336227e303d6b8c8b1d1e2b1e0bf1b5d5fbf0939447cda8bdbd93,UNVERIFIED,
+feasibility,A3-target-delay,required,results/feasibility/A3-target-delay/case.env,196,0ff812e8ea227660755105a0f5bcad73beddad949c839a602ef7e2136956ac29,UNVERIFIED,
+feasibility,A3-target-delay,raw,results/feasibility/A3-target-delay/k6.json.gz,138765,91f3a2b7ae3cd94a90a25c8efc91acdc0b2ac98b483985fd0a6b3addc9c8a04e,UNVERIFIED,
+feasibility,A3-target-delay,raw,results/feasibility/A3-target-delay/k6.log,826,b3cd41d76444a75ec16a7cbce7bc59fc3090d14a0a2c0b05424071e7af639d51,UNVERIFIED,
+feasibility,A3-target-delay,required,results/feasibility/A3-target-delay/target-stats.json,31,65afce5097e88828253a7d51b678c294c2da045c304498d6afa19d2b0ee6089c,UNVERIFIED,
+feasibility,A3-target-delay,raw,results/feasibility/A3-target-delay/target.log,169,289f33d830858fae521b3abc705681b1e3500e1c686cf7c405452d536cc8949e,UNVERIFIED,
+feasibility,A3-target-delay,raw,results/feasibility/A3-target-delay/target.ndjson,250051,30ddf97b1b5ba8e7a273a6acd079bb8c089f2b721148d95732c3c6e2501ca6b8,UNVERIFIED,
+feasibility,B0-baseline,required,results/feasibility/B0-baseline/case.env,163,cb2cff4c2679f8fb612c3d93f713ffa21ae9aa9b2d83d8cd5e5fb86bf418ba0e,UNVERIFIED,
+feasibility,B0-baseline,raw,results/feasibility/B0-baseline/k6.json.gz,263377,77d398f638fdfc6ffaaf7b90730423c8f9a4c4228bc102af88c47913a75e40ce,UNVERIFIED,
+feasibility,B0-baseline,raw,results/feasibility/B0-baseline/k6.log,831,d9fb28e8bdc6a72fe04ac376c8d0f0a6c1e0c484d8ba3eaf5adf8c19142c8f3d,UNVERIFIED,
+feasibility,B0-baseline,required,results/feasibility/B0-baseline/target-stats.json,31,06649dabf441d893bf62bd4b9c9232d289bf10997c7ca08784bc3e8993427952,UNVERIFIED,
+feasibility,B0-baseline,raw,results/feasibility/B0-baseline/target.log,165,b1072e8c9e01f79a46689c29e9f8d1d4ad62a95b92978fe1b4d79a28546c6c26,UNVERIFIED,
+feasibility,B0-baseline,raw,results/feasibility/B0-baseline/target.ndjson,498878,1e9d2a8cf80320220a24ed77291b4498da4f8aed3233527e8dec198751c64872,UNVERIFIED,
+feasibility,B1-vu-exhaustion,required,results/feasibility/B1-vu-exhaustion/case.env,180,862e03232eddbd37a06f9af5f9799cc344d238fba259cfc4538815147b1acd5c,UNVERIFIED,
+feasibility,B1-vu-exhaustion,raw,results/feasibility/B1-vu-exhaustion/k6.json.gz,130307,379629a3e0ee261d2cdc5ddd713f2f557e44ad9bc243e76dc3238753ef0b9b58,UNVERIFIED,
+feasibility,B1-vu-exhaustion,raw,results/feasibility/B1-vu-exhaustion/k6.log,870,5377ce348ab5a7560f779666a0edb978b82a34eb7f48d237bc9bffbc12de2be0,UNVERIFIED,
+feasibility,B1-vu-exhaustion,required,results/feasibility/B1-vu-exhaustion/target-stats.json,30,9ffe863775248319f9d29e986e67bb291f8d76695aba8039181392999da68339,UNVERIFIED,
+feasibility,B1-vu-exhaustion,raw,results/feasibility/B1-vu-exhaustion/target.log,169,8cd3f6c03885c8e7c1f189b7fda0d489b3398cef539752c3e4720bf840aa10dc,UNVERIFIED,
+feasibility,B1-vu-exhaustion,raw,results/feasibility/B1-vu-exhaustion/target.ndjson,237645,a337a4d90d40571129bfdc7fced67ae819f1f9ab2e3d02013d2d8afab7efab2e,UNVERIFIED,
+feasibility,B2-generator-delay,required,results/feasibility/B2-generator-delay/case.env,186,a4bcf249b8ed91ddacbd46f237a5ff6e30f927d76b6937c2ea5b06592c94e56a,UNVERIFIED,
+feasibility,B2-generator-delay,raw,results/feasibility/B2-generator-delay/k6.json.gz,685191,0c6329c180c11c02e0ce52b94aade75b32f8f096e48dc3739e081d4169ed12f3,UNVERIFIED,
+feasibility,B2-generator-delay,raw,results/feasibility/B2-generator-delay/k6.log,814,46604da24c5961ec8a1e2ebce57ffc2dcd8082a7b0c93586f9406635e8f9ea4a,UNVERIFIED,
+feasibility,B2-generator-delay,required,results/feasibility/B2-generator-delay/target-stats.json,31,bf12b3a72d783f468d80699522fd7fd1160f9929a6ddb72c1fa583885b3ae36c,UNVERIFIED,
+feasibility,B2-generator-delay,raw,results/feasibility/B2-generator-delay/target.log,172,747294b782af74128d7e2bc647e9c58fa2a0cc7a119eba472fe042e4ca0afb00,UNVERIFIED,
+feasibility,B2-generator-delay,raw,results/feasibility/B2-generator-delay/target.ndjson,1256748,f10ea5abe1f89a0d2fec34633343a7013c163d937e39339ae66568f267562dcc,UNVERIFIED,
+feasibility,B3-target-delay,required,results/feasibility/B3-target-delay/case.env,181,6c007acd89e907e283d2a160b4943baec60e5050de2d387d284fe67abfaf2126,UNVERIFIED,
+feasibility,B3-target-delay,raw,results/feasibility/B3-target-delay/k6.json.gz,138468,51891174cc85b6899e6ccdb147f01dc07172657774f618152db43d35d4b29660,UNVERIFIED,
+feasibility,B3-target-delay,raw,results/feasibility/B3-target-delay/k6.log,828,564f96899bb01eee5479027c461f0e76faca48fb74f7412e31ff38e09a700a3d,UNVERIFIED,
+feasibility,B3-target-delay,required,results/feasibility/B3-target-delay/target-stats.json,31,bc544f287299b2eb1e1babe5dc0461c4e1585a3a5166370cba4b55a76350b38f,UNVERIFIED,
+feasibility,B3-target-delay,raw,results/feasibility/B3-target-delay/target.log,169,b3f967855d41bf09331c03f4814f9351c313de7499badd5b6c0a01b9ca4f393a,UNVERIFIED,
+feasibility,B3-target-delay,raw,results/feasibility/B3-target-delay/target.ndjson,251314,54ba922789d9b16bbddb830328c69e979c9c771aa81153c91e3c4fd839602e56,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,required,results/feasibility/C1-genlag-ample-vus/case.env,204,cbb128993f7a2c631c76b3dc1be0734002447ca372865dd320166fd9397305b7,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,raw,results/feasibility/C1-genlag-ample-vus/k6.json.gz,264000,f659d6c534324d883551332879e87e0a6d3e7aea7eb2e1c86a382a0b91711668,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,raw,results/feasibility/C1-genlag-ample-vus/k6.log,818,ac05be62e43e8a029cd42a82b4c5e14fe50d51f9033915fd1c770fb8e83338e6,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,required,results/feasibility/C1-genlag-ample-vus/target-stats.json,31,1b00505fcca7b382099bfd8bb26e45f7edc0bd32c6ed47a376aa28d6501b6f2d,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,raw,results/feasibility/C1-genlag-ample-vus/target.log,173,e9236c265b626e68ce88d2377e61f28deaf7e12ab1b2b2b759eb1e260aece09c,UNVERIFIED,
+feasibility,C1-genlag-ample-vus,raw,results/feasibility/C1-genlag-ample-vus/target.ndjson,499070,84551ca88e2be70611be1f5d89d41c31c6c4ce1183f9205e61eb5adf8a32d7a4,UNVERIFIED,
+runs,fixture-smoke-20261021t235415z-bf1d,supporting,results/runs/fixture-smoke-20261021t235415z-bf1d/gen-cpu.ndjson,5403,aec46bd1e08b8a44f00c979f8254fc53f503229d1e0b2c7882db1a7126c1bed5,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/health.json,6957,1b3c75bd4509d539ce118895d37b8fa748d5d3a93d77bba3ae58e1d3b233d64f,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,raw,results/runs/fixture-smoke-20261021t235415z-bf1d/k6-log.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,raw,results/runs/fixture-smoke-20261021t235415z-bf1d/k6-messages.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,supporting,results/runs/fixture-smoke-20261021t235415z-bf1d/k6-stdout.log,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/k6-summary.json,2967,f00a2e63b58d4a3b5e0d9cf35968b9f7e4d683e1d55cc08e7306b33bcea9e385,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/manifest.json,10841,f12679d6971bf9b23a97adeec2a3972790cdf6a1b1bc738962d845f9dcd81b77,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/plan.json,985,2a702ad7e151dd846b015fa3fdefce815353bf8631558560c7f14d432b0ab2fa,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,supporting,results/runs/fixture-smoke-20261021t235415z-bf1d/reconcile.json,373,51b0de377912b5f81f5785494d8e96e545d81ce53b66c0c0c3e196e6f54b7e38,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/records.ndjson,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,VALID,1776c9924c35
+runs,fixture-smoke-20261021t235415z-bf1d,required,results/runs/fixture-smoke-20261021t235415z-bf1d/resolved.json,1784,a8a8855cd0a7e007fe59739a84748eec84d1d5291d79b12792369e2aee446789,VALID,1776c9924c35

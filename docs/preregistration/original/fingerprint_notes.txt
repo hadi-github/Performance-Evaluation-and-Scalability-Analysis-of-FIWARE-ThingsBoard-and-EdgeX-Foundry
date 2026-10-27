@@ -1,0 +1,152 @@
+iSCALABILITY FINGERPRINT  F(T)  --  metric definitions and protocol
+=========================================================================================
+Status    : candidate (v0.1, 2026-10-22) -- open decisions in section 9
+Depends on: SLO_TELEM.txt (SLOPass, cohorts, msg ids, drain, correctness sets A/D/H)
+Platforms : FIWARE, ThingsBoard, EdgeX Foundry -- one fingerprint per platform
+Deadlines : T in {250, 500, 1000, 5000} ms ; primary analysis = TELEM-500
+
+
+1. SCOPE
+-----------------------------------------------------------------------------------------
+   Single-host, CPU-budgeted replica scaling. NOT independent physical-node scaling.
+   Stateful tier is fixed; only the application-tier CPU budget and replica count grow.
+
+
+2. RESOURCE MODEL  (SUT: 8 cores / 16 GB)
+-----------------------------------------------------------------------------------------
+   Slice            CPUs (cpuset)          Contents
+   ---------------  ---------------------  ------------------------------------------------
+   infra.slice      core 0                 OS, Docker, exporters  (HAProxy: see 9.D3)
+   stateful.slice   cores 1-3   (B_s = 3)  DB, broker/bus, cache, coordination services
+   app.slice        cores 4 .. 3+N         all replicated application-tier containers
+
+   N            app cores   replicas per replicated tier   total service cores (B_s + N)
+   -----------  ----------  -----------------------------  ------------------------------
+   1            1           1                              4
+   2            2           2                              5
+   4            4           4                              7
+
+   Rules
+   - Budget is enforced per SLICE (whole cores via cpuset), not split by hand per
+     container. The platform's own threads compete inside the slice.
+   - q = 1 whole core, so no fractional per-container quotas are needed.
+   - Cores must map to distinct PHYSICAL cores (check lscpu topology; if SMT is on,
+     never put two slices on sibling hyperthreads, or disable SMT). Record topology.
+   - Memory limit per slice recorded in the run manifest (fixed across N).
+   - Replicated tiers carry no traffic-free replicas: tiers unused by the HTTP
+     workload (e.g. ThingsBoard MQTT transport) stay at 1 replica in infra or are off.
+   - Diagnostic per slice: cpu.stat throttled time, actual CPU used.
+
+
+3. CAPACITY SEARCH PROTOCOL
+-----------------------------------------------------------------------------------------
+   Step  Action
+   ----  ------------------------------------------------------------------------------
+   1     Coarse sweep, 1 run per rate: start at 10 msg/s, double until first failure.
+   2     Refine between last pass and first fail at <= 5 % resolution (bisection).
+   3     Confirm: 5 runs at the candidate passing rate AND at the next failing rate.
+   4     Verdict: a rate passes only if 5/5 runs pass SLO-TELEM (all four T are
+         evaluated post hoc on the same runs).
+   5     C_SLO(T,N) = highest rate passing 5/5 with every lower tested rate passing.
+         If a lower rate fails: repeat and investigate; never assume monotonicity.
+   6     Report: bracket [C-, C+], pass fraction at every confirmed rate.
+
+   Statistical meaning of 5/5: only that the run-pass probability is >= ~0.55
+   (one-sided 95 % Clopper-Pearson bound). It is a conservative benchmark verdict,
+   NOT proof of reliable compliance. Say so in the paper.
+
+
+4. FINGERPRINT METRICS
+-----------------------------------------------------------------------------------------
+   Metric          Formula / definition                                    T?   Unit
+   --------------  ------------------------------------------------------  ---  -----
+   C_SLO(T,N)      section 3; N = 1, 2, 4                                  yes  msg/s
+   E_app(T,N)      C(T,N) / ( N * C(T,1) ) ;  N = 2, 4                     yes  ratio
+                   bracket: [ C-_N / (N*C+_1) , C+_N / (N*C-_1) ]
+                   undefined if C(T,1) has no passing rate
+   L_knee(N)       smallest tested lambda at which p99 > 2*L_base, and     no   msg/s
+                   p99 > 2*L_base at every higher tested lambda;
+                   L_base = p99 at 10 msg/s (same N);
+                   1.5x and 3x reported as sensitivity;
+                   "unresolved" if no tested rate qualifies
+   G_peak(T,N)     max over sweep of G_T(lambda,N)                         yes  msg/s
+                   G_T = |unique acked cohort msgs with L <= T, present
+                          in D and H, not duplicated| / 600 s
+                   "not established" if the max is at the highest tested rate
+   R_X(N)          X_overload / C_ref(N)                                   no   ratio
+                   X = unique sink deliveries per second by COMPLETION time,
+                       overload phase minus its first 60 s
+   R_G(T,N)        G_T(overload-SCHEDULED cohort) / C_ref(N)               yes  ratio
+   T_recovery(T,N) section 5 ; "not recovered within 600 s" if censored    yes  s
+
+   C_ref(N) = C_SLO(500, N)   (one overload campaign serves all four T)
+
+
+5. OVERLOAD / RECOVERY PROTOCOL  (N = 1 and N = 4; 5 runs each)
+-----------------------------------------------------------------------------------------
+   Phase        Offered rate          Duration
+   -----------  --------------------  ---------------------------------------------------
+   Warm-up      0.5 * C_ref           5 min
+   Baseline     0.7 * C_ref           5 min
+   Overload     lambda_over (9.D1)    5 min
+   Recovery     0.7 * C_ref           up to 10 min (observation cap 600 s)
+   Drain        0                     60 s, then reconcile D and H
+
+   Recovery windows: 60-s windows aligned to the end of overload. A window passes if
+   messages SCHEDULED in it have p99 <= T and error rate <= 0.1 %. Recovery is
+   confirmed at the END of the second consecutive passing window. Loss and duplicates
+   of those cohorts are checked after reconciliation.
+   This 1-min transient test is separate from the 10-min capacity test.
+
+
+6. CORRECTNESS GUARDS  (always reported next to R_X, R_G, T_recovery)
+-----------------------------------------------------------------------------------------
+   Guard                          Measurement                                    Phases
+   -----------------------------  ---------------------------------------------  ----------
+   Request failures               failed HTTP / scheduled requests               O, R
+   Missing at sink                |A \ D|                                        O, R, drain
+   Missing in history store       |A \ H|                                        O, R, drain
+   Duplicate deliveries           extra sink receipts per msg id                 O, R, drain
+   Duplicate logical records      extra observable stored events per msg id      O, R, drain
+   (O = overload, R = recovery)
+
+
+7. SECONDARY DIAGNOSTICS  (explanatory; never part of the fingerprint verdict)
+-----------------------------------------------------------------------------------------
+   eta(T,N)      [ C(T,N) / (B_s+N) ] / [ C(T,1) / (B_s+1) ]
+                 capacity per total service core, relative to N=1.
+                 eta > 1 is EXPECTED when the fixed stateful tier is amortized;
+                 it does not mean superlinear scaling.
+   Q_recovery    T_recovery / T_ideal ,  T_ideal = B_pending(end of overload)
+                                                   / (X_max - 0.7*C_ref)
+                 defined only if: X_max established (not censored), X_max > 0.7*C_ref,
+                 B_pending > 0, and no drops/retries/work amplification observed.
+                 Q >> 1 is CONSISTENT WITH metastability; it does not prove it.
+                 A claim of metastability needs the sustaining mechanism identified.
+   Other         L_scheduler; write amplification; slice CPU throttling;
+                 component queues (Orion notif. queue, Kafka lag, NATS); JVM GC.
+
+
+8. REPORTING RULES
+-----------------------------------------------------------------------------------------
+   - One fingerprint per platform per T; TELEM-500 is primary.
+   - Every capacity value is a bracket; every E value is a bracket.
+   - Censored values are labelled, never replaced by the censoring bound.
+   - E_app > 1 triggers a check for baseline starvation at N=1 (throttling, GC)
+     before it is reported as superlinear.
+
+
+9. OPEN DECISIONS  (freeze before the main campaign)
+-----------------------------------------------------------------------------------------
+   ID   Decision                       Options                         Recommended
+   ---  -----------------------------  ------------------------------  ------------------
+   D1   Overload rate anchor           1.2*C_ref  |  1.2*X_max         1.2*X_max if X_max
+                                                                       established; else
+                                                                       1.2*C_ref, flagged
+   D2   Capacity uncertainty           5/5 + pass fractions  |         5/5 + pass fractions
+                                       5 independent full searches     (fits time budget)
+   D3   HAProxy placement              infra core  |  stateful slice   infra, monitored for
+                                                                       saturation
+   D4   ThingsBoard N=1 viability      keep q=1  |  raise q            pilot: if TB JVMs
+                                                                       starve at 10 msg/s,
+                                                                       report it, keep q

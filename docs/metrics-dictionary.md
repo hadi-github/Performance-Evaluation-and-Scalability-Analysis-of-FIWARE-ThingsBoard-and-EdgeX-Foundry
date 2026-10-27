@@ -32,8 +32,8 @@ Common labels: `host` (ramonavm1 | ramonavm2), `role` (loadgen | sut | monitorin
 | Send lag (actual JS send − scheduled) | k6 Trend `g_lag_ms{s}` → `k6_g_lag_ms_p99` → `bench:k6_latency_p99_ms{histogram="lag",step}` | ms | max (one series per step) | 3 | p99 computed by k6 over the step's samples so far, not mergeable; the authoritative per-step p99 is the end-of-run summary in `health.json`. Replaced the per-(step, bucket) counters (memory: k6 holds metric objects per VU) | live (EXPL-dryrun) |
 | Ack latency (HTTP response − scheduled) | k6 Trend `g_ack_ms{s,m}` → `k6_g_ack_ms_p99` → same rule, `histogram="ack"`, `minute` (0-based by scheduled time) | ms | max | 3 | Acknowledgement, not persistence/observation; per-minute p99 feeds the exploratory trend rule | live |
 | k6 http_req_duration (actual send → response) | `k6_http_req_duration_{p50,p99,max}` | s | max per scenario | 3 (diagnostic) | k6 computes the quantiles per 5 s push: **not mergeable**, never averaged into a run p99 | live |
-| Scheduled → sink observation | future Go sink | — | — | 3 (unavailable text) | | **unavailable** |
-| History-write / committed visibility | future DB instrumentation | — | — | 3 (unavailable text) | | **unavailable** |
+| Scheduled → sink observation | Go sink `sink_received_total`, `sink_duplicates_total` (no labels) → `rate(...)`; observation latency and outstanding work offline from `<run>.sink.ndjson` (`benchctl explore -sink`) | msg/s (counters); ms (offline) | sum, 30 s rate | 3 "Sink observations (per s)" | Receipts include duplicates; sink may be concurrent with persistence (FIWARE, EdgeX), so it is not a durability timestamp | **live** (observation: `DIAG-tb-obs-sink-r100` 24000/24000 reached in `explore.json`; `/metrics` counters; latency offline) |
+| History-write / committed visibility | per-message DB write timing: no producer. The D23 persistence rate uses the cumulative `pg_stat_user_tables_n_tup_ins` series (`scripts/persist-series.sh` → `benchctl explore -persist`) | — | — | 3 (unavailable text) | A cumulative counter gives a rate verdict, not committed visibility of one message | **unavailable** |
 
 ## SUT CPU
 

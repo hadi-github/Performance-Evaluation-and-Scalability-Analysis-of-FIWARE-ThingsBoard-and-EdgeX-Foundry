@@ -125,6 +125,7 @@ type Result struct {
 
 type PersistSummary struct {
 	Source            string  `json:"source"`
+	Basis             string  `json:"basis"`
 	Points            int     `json:"points"`
 	MedianSpacingMs   float64 `json:"median_sample_spacing_ms"` // time resolution of the stored count
 	Baseline          float64 `json:"baseline_count_at_warmup_start"`
@@ -264,7 +265,8 @@ func Evaluate(r *plan.Resolved, sum *report.Summary, h *report.Health, obs []Sin
 		}
 		sort.Float64s(gaps)
 		last := store[len(store)-1]
-		res.Persist = &PersistSummary{Points: len(store), Baseline: base, StoredAtLastPoint: last.Count - base, LastPointMs: last.TMs}
+		res.Persist = &PersistSummary{Points: len(store), Baseline: base, StoredAtLastPoint: last.Count - base, LastPointMs: last.TMs,
+			Basis: "diagnostic proxy: cumulative table-level counter (e.g. pg_stat_user_tables n_tup_ins); not a per-message durability proof (D33)"}
 		if len(gaps) > 0 {
 			res.Persist.MedianSpacingMs = gaps[len(gaps)/2]
 		}

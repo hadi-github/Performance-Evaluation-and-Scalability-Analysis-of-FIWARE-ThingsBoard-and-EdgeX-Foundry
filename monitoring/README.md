@@ -118,8 +118,10 @@ Groups:
 7. measurement integrity;
 8. runs.
 
-Text panels mark what is **unavailable** (sink observation, history-write timing, audit, derived metrics). These
-are never filled from other metrics. Community dashboards (Node Exporter Full, k6, HAProxy, PostgreSQL, MongoDB,
+Text panels mark what is **unavailable** (history-write timing, audit, derived metrics). Sink receipt and duplicate
+rates are live (`sink_received_total`, `sink_duplicates_total`; job `sink` in `prometheus.yml`); sink observation
+latency and outstanding work are computed offline by `benchctl explore`. These panels are never filled from other
+metrics. Community dashboards (Node Exporter Full, k6, HAProxy, PostgreSQL, MongoDB,
 Kafka exporter, NATS) are provisioned next to it. Rebuild all with `make dashboards` on the workstation.
 
 ## Troubleshooting

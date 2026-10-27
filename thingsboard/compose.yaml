@@ -175,6 +175,13 @@ services:
     cpuset: "${POOL_CPUSET:-4}"
     mem_limit: ${TB_CORE_MEM:-1g}
     memswap_limit: ${TB_CORE_MEM:-1g}
+    # D28: the official launcher reads /config (thingsboard.conf + logback.xml, pinned in tb-node/conf/SOURCE.md).
+    # TB_SERVICE_ID is exported from the container hostname: unique per replica, and the same id the platform derives
+    # when the variable is empty. Logs go to a writable named volume (/var/log/thingsboard).
+    entrypoint: ["/bin/sh", "-c", "export TB_SERVICE_ID=$$HOSTNAME && exec start-tb-node.sh"]
+    volumes:
+      - ./tb-node/conf:/config:ro
+      - tb-core-logs:/var/log/thingsboard
     environment:
       <<: *tb-node-env
       TB_SERVICE_TYPE: tb-core
@@ -198,6 +205,11 @@ services:
     cpuset: "${POOL_CPUSET:-4}"
     mem_limit: ${TB_RULE_ENGINE_MEM:-1g}
     memswap_limit: ${TB_RULE_ENGINE_MEM:-1g}
+    # D28: see tb-core (same official /config and writable log volume; TB_SERVICE_ID from the container hostname).
+    entrypoint: ["/bin/sh", "-c", "export TB_SERVICE_ID=$$HOSTNAME && exec start-tb-node.sh"]
+    volumes:
+      - ./tb-node/conf:/config:ro
+      - tb-rule-engine-logs:/var/log/thingsboard
     environment:
       <<: *tb-node-env
       TB_SERVICE_TYPE: tb-rule-engine
@@ -261,3 +273,5 @@ volumes:
   kafka-data:
   pg-data:
   valkey-data:
+  tb-core-logs:
+  tb-rule-engine-logs:

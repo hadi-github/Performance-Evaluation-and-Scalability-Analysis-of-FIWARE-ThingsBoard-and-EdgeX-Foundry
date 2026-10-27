@@ -76,7 +76,8 @@ On the 8-core SUT (ramonavm2):
 2. **Messages are stored exactly once** (ThingsBoard, EdgeX): send N, count stored rows, require `== N`.
    Too many = duplicate processing across replicas; too few = loss.
 3. **FIWARE:** only reachability and HTTP ordering. Orion keeps only the latest value, so exactly-once needs the
-   notification sink from the experiment plan. This is a known gap, not a pass.
+   notification sink (`cmd/sink`, configured by `scripts/outbound.sh`); `make smoke` does not exercise it. This is a
+   known gap, not a pass.
 
 The smoke tests start as soon as HAProxy reports the replicas UP. Right after a cold start FIWARE and EdgeX may
 still reject the first requests for a few seconds; wait ~30 s after `make up` before measuring or smoke testing.

@@ -8,12 +8,12 @@ documented interface only.
 |---|---|
 | Fault fixture | **exists**: `internal/fixture`, `cmd/fixture-target` (5xx, timeout-but-stored, slowdown, 207 batches) |
 | Generator (k6 + benchctl) | **exists**: `docs/generator.md`, calibration in `docs/calibration.md` |
-| Reconciliation | **exists for the fixture store**: `benchctl reconcile`; platform history readers missing |
+| Reconciliation | **exists**: fixture store (`benchctl reconcile`) and EdgeX/ThingsBoard history (`scripts/history-ids.sh`, `benchctl explore -history`); FIWARE has no history (D9) |
 | Reference ingester | missing (being built separately) |
-| Sink | missing |
-| DB timestamp / audit instrumentation | missing |
+| Sink | **exists**: `internal/sink`, `cmd/sink`, run by `scripts/sink.sh` / `scripts/run-with-sink.sh` |
+| DB timestamp / audit instrumentation | missing for per-message write timing; the D23 persistence rate uses a cumulative stored counter (`scripts/persist-series.sh`, `benchctl explore -persist`) |
 | Experiment controller | partial: `benchctl run` covers one run; no campaign, reset/readiness or search |
-| Offline analysis | partial: per-run health/arrivals; no capacity, CPU-cost or statistical analysis |
+| Offline analysis | partial: `benchctl explore` (capacity brackets, outstanding work, D23 persistence), `scripts/demand-fit.py`, `scripts/explore-tables.py`; no statistical analysis or confidence intervals |
 
 ## Reference ingester (Go + PostgreSQL)
 - **Purpose:** minimal receive / validate / store-history service, used as the CPU-cost reference (O = U_platform / U_reference).
@@ -26,16 +26,26 @@ documented interface only.
   reuse port 9187 (one stack at a time).
 
 ## Sink (Go)
+- **Exists:** `internal/sink`, `cmd/sink`; `scripts/sink.sh` starts it on the load host and
+  `scripts/run-with-sink.sh` writes `<run_id>.sink.ndjson`.
 - **Purpose:** receive each platform's outbound copy of a message and record the observation (latency endpoint).
 - **Inputs:** HTTP POST from the platform's outbound path (ThingsBoard rule chain REST call, FIWARE subscription,
-  EdgeX app-service export) containing `run_id`, `seq`, `scheduled_send_ms`.
-- **Outputs:** append-only `sink.ndjson`: `run_id, seq, recv_ms, duplicate_of`; counters for monitoring.
-- **Dependencies:** runs on the load host (core 3 is shared with monitoring today: to qualify).
+  EdgeX app-service export). Any JSON body is walked for `run_id` and `seq`; NGSI `{"value": ...}` attributes are
+  unwrapped and the URL path names the platform (`internal/sink/sink.go:3-8,92-119,141`).
+- **Outputs:** append-only NDJSON, one record per observation: `recv_ms, platform, run_id, seq, dup`
+  (`internal/sink/sink.go:24-31`; `scripts/run-with-sink.sh:7,12`).
+- **Dependencies:** runs on the load host, pinned by default to core 2 (`SINK_CPU`) on port 18090, with an iptables
+  rule that admits only the SUT; Prometheus scrapes it on loopback (`scripts/sink.sh:6-8,14-15`;
+  `monitoring/prometheus.yml:34-37`). The DIAG sink runs used generator cores 0-1 (`scripts/run-with-sink.sh:13`).
 - **Monitoring hooks:**
-  - a `/metrics` endpoint with `sink_received_total{run_id}`, `sink_duplicates_total{run_id}` and a bucketed
-    `sink_observation_latency_ms` (same edge-in-name convention as the generator, or a native histogram);
-  - scrape job `sink` on 127.0.0.1;
-  - dashboard group 3's "Scheduled → sink" panel becomes live.
+  - `/metrics` counters with no labels: `sink_requests_total`, `sink_received_total`, `sink_duplicates_total`,
+    `sink_unparsed_total`, `sink_overflow_total` (`internal/sink/sink.go:125-129`). Overflow makes the process
+    exit non-zero (`cmd/sink/main.go:47-50`).
+  - scrape job `sink` on 127.0.0.1 (`monitoring/prometheus.yml:34-37`);
+  - dashboard group 3's "Sink observations (per s)" panel plots `rate(sink_received_total)` and
+    `rate(sink_duplicates_total)` (`monitoring/grafana/build_dashboards.py:191-193`).
+  - observation latency and outstanding work are computed offline from the NDJSON by `benchctl explore -sink`
+    (`cmd/benchctl/main.go:95,301-321`), not from Prometheus.
 - **Caveat:** may be concurrent with persistence (FIWARE, EdgeX), so it is not a durability timestamp.
 
 ## Database timestamp / audit instrumentation
@@ -51,8 +61,13 @@ documented interface only.
 - **Exists:** `benchctl reconcile -run DIR -store FILE` for the fixture store. It joins planned, attempted,
   acknowledged and stored identities and reports ack_lost, persisted_despite_{unknown,failure}, duplicates and
   orphans.
-- **Missing:** history readers per platform (they produce the same `(run_id, seq)` set) and the sink-observation
-  join.
+- **Exists for EdgeX and ThingsBoard history:** `scripts/history-ids.sh <platform> <run_id>` exports the
+  `(run_id, seq)` rows stored in ThingsBoard `ts_kv` or EdgeX `core_data.reading`; `benchctl explore -history FILE`
+  runs the same join and writes `history_reconciliation` into `explore.json` (`cmd/benchctl/main.go:97,332-341`).
+  FIWARE keeps no history, so its reader exits 3 (D9).
+- **Exists:** the sink-observation join: `benchctl explore -sink FILE` reports `planned_reached_sink`,
+  `sink_unique`, `sink_duplicates` and `sink_other_run_ids` (`cmd/benchctl/main.go:301-318`;
+  `internal/explore/explore.go:46,117-121`).
 - **Monitoring hooks:** none. Audit results are files, never metrics, so the dashboard's integrity text panel
   points to `reconcile.json`.
 
@@ -80,6 +95,9 @@ Interval CPU = Σ (end − start) / 1e6 over containers present at both edges wi
 instead of a cost. Prometheus rate integrals are not a substitute: they were 9-38% low in validation.
 
 ## Offline analysis
+- **Exists:** `benchctl explore` applies the declared pass rule and writes `explore.json` (capacity bracket,
+  outstanding work, optional D23 persistence verdict); `scripts/explore-tables.py` renders the per-step tables and
+  `scripts/demand-fit.py` fits the regression service demands.
 - **Purpose:**
   - p50/p95/p99 from per-message evidence under the cohort rule;
   - capacity brackets (C_SLO with next fail and step);

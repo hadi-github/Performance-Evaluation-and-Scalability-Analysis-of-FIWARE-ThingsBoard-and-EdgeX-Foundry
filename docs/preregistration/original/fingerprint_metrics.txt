@@ -1,0 +1,27 @@
+ 
+FINGERPRINT METRICS
+-----------------------------------------------------------------------------------------
+   Metric          Formula / definition                                    T?   Unit
+   --------------  ------------------------------------------------------  ---  -----
+   C_SLO(T,N)      section 3; N = 1, 2, 4                                  yes  msg/s
+   E_app(T,N)      C(T,N) / ( N * C(T,1) ) ;  N = 2, 4                     yes  ratio
+                   bracket: [ C-_N / (N*C+_1) , C+_N / (N*C-_1) ]
+                   undefined if C(T,1) has no passing rate
+   L_knee(N)       smallest tested lambda at which p99 > 2*L_base, and     no   msg/s
+                   p99 > 2*L_base at every higher tested lambda;
+                   L_base = p99 at 10 msg/s (same N);
+                   1.5x and 3x reported as sensitivity;
+                   "unresolved" if no tested rate qualifies
+   G_peak(T,N)     max over sweep of G_T(lambda,N)                         yes  msg/s
+                   G_T = |unique acked cohort msgs with L <= T, present
+                          in D and H, not duplicated| / 600 s
+                   "not established" if the max is at the highest tested rate
+   R_X(N)          X_overload / C_ref(N)                                   no   ratio
+                   X = unique sink deliveries per second by COMPLETION time,
+                       overload phase minus its first 60 s
+   R_G(T,N)        G_T(overload-SCHEDULED cohort) / C_ref(N)               yes  ratio
+   T_recovery(T,N) section 5 ; "not recovered within 600 s" if censored    yes  s
+ 
+   C_ref(N) = C_SLO(500, N)   (one overload campaign serves all four T)
+ 
+

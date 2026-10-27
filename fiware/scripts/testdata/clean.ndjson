@@ -1,0 +1,3 @@
+{"service":"svc","subservice":"/a","apikey":"k1","id":"dev-1"}
+{"service":"svc","subservice":"/a","apikey":"k1","id":"dev-2"}
+{"service":"svc","subservice":"/b","apikey":"k1","id":"dev-1"}

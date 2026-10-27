@@ -10,6 +10,10 @@
 //	benchctl sendtimes -run DIR                             send lag from k6's own ns sample times (-full-json runs)
 //	benchctl explore   -run DIR -sink FILE [-cpu TSV] [-history FILE]
 //	                   exploratory capacity check: declared pass rule per step, CPU bounds (internal/explore)
+//	benchctl audit     -run DIR -sink FILE [-history FILE] [-deadline-ms 500] [-out FILE] [-strict]
+//	                   acknowledged -> sink -> history identity reconciliation and collision audit (internal/audit)
+//	benchctl resources -run DIR [-prom-query URL -node HOST:9100] [-pg-counters FILE] [-out FILE]
+//	                   EdgeX per-run host disk and PostgreSQL WAL report, informational only (internal/diskmetrics, D29a)
 //
 // Exit status: 0 = VALID / clean, 1 = INVALID / not clean, 2 = usage or I/O error.
 package main
@@ -24,6 +28,8 @@ import (
 	"strings"
 
 	"iotbench/internal/arrivals"
+	"iotbench/internal/audit"
+	"iotbench/internal/diskmetrics"
 	"iotbench/internal/explore"
 	"iotbench/internal/fixture"
 	"iotbench/internal/plan"
@@ -98,6 +104,14 @@ func main() {
 	gate := fs.String("gate", "", "explore: setup gate JSON; pass=false makes the run INVALID (edgex/scripts/provision-then-scale.sh)")
 	persist := fs.String("persist", "", "explore: cumulative stored-count series TSV (time_ms, count), e.g. scripts/persist-series.sh; adds verdict_persistence (D23)")
 	check := fs.String("check", "", "explore: post-run platform check JSON; defect=true makes the run FAIL (platform defect)")
+	auditOut := fs.String("out", "", "audit: write the JSON report here (stdout otherwise)")
+	deadline := fs.Float64("deadline-ms", 500, "audit: SLO deadline for the within-deadline identity count (not a verdict)")
+	maxExamples := fs.Int("max-examples", 20, "audit: cap on example seqs/lines in the report")
+	strict := fs.Bool("strict", false, "audit: exit 1 when the reconciliation is not clean")
+	promQuery := fs.String("prom-query", "", "resources: Prometheus base URL for node-exporter queries (e.g. http://127.0.0.1:9090)")
+	node := fs.String("node", "", "resources: node-exporter instance label of the SUT (HOST:9100)")
+	pgCounters := fs.String("pg-counters", "", "resources: pg-counters.ndjson from the diagnostic overlay (optional)")
+	queryStep := fs.Int("query-step-s", 5, "resources: Prometheus query_range step in seconds")
 	var env multi
 	fs.Var(&env, "env", "KEY=VALUE passed to k6 (repeatable; names are recorded, values are not)")
 	_ = fs.Parse(args)
@@ -209,6 +223,10 @@ func main() {
 			len(s), arrivals.Quantile(s, 0.5), arrivals.Quantile(s, 0.99), arrivals.Quantile(s, 1), arrivals.Quantile(s, 0))
 	case "explore":
 		runExplore(*dir, *sinkFile, *cpuFile, *history, *gate, *check, *persist)
+	case "audit":
+		runAudit(*dir, *sinkFile, *history, *auditOut, *deadline, *maxExamples, *strict)
+	case "resources":
+		runResources(*dir, *promQuery, *node, *pgCounters, *queryStep, *auditOut)
 	default:
 		die(2, "unknown command %q", cmd)
 	}
@@ -233,6 +251,91 @@ func readStore(path string) ([]reconcile.Stored, error) {
 		out = append(out, reconcile.Stored{RunID: r.RunID, Seq: *r.Seq})
 	}
 	return out, nil
+}
+
+// runAudit implements the measurement-integrity reconciliation selected on 2026-10-26 (D33). It never writes into
+// the run directory unless -out names a path, so preserved evidence cannot be modified by accident.
+func runAudit(dir, sinkPath, historyPath, outPath string, deadlineMs float64, maxExamples int, strict bool) {
+	if sinkPath == "" {
+		die(2, "audit: -sink is required")
+	}
+	r, sum, _, err := report.Evaluate(dir)
+	if err != nil {
+		die(2, "run %s: %v", dir, err)
+	}
+	recs, err := report.ReadNDJSON[report.Record](filepath.Join(dir, "records.ndjson"))
+	if err != nil {
+		die(2, "%v", err)
+	}
+	sinkRows, err := report.ReadNDJSON[audit.SinkRecord](sinkPath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	var hist []audit.HistoryRecord
+	hasHistory := historyPath != ""
+	if hasHistory {
+		type row struct {
+			RunID  string   `json:"run_id"`
+			Seq    int64    `json:"seq"`
+			Device string   `json:"device"`
+			Ts     *float64 `json:"ts"`
+		}
+		rows, err := report.ReadNDJSON[row](historyPath)
+		if err != nil {
+			die(2, "%v", err)
+		}
+		for _, x := range rows {
+			h := audit.HistoryRecord{RunID: x.RunID, Seq: x.Seq, Device: x.Device}
+			if x.Ts != nil {
+				h.TsMs, h.HasTs = *x.Ts, true
+			}
+			hist = append(hist, h)
+		}
+	}
+	res := audit.Analyse(r, sum, recs, sinkRows, hist, hasHistory, audit.Options{DeadlineMs: deadlineMs, MaxExamples: maxExamples})
+	b, err := json.MarshalIndent(res, "", " ")
+	if err != nil {
+		die(2, "audit.json: %v", err)
+	}
+	if outPath != "" {
+		if err := os.WriteFile(outPath, append(b, '\n'), 0o644); err != nil {
+			die(2, "%v", err)
+		}
+	}
+
+	fmt.Printf("== audit %s: planned %d, acknowledged %d, failure %d, unknown %d\n", res.RunID, res.Planned, res.AckSuccess, res.AckFailure, res.Unknown)
+	fmt.Printf("  sink:    unique %d, missing %d, extra copies %d, orphans %d, other run ids %d, ambiguous %d\n",
+		res.Sink.Unique, res.Sink.Missing, res.Sink.DuplicateCopies, res.Sink.Orphans, res.Sink.OtherRunIDs, len(res.Sink.Ambiguous))
+	if hasHistory {
+		fmt.Printf("  history: unique %d, missing %d, extra copies %d, orphans %d, other run ids %d, ambiguous %d\n",
+			res.History.Unique, res.History.Missing, res.History.DuplicateCopies, res.History.Orphans, res.History.OtherRunIDs, len(res.History.Ambiguous))
+	} else {
+		fmt.Println("  history: not supplied (store-side correctness unavailable)")
+	}
+	if q := res.Qualified; q != nil {
+		fmt.Printf("  qualified: %d identities, %d within %.0f ms, latency p50 %.1f / p95 %.1f / p99 %.1f ms, rate proxy %.1f/s over %.0f s\n",
+			q.Identities, q.WithinDeadline, q.DeadlineMs, q.P50Ms, q.P95Ms, q.P99Ms, q.RatePerS, q.WindowMs/1000)
+		for _, s := range q.ByStep {
+			fmt.Printf("    %-18s %-8s rate %4.0f/s: planned %6d, qualified %6d, within %6d, p50 %9.1f / p95 %9.1f / p99 %9.1f ms\n",
+				s.Name, s.Phase, s.Rate, s.Planned, s.Identities, s.WithinDeadline, s.P50Ms, s.P95Ms, s.P99Ms)
+		}
+	}
+	if c := res.Collisions; c != nil && hasHistory {
+		if c.Available {
+			fmt.Printf("  collisions: planned same-ms pairs %d, stored same-timestamp groups %d\n", c.PlannedSameMsPairs, c.StoredSameTsGroups)
+		} else {
+			fmt.Println("  collisions: unavailable (history export lacks device/ts)")
+		}
+	}
+	for _, l := range res.Limitations {
+		fmt.Println("  limitation: " + l)
+	}
+	if outPath == "" {
+		fmt.Println(string(b))
+	}
+	if strict && !res.Clean {
+		os.Exit(1)
+	}
 }
 
 func readJSON(path string, v any) json.RawMessage {
@@ -416,5 +519,76 @@ func runExplore(dir, sinkPath, cpuPath, historyPath, gatePath, checkPath, persis
 			rec.Planned, rec.StoredUnique, len(rec.AckLost), len(rec.PersistedDespiteUnknown), len(rec.Duplicates), len(rec.Orphans))
 	} else if v, ok := out["history_reconciliation"]; ok {
 		fmt.Printf("  history: %v\n", v)
+	}
+}
+
+// runResources writes the D29a per-run report for an EdgeX run: host/device disk statistics (node-exporter) and, when
+// the diagnostic overlay ran, PostgreSQL WAL counters. Missing sources are reported with a reason, never as zero. The
+// output is informational and is not read by any verdict rule. Without -out the JSON goes to stdout, so no evidence
+// directory is written by accident.
+func runResources(dir, promBase, node, pgPath string, stepS int, outPath string) {
+	var r plan.Resolved
+	if err := report.ReadJSON(filepath.Join(dir, "resolved.json"), &r); err != nil {
+		die(2, "%v", err)
+	}
+	var sum report.Summary
+	if err := report.ReadJSON(filepath.Join(dir, "k6-summary.json"), &sum); err != nil {
+		die(2, "%v", err)
+	}
+	if r.Adapter != "edgex" {
+		die(2, "resources: D29a reporting applies to EdgeX runs (adapter %q)", r.Adapter)
+	}
+	if stepS <= 0 {
+		die(2, "resources: -query-step-s must be positive")
+	}
+	var samples []diskmetrics.PGSample
+	if pgPath != "" {
+		s, skipped, err := diskmetrics.ReadPGCounters(pgPath)
+		if err != nil {
+			die(2, "%v", err)
+		}
+		samples = s
+		if skipped > 0 {
+			fmt.Fprintf(os.Stderr, "warning: %d pg-counters record(s) could not be parsed and were skipped\n", skipped)
+		}
+	}
+	out := diskmetrics.Resources{SchemaVersion: diskmetrics.SchemaVersion, RunID: r.RunID, Platform: "edgex",
+		Scope: "EdgeX per-run disk and WAL measurements (D29a); informational only, not a verdict input"}
+	for i, st := range r.Steps {
+		start := float64(st.StartS) * 1000
+		if i < len(sum.Steps) && sum.Steps[i].ScenarioStartMs > 0 {
+			start = sum.Steps[i].ScenarioStartMs
+		} else if sum.SetupEndMs > 0 {
+			start = sum.SetupEndMs + float64(st.StartS)*1000
+		}
+		end := start + float64(st.DurationS)*1000
+		out.Steps = append(out.Steps, diskmetrics.StepResources{
+			Name: st.Name, Phase: st.Phase, StartMs: start, EndMs: end,
+			Disk: diskmetrics.Disk(promBase, node, stepS, start, end, nil),
+			WAL:  diskmetrics.WAL(samples, start, end),
+		})
+	}
+	b, err := json.MarshalIndent(out, "", " ")
+	if err != nil {
+		die(2, "resources: %v", err)
+	}
+	if outPath == "" {
+		fmt.Println(string(b))
+		return
+	}
+	if err := os.WriteFile(outPath, append(b, '\n'), 0o644); err != nil {
+		die(2, "%v", err)
+	}
+	fmt.Printf("== resources %s: %d steps written to %s\n", out.RunID, len(out.Steps), outPath)
+	for _, s := range out.Steps {
+		disk := "host disk " + s.Disk.Status
+		if s.Disk.Status != "ok" {
+			disk += " (" + s.Disk.Reason + ")"
+		}
+		wal := "postgres WAL " + s.WAL.Status
+		if s.WAL.Status != "ok" {
+			wal += " (" + s.WAL.Reason + ")"
+		}
+		fmt.Printf("  %-18s %s; %s\n", s.Name, disk, wal)
 	}
 }

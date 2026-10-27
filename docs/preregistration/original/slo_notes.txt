@@ -1,0 +1,129 @@
+SLO-TELEM  --  IoT Telemetry Delivery SLO
+=========================================================================================
+Status    : candidate for sign-off (v0.2, 2026-10-22)
+Platforms : FIWARE (IoTA-UL -> Orion -> QuantumLeap/TimescaleDB), ThingsBoard, EdgeX Foundry
+Protocol  : HTTP only (MQTT not yet defined in this profile)
+
+
+1. SCOPE
+-----------------------------------------------------------------------------------------
+   Measures externally observed DELIVERY performance, with INDEPENDENT verification of
+   historical persistence. It does not measure time to durable commit: the three
+   platforms order delivery and persistence differently. A sink receipt does not prove
+   the historical record was written, and vice versa.
+
+
+2. TERMS
+-----------------------------------------------------------------------------------------
+   Term              Meaning
+   ----------------  ---------------------------------------------------------------------
+   msg id            (run_id, seq); unique per generated message; carried in the payload
+   t_sched           intended send time, derived from the arrival schedule
+                     (NOT the time the k6 iteration happened to start)
+   t_send            actual HTTP send time
+   t_sink            first receipt of a msg id at the external sink
+   cohort            messages whose t_sched falls inside the 10-min measurement window
+   S                 messages sent in the cohort
+   A                 acknowledged messages in the cohort (2xx response)
+   D                 unique msg ids received at the sink by the drain deadline
+   H                 unique msg ids recoverable from historical storage
+   L_delivery        t_sink - t_sched
+   L_scheduler       t_send - t_sched        (generator lateness; diagnostic only)
+   B_pending(t)      number of m in A with  t_sched(m) <= t < t_sink(m)
+                     (an undelivered message stays pending until the end of observation)
+
+4. VARIANTS  (only T changes; every other criterion is identical)
+-----------------------------------------------------------------------------------------
+   Variant       T          Purpose
+   ------------  ---------  ------------------------------------------------
+   TELEM-250     250 ms     strict sensitivity
+   TELEM-500     500 ms     primary, application-informed
+   TELEM-1000    1000 ms    relaxed sensitivity; equals the 3GPP reference
+   TELEM-5000    5000 ms    broad sensitivity
+
+   - All four are evaluated post hoc on the same raw records; no extra runs.
+   - The rate sweep must extend far enough to locate the TELEM-5000 knee.
+   - Basis for 500 ms: 3GPP TS 22.369, Table 6.3-1, smart-grid sensor data collection,
+     max end-to-end latency 1 s. The platform is allotted 50 % of it. The 50 % split
+     is a researcher assumption, not a 3GPP requirement.
+
+
+5. ACCEPTANCE RULE
+-----------------------------------------------------------------------------------------
+   For fixed workload W, resource configuration N, offered rate lambda and deadline T,
+   a run PASSES when it is valid (section 8) and all of the following hold:
+
+      p99(L_delivery)      <=  T
+      ErrorRate            <=  0.001
+      N_missing,sink        =  0
+      N_missing,store       =  0
+      N_dup,sink            =  0
+      N_dup,store           =  0
+      backlog verdict       =  no sustained growth   (section 6)
+
+
+6. BACKLOG DECISION PROCEDURE
+   (the procedure is frozen now; the tolerance value is set by calibration)
+-----------------------------------------------------------------------------------------
+   Step  Action
+   ----  ------------------------------------------------------------------------------
+   1     Average B_pending into 10-s bins (reduces autocorrelation of 1-s samples).
+   2     Fit the OLS slope beta (msgs/s) over the measurement window.
+   3     Convert to a delay equivalent:   dW = (beta / lambda) * 600 s
+   4     FAIL only if BOTH hold:
+           (a) the one-sided 95 % CI lower bound of beta is > 0   (growth is real)
+           (b) dW > eps_W                                         (growth matters)
+   5     Calibrate eps_W: >= 5 runs per platform at a clearly stable rate
+         (<= 25 % of pilot capacity). eps_W = largest |dW| observed across ALL
+         platforms (one value for all). Freeze it before the main campaign.
+   6     Report beta and dW for every run, pass or fail.
+
+
+7. CAPACITY
+-----------------------------------------------------------------------------------------
+   C_SLO(T) = highest tested lambda that passes, with every lower tested lambda passing.
+   If a lower rate fails unexpectedly: repeat it and investigate.
+   Do not silently assume monotonicity.
+
+
+8. RUN VALIDITY  (a failed check voids the run; the run is repeated, not scored)
+-----------------------------------------------------------------------------------------
+   Check                         Requirement
+   ----------------------------  ------------------------------------------------------
+   Scheduled iterations          all accounted for; k6 dropped_iterations = 0
+   Achieved rate                 within +/- 1 % of lambda
+   Instrumentation               sink and generator healthy; no sink errors, no gaps
+   Ambiguous outcomes            not acknowledged, but seen at sink or in storage:
+                                 recorded and reported, never discarded
+
+
+9. QUALIFICATION GATES  (all must pass before the main campaign)
+-----------------------------------------------------------------------------------------
+   Gate  Name                  Requirement
+   ----  --------------------  ------------------------------------------------------------
+   G1    Generator headroom    generator + sink sustain >= 2x the max planned lambda
+                               against a null endpoint, with all validity checks passing
+   G2    Oracle validation     inject known missing, duplicated and delayed msg ids;
+                               the analysis must report each one exactly
+   G3    Storage identity      every (run_id, seq) is retrievable as a distinct record
+                               from each platform's history store (incl. QuantumLeap)
+   G4    Backlog calibration   eps_W fixed (section 6)
+   G5    Drain / timeout       pilot confirms 60 s / 10 s do not change any verdict
+
+
+10. DIAGNOSTICS  (reported; not part of pass/fail)
+-----------------------------------------------------------------------------------------
+   - L_scheduler distribution (separates generator lateness from platform latency)
+   - write amplification: database write operations per message
+   - component queues: Orion notification queue, Kafka lag (ThingsBoard), NATS (EdgeX)
+   - internal duplicate executions, if instrumented
+   - Do not claim exactly-once PROCESSING; the SLO shows only exactly-once observable
+     delivery and storage state.
+
+
+11. SOURCES
+-----------------------------------------------------------------------------------------
+   3GPP TS 22.369, clause 6.3, Table 6.3-1 (KPIs for sensor data collection)
+      https://itecspec.com/3gpp/22.369/s/6.3
+   Theodolite (S. Henning, W. Hasselbring): lag-trend SLO via regression slope
+      with a noise tolerance

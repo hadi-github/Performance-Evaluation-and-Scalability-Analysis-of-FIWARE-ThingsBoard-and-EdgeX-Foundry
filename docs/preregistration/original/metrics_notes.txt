@@ -1,0 +1,172 @@
+METRICS SPECIFICATION  --  what we measure and what we monitor
+=========================================================================================
+Status    : candidate (v0.2, 2026-10-22) -- extracted from summary.md (decisions v3);
+            M2-M4 resolved (section 10)
+Related   : METRICS_LIST.txt (short list), SLO_TELEM.txt, FINGERPRINT.txt, WORKLOAD.txt
+Rule      : MEASURED metrics are evidence and decide results.
+            MONITORED metrics explain results; they never decide a verdict.
+
+
+1. CONTROL VARIABLES
+-----------------------------------------------------------------------------------------
+   Symbol  Name        Meaning                                   Example
+   ------  ----------  ----------------------------------------  ---------------------------
+   W       Work        what each message asks the platform to    1,000 devices, ~100-B msg,
+                       do; constant within a comparison          HTTP, stored in history
+   lambda  Load        messages/s on a fixed schedule that       500 msg/s
+                       never waits for replies (open model)
+   k       Resources   CPU cores for the application tier        1, 2, 4
+   p       Profile     requirements a run must meet              e.g. TELEM-500
+
+   Test machine (8 cores): 1 core OS/Docker/monitoring; 3 cores supporting tier
+   (DB, broker, cache; fixed); 4 cores application tier (k = 1, 2, 4).
+   Container and memory layout is recorded separately: "2 cores" can be built
+   in different ways.
+
+
+2. PER-MESSAGE RAW RECORD  (source of every measured metric)
+-----------------------------------------------------------------------------------------
+   Field              Meaning
+   -----------------  ---------------------------------------------------------------------
+   msg_id             unique message identity (run_id, seq)
+   device_id          logical device
+   t_planned          planned send time (from the schedule)
+   t_sent             actual send time; empty if never sent
+   t_response         time the sender saw the outcome; empty if none
+   outcome            OK | ERROR | UNKNOWN | NOT_SENT   (section 4)
+   t_finish           time the message reached the finish line (section 11, M1)
+   stored             found in history store with matching fields (yes / no / mismatch)
+
+
+3. MEASURED METRICS  (evidence)
+-----------------------------------------------------------------------------------------
+   Metric               Meaning                         How it is computed               Unit
+   -------------------  ------------------------------  -------------------------------  -------
+   Capacity C(p,k)      highest load that passes        highest passing rate, next       msg/s
+                        profile p at k                  failing rate, and the step
+                                                        between them (bracket)
+   Latency              time per message                t_finish - t_planned, per        ms
+                                                        message; p50 / p95 / p99 per run
+   Request outcomes     what the sender saw             counts of OK, ERROR, UNKNOWN,    count, %
+                                                        NOT_SENT
+   Persistence          was everything stored, and      every msg_id and its fields      count
+   correctness          stored correctly                compared against history:
+                                                        missing, mismatched, duplicate
+   Outstanding work     is the platform falling         unique ACKNOWLEDGED msg_ids      msgs
+                        behind                          minus unique msg_ids at the
+                                                        finish line, over time
+   CPU cost U           CPU work per stored message     CPU-seconds of SUT service       CPU-s/msg
+                                                        cgroups (app + supporting tier)
+                                                        / unique messages stored,
+                                                        same window
+   Reference            waste relative to a minimal     U(platform) / U(reference        ratio
+   overhead O           service                         ingester), same load and work
+   Scaling              capacity bought per extra core  [ C(p,k) / C(p,1) ] / k          ratio
+   efficiency E(k)                                      (1.0 = perfect)
+
+
+4. REQUEST OUTCOME CATEGORIES
+-----------------------------------------------------------------------------------------
+   Outcome     Meaning                                   Counts as
+   ----------  ----------------------------------------  ----------------------------------
+   OK          success response received                 acknowledged by the platform
+   ERROR       explicit error response                   platform failure
+   UNKNOWN     timeout; result unknown to the sender     ambiguous; reconciled later
+                                                         against the history store
+   NOT_SENT    planned but never sent                    generator failure -> INVALID run
+
+
+5. OPTIONAL METRICS
+-----------------------------------------------------------------------------------------
+   Metric              Meaning
+   ------------------  ----------------------------------------------------------------------
+   Overload service    service delivered while load exceeds capacity
+   Recovery time       time to meet the profile again after a burst ends
+   Cores needed        cores required to serve a given scenario
+   Headroom            distance between a scenario's load and the measured capacity
+
+
+6. MONITORED METRICS  (explanation only; never decide a verdict)
+-----------------------------------------------------------------------------------------
+   Source                    What                                     Used for
+   ------------------------  ---------------------------------------  ----------------------
+   cgroup counters           CPU usage per container, throttling;     CPU cost U (exact
+                             handle counter resets, avoid double      accounting) and
+                             counting parent + child cgroups          bottleneck location
+   Prometheus + exporters    host and container CPU, memory, disk,    operational view; each
+                             network; database and broker metrics     exporter verified
+   Broker / queue metrics    queue depth, consumer lag                WHERE work piles up
+                                                                      (not backlog itself)
+   Generator health          scheduling accuracy, send rate,          load-delivery validity
+                             resource use
+   Sink / ingester health    receipt rate, errors                     finish-line validity
+   Monitoring overhead       CPU and memory used by monitoring        must be measured and
+                                                                      reported (not in U)
+   Grafana                   one small dashboard for watching runs    NOT evidence
+
+
+7. NOTES ON THE METRICS
+-----------------------------------------------------------------------------------------
+   N1  Outstanding work depends on the finish line. If the finish line is the sink, it
+       measures unfinished OBSERVATION, not unfinished STORAGE.
+   N2  Count UNIQUE ids, never events: duplicates must not make a backlog look smaller.
+   N3  Outstanding work counts from ACKNOWLEDGED ids. Rejected (ERROR) messages were
+       never accepted, so counting them would inflate the backlog. UNKNOWN messages are
+       resolved against the history store and reported separately.
+   N4  "Passes at 2,000, fails at 2,200" is the SEARCH STEP, not statistical confidence.
+       Run-to-run variation is reported separately.
+   N5  U covers only the platform's own containers (application + supporting tier).
+       The monitoring core is excluded so our own tooling does not inflate the cost.
+   N6  E(k) = 1.0 means each added core adds as much capacity as the first one did.
+       E > 1 must be checked for a starved k = 1 baseline before it is reported.
+   N7  Broker queue metrics show WHERE work piles up; the backlog itself is always the
+       id-based outstanding-work metric.
+
+
+8. VALIDITY PER CLAIM
+-----------------------------------------------------------------------------------------
+   To claim ...            Required evidence
+   ----------------------  ------------------------------------------------------------------
+   Load delivered          messages sent on schedule; all records complete  (gates all else)
+   Latency                 the above + reliable finish-line records
+   Storage correctness     message ids + reconciliation against history
+   Overall PASS            all of the above, for every requirement in the profile
+   CPU cost U              complete CPU counters + count of stored messages, same window
+   Reference overhead O    valid U for platform AND reference, matched conditions
+   Comparability           enough recorded configuration to prove conditions matched
+
+
+9. RUN VERDICTS
+-----------------------------------------------------------------------------------------
+   Verdict   Meaning
+   --------  --------------------------------------------------------------------------
+   PASS      valid measurement; every requirement met
+   FAIL      valid measurement; the platform broke a requirement
+   INVALID   our tools or setup failed
+
+   Rules
+   - A proven violation is FAIL even if some other measurement is missing
+     (missing CPU data does not erase an observed platform failure).
+   - Failed load delivery: excluded from comparisons; kept as diagnostic evidence.
+   - Confirmation: a rate is confirmed only if EVERY valid repetition passes.
+     Mixed results are reported as "not confirmed" with counts (e.g. 3 pass / 2 fail).
+
+
+10. RESOLVED DECISIONS
+-----------------------------------------------------------------------------------------
+   ID   Decision                 Resolution
+   ---  -----------------------  -------------------------------------------------------------
+   M2   Scope of "total CPU"     SUT service cgroups only (application + supporting tier);
+        in U                     monitoring excluded and reported separately
+   M3   Outstanding-work base    acknowledged ids (same as SLO_TELEM.txt)
+   M4   Notation                 k = application-tier cores; replaces N in FINGERPRINT.txt
+
+
+11. OPEN ITEMS THAT AFFECT METRICS
+-----------------------------------------------------------------------------------------
+   ID   Item                     Why it matters
+   ---  -----------------------  -------------------------------------------------------------
+   M1   Finish line              defines latency and outstanding work for every platform
+   M5   Repetition count         open; affects every confirmed capacity
+   M6   Tolerances               backlog growth, audit deadline, clock uncertainty,
+                                 scheduling limits

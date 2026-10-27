@@ -1,0 +1,134 @@
+WORKLOAD SPECIFICATION  --  IoT Scalability Benchmark
+=========================================================================================
+Status    : candidate (v0.1, 2026-10-22) -- frozen after gates in section 8 pass
+Depends on: SLO_TELEM.txt, FINGERPRINT.txt
+Character : controlled, SYNTHETIC telemetry stress workload. It is NOT a model of any
+            3GPP traffic pattern; the 3GPP source informs the SLO deadline only.
+
+
+1. WORKLOAD MODEL   W = (D, lambda, A, P, K, S)
+-----------------------------------------------------------------------------------------
+   Param    Meaning                          Primary value (W1)
+   -------  -------------------------------  ----------------------------------------------
+   D        active logical devices           1,000 (all provisioned before measurement)
+   lambda   aggregate offered rate           adaptive sweep, msg/s
+   A        arrival process                  open-loop, constant rate
+   P        payload                          3 numeric values + identity/timing (sec. 3)
+   K        message -> device assignment     round-robin: device(i) = i mod D
+   S        processing semantics             HTTP ingest -> external sink delivery +
+                                             independently verified historical storage
+
+   Note on A x K: constant rate + round-robin makes every device strictly periodic and
+   phase-staggered -- the most benign arrival pattern. Latency results are therefore a
+   best case with respect to arrival burstiness. State this in the paper.
+
+
+2. WORKLOADS
+-----------------------------------------------------------------------------------------
+   ID   Name                 Devices         Rates                        N        Priority
+   ---  -------------------  --------------  ---------------------------  -------  ---------
+   W1   Capacity             1,000           adaptive sweep (FINGERPRINT  1, 2, 4  primary
+                                             sec. 3)
+   W2   Device sensitivity   100 vs 10,000   ~50 % and ~75 % of           1        secondary
+                                             C_SLO(500,1)
+   W3   Overload/recovery    1,000           schedule in section 5        1, 4*    primary
+   W4   Arrival sensitivity  1,000           Poisson, seeded, matched     1        optional
+                                             to W1 rates
+
+   * W3 at N=4 only if the generator qualifies for 2.4 x C_ref(4) (section 6).
+
+
+3. PAYLOAD AND IDENTITY
+-----------------------------------------------------------------------------------------
+   Logical content is identical on all platforms; the HTTP envelope differs per adapter
+   (measured ~289-335 B on the wire). Record envelope size per adapter.
+
+   Layout   Fields                                               Status
+   -------  ---------------------------------------------------  ----------------------
+   L1       value1..3, run_id, seq, scheduled_send_ms            validated (smoke tests)
+   L2       value1..3, trace_id = "run_id:seq",                  candidate; must pass G2
+            scheduled time in the platform's native timestamp
+            where that is preserved end-to-end
+
+   Freeze ONE layout for all platforms after gate G2. Whichever is chosen, report the
+   measured instrumentation overhead (capacity difference L1 vs L2 per platform).
+
+
+4. W2 -- DEVICE-POPULATION SENSITIVITY
+-----------------------------------------------------------------------------------------
+   Held constant : aggregate lambda, payload, semantics, CPU budget, N = 1
+   Varied        : D in {100, 10,000}; per-device rate = lambda / D
+   Primary output: p99 delivery latency, CPU-seconds per message, memory,
+                   cache / DB behaviour
+   Secondary     : error rate, correctness, SLO pass/fail
+   NOT an output : capacity (two fixed rates cannot establish C_SLO)
+   Condition     : 10,000 devices only if provisioning and reset are reliable (gate G3);
+                   otherwise shrink or drop W2 -- never at the expense of W1.
+
+
+5. W3 -- OVERLOAD / RECOVERY SCHEDULE   (C_ref(N) = C_SLO(500, N), confirmed estimate)
+-----------------------------------------------------------------------------------------
+   Phase       Time        Offered rate      Purpose
+   ----------  ----------  ----------------  ---------------------------------------
+   Baseline    0-10 min    0.5 * C_ref       stable reference behaviour
+   High load   10-20 min   0.8 * C_ref       behaviour near capacity
+   Overload    20-25 min   1.2 * C_ref       degradation, backlog, correctness
+   Recovery    25-35 min   0.7 * C_ref       recovery (cap 600 s)
+   Drain       35-36 min   0                 then reconcile D and H
+
+   - Terminology: "SLO-relative overload". 1.2 x C_ref may stay below raw processing
+     capacity; then R_X < 1 cannot be read as congestion collapse.
+   - No reset between phases (backlog must carry into recovery).
+   - Messages are attributed to the phase in which they were SCHEDULED.
+   - All four T variants are evaluated post hoc on the same runs.
+   - Supersedes the W3 schedule in FINGERPRINT.txt section 5.
+
+
+6. GENERATOR REQUIREMENTS
+-----------------------------------------------------------------------------------------
+   Requirement                         Rule
+   ----------------------------------  ----------------------------------------------------
+   Headroom (W1)                       qualified rate >= 2 x highest planned lambda
+   Headroom (W3)                       qualified rate >= 2.4 x C_ref(N)
+   Concurrency                         sustains lambda x E[R] in-flight requests, tested
+                                       with injected response delays of 0, 0.5 s, 5 s
+   Validity                            zero dropped iterations; achieved rate within 1 %
+   Tool                                k6 first; Go generator only if k6 fails the delay
+                                       test (then it repeats every gate)
+   Clock                               generator and sink share one host clock. If a second
+                                       generator host is ever added: chrony on the LAN,
+                                       offset recorded per run, run valid only if
+                                       |offset| < 1 ms (0.4 % of the tightest deadline)
+
+   If the generator cannot exceed a platform's capacity: report C_SLO as a lower bound
+   ("> x msg/s", censored) and E(4) as a lower bound. Never relabel generator
+   saturation as platform saturation.
+
+
+7. RESET AND COHORT RULES
+-----------------------------------------------------------------------------------------
+   - Before every independent run: clean historical storage, deterministic device
+     provisioning, cold start of the platform, then warm-up.
+   - After a failing high-rate step: reset (or verify full recovery) before the next
+     lower-rate step.
+   - Warm-up messages are excluded from the measurement cohort during reconciliation.
+   - Reset procedure and its duration are recorded in the run manifest.
+
+
+8. GATES BEFORE THE MAIN CAMPAIGN  (in order)
+-----------------------------------------------------------------------------------------
+   Gate  Test                                   Pass condition
+   ----  -------------------------------------  -----------------------------------------
+   G0    CPU topology (lscpu -e)                slices map to distinct physical cores
+   G1    Generator + sink, delayed endpoints    section 6 headroom and validity rules
+   G2    Payload layout A/B (L1 vs L2)          identity + scheduled time recovered
+                                                exactly from sink AND history store on
+                                                every platform; overhead measured
+   G3    Device provisioning                    1,000 (and 10,000 for W2) created,
+                                                retained and reset reliably
+   G4    N=4 reconnaissance at 500 msg/s        result recorded; a PASS flags likely
+                                                censoring and triggers the generator
+                                                decision
+   G5    Oracle validation                      planted missing / duplicate / delayed
+                                                ids detected exactly (SLO_TELEM G2)
+   G6    Backlog calibration                    eps_W frozen (SLO_TELEM section 6)

@@ -1,0 +1,27 @@
+
+SLO COMPONENTS
+-----------------------------------------------------------------------------------------
+   Component            Definition                                     Criterion
+   -------------------  ---------------------------------------------  ------------------
+   Latency boundary     scheduled send -> first sink receipt           t_sched -> t_sink
+   Latency statistic    p99 of L_delivery over A; late deliveries      p99
+                        inside the drain period are included
+   Platform deadline    T, set by the variant (section 4)              250/500/1000/5000 ms
+   Error rate           failed / |S|; failed = non-2xx, timeout,       <= 0.1 %
+                        or connection error
+   Missing at sink      |A \ D|                                        = 0
+   Missing in storage   |A \ H|                                        = 0
+   Duplicate delivery   extra sink receipts per msg id                 = 0
+   Duplicate storage    extra observable stored logical events         = 0
+                        per msg id
+   Backlog trend        OLS slope of B_pending (section 6)             no sustained growth
+   Warm-up              discarded before the window                    5 min
+   Measurement window   steady state evaluated against the SLO         10 min
+   Drain period         after the last scheduled send, before          60 s   (provisional)
+                        counting D and H
+   HTTP client timeout  must exceed the largest T                      10 s   (provisional)
+ 
+   Note: "missing = 0" means zero loss among ACKNOWLEDGED messages, not among all
+   offered messages. Use the same wording everywhere in the paper (incl. goodput).
+ 
+

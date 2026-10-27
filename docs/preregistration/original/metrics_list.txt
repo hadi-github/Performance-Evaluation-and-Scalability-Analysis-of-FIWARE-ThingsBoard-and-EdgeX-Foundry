@@ -1,0 +1,50 @@
+METRICS LIST  --  IoT Scalability Benchmark
+=========================================================================================
+Version : v0.2, 2026-10-22   (details and notes: METRICS.txt)
+
+
+MEASURED  (evidence; decides verdicts)
+-----------------------------------------------------------------------------------------
+   Metric                     Formula / source                                   Unit
+   -------------------------  -------------------------------------------------  ---------
+   Capacity C(p,k)            highest passing rate, next failing rate, step      msg/s
+   Latency p50 / p95 / p99    t_finish - t_planned, per message, per run         ms
+   Request outcomes           counts of OK / ERROR / UNKNOWN / NOT_SENT          count, %
+   Missing in history         acknowledged ids absent from the history store     count
+   Mismatched in history      stored ids whose fields differ from what was sent  count
+   Duplicates in history      extra stored records per id                        count
+   Outstanding work           unique acknowledged ids - unique ids at finish     msgs
+                              line, over time
+   CPU cost U                 CPU-seconds of SUT service cgroups /               CPU-s/msg
+                              unique messages stored, same window
+   Reference overhead O       U(platform) / U(reference ingester)                ratio
+   Scaling efficiency E(k)    [ C(p,k) / C(p,1) ] / k                            ratio
+
+
+OPTIONAL
+-----------------------------------------------------------------------------------------
+   Metric                     Meaning                                            Unit
+   -------------------------  -------------------------------------------------  ---------
+   Overload service           service delivered while load exceeds capacity      msg/s
+   Recovery time              time to meet the profile again after a burst       s
+   Cores needed               cores required to serve a given scenario           cores
+   Headroom                   scenario load vs measured capacity                 ratio
+
+
+MONITORED  (explanation only; never decides a verdict)
+-----------------------------------------------------------------------------------------
+   Metric                     Source
+   -------------------------  ---------------------------------------------------------
+   CPU per container          cgroup counters
+   CPU throttling             cgroup counters (cpu.stat)
+   Host CPU / memory / disk   Prometheus node exporter
+   / network
+   Container memory           Prometheus / cAdvisor
+   Database metrics           platform DB exporters
+   Queue depth / consumer     broker exporters
+   lag
+   Generator scheduling       generator records
+   accuracy and send rate
+   Sink receipt rate and      sink records
+   errors
+   Monitoring overhead        cgroup counters of the monitoring containers

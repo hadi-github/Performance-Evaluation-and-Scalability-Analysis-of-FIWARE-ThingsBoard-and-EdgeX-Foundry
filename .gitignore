@@ -7,3 +7,4 @@ workloads/# raw results stay out of git; amendment files next to runs are versio
 results/**
 !results/**/
 !results/**/*.amendment.json
+bin/*
