@@ -3,29 +3,110 @@
   "started_utc": "2026-10-27T10:08:50Z",
   "deadline_utc": "2026-10-27T13:10:00Z",
   "baseline_head": "73dea4d5493280125c7d330356a90433d78889d2",
-  "baseline_dirty": {"tracked_modified": 9, "untracked_paths": 26},
+  "baseline_dirty": {
+    "tracked_modified": 9,
+    "untracked_paths": 26
+  },
   "baseline_diff": "results/auto-20261027/baseline-tracked.diff",
   "authorization": {
     "granted": true,
     "by": "owner",
     "at": "2026-10-27",
     "summary": "access SUT 87.107.191.107 + load 87.107.191.32 via aliases; preflight A-C; local impl/test/review; test-candidate deploys after collision checks; controlled restart of benchmark TB services for D28; Orion4.5.0<->QL1.0.0 pair-test (no downgrade); isolated FIWARE history candidate; read-only D27 audits (no index creation); TB F1-F2; bounded smokes; generator/sink/monitoring qualification; new evidence dirs; docs + local commits of session changes only.",
-    "denied": ["deleting existing dbs/volumes", "overwriting retained results", "global docker prune", "unrelated services", "host-wide settings", "clock changes", "threshold changes", "version switches", "D27 index creation", "F3/k=4", "optional tuning", "push/merge/publish", "main campaign"]
+    "denied": [
+      "deleting existing dbs/volumes",
+      "overwriting retained results",
+      "global docker prune",
+      "unrelated services",
+      "host-wide settings",
+      "clock changes",
+      "threshold changes",
+      "version switches",
+      "D27 index creation",
+      "F3/k=4",
+      "optional tuning",
+      "push/merge/publish",
+      "main campaign"
+    ]
   },
   "hosts": {
-    "sut": {"ip": "87.107.191.107", "alias": "ramonavm2", "uname": "ramona-vm-2"},
-    "load": {"ip": "87.107.191.32", "alias": "ramonavm1", "uname": "ramona-vm-q"}
+    "sut": {
+      "ip": "87.107.191.107",
+      "alias": "ramonavm2",
+      "uname": "ramona-vm-2"
+    },
+    "load": {
+      "ip": "87.107.191.32",
+      "alias": "ramonavm1",
+      "uname": "ramona-vm-q"
+    }
   },
   "tasks": [
-    {"id": 0, "desc": "session records + baseline capture", "state": "VERIFIED"},
-    {"id": 1, "desc": "preflight Gates A-C both hosts", "state": "VERIFIED", "gate": "B1", "evidence": "results/auto-20261027/preflight-*.txt"},
-    {"id": 2, "desc": "D28 live verification + controlled TB restart", "state": "VERIFIED", "gate": "B7", "evidence": "results/auto-20261027/; docs/autonomous-progress.md task 2; stack left running k=1 at /root/iot-bench-deploy-cand-auto20261027"},
-    {"id": 3, "desc": "D27 read-only registry audit + B14 schema/export", "state": "READY", "gate": "B8,B14", "depends": [1]},
-    {"id": 4, "desc": "FIWARE pair-test + history candidate", "state": "READY", "gate": "B2-B5", "depends": [1]},
-    {"id": 5, "desc": "TB feasibility F1 k=1, F2 k=2", "state": "READY", "gate": "B6", "depends": [1]},
-    {"id": 6, "desc": "clock offset + resources live Prom + gen/sink/mon qualification + bounded smokes", "state": "READY", "gate": "B9-B14", "depends": [1]},
-    {"id": 7, "desc": "close-out: checks, manifest addendum, commits, handoff", "state": "READY", "depends": "all"}
+    {
+      "id": 0,
+      "desc": "session records + baseline capture",
+      "state": "VERIFIED"
+    },
+    {
+      "id": 1,
+      "desc": "preflight Gates A-C both hosts",
+      "state": "VERIFIED",
+      "gate": "B1",
+      "evidence": "results/auto-20261027/preflight-*.txt"
+    },
+    {
+      "id": 2,
+      "desc": "D28 live verification + controlled TB restart",
+      "state": "VERIFIED",
+      "gate": "B7",
+      "evidence": "results/auto-20261027/; docs/autonomous-progress.md task 2; stack left running k=1 at /root/iot-bench-deploy-cand-auto20261027"
+    },
+    {
+      "id": 3,
+      "desc": "D27 read-only registry audit + B14 schema/export",
+      "state": "VERIFIED",
+      "gate": "B8,B14",
+      "depends": [
+        1
+      ]
+    },
+    {
+      "id": 4,
+      "desc": "FIWARE pair-test + history candidate",
+      "state": "VERIFIED",
+      "gate": "B2-B5",
+      "depends": [
+        1
+      ]
+    },
+    {
+      "id": 5,
+      "desc": "TB feasibility F1 k=1, F2 k=2",
+      "state": "VERIFIED",
+      "gate": "B6",
+      "depends": [
+        1
+      ],
+      "outcome": "F1 reached documented stop-condition (preserved); F2 no stop-condition + VALID bounded smoke"
+    },
+    {
+      "id": 6,
+      "desc": "clock offset measured window-1 only (B11 partial); B9 disk fields LIVE-VERIFIED; B10/B12/B13 open",
+      "state": "PARTIAL",
+      "gate": "B9-B14",
+      "depends": [
+        1
+      ]
+    },
+    {
+      "id": 7,
+      "desc": "close-out: checks, manifest addendum, commits, handoff",
+      "state": "VERIFIED",
+      "depends": "all"
+    }
   ],
   "evidence_root": "results/auto-20261027",
-  "notes": "live experiments sequential; per-op timeouts; BLOCKED after ~30min/3 failed attempts"
+  "notes": "live experiments sequential; per-op timeouts; BLOCKED after ~30min/3 failed attempts",
+  "commit": "d4ab56c",
+  "finished_utc": "2026-10-27T12:20:00Z"
 }
