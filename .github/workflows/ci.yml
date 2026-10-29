@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  go:
+    name: Go build / vet / tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: build
+        run: go build ./...
+      - name: vet
+        run: go vet ./...
+      - name: gofmt (no diffs allowed)
+        run: test -z "$(gofmt -l cmd internal)"
+      - name: unit + integration tests (no servers contacted)
+        run: go test ./... -count=1
+
+  static:
+    name: Shell + Python + evidence integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash syntax
+        run: |
+          set -e
+          for f in scripts/*.sh deploy/*/scripts/*.sh workloads/legacy/run.sh; do bash -n "$f"; done
+          echo "bash -n OK"
+      - name: shellcheck (advisory)
+        continue-on-error: true
+        run: shellcheck -f gcc scripts/*.sh deploy/*/scripts/*.sh workloads/legacy/run.sh
+      - name: python syntax
+        run: python3 -m py_compile scripts/*.py scripts/diag/*.py monitoring/grafana/*.py yaade/*.py
+      - name: preregistration archive integrity (bytes never change)
+        run: bash scripts/check-preregistration.sh
+
+      - name: vendored ThingsBoard D28 configuration (static, renders only)
+        run: bash scripts/check-thingsboard-config.sh
+      - name: evidence manifest (only meaningful when results/ is present locally — raw data is not in Git)
+        run: |
+          if [ -d results ] && [ -n "$(find results -type f | head -1)" ]; then
+            sha256sum -c evidence/evidence-integrity.sha256
+          else
+            echo "results/ not present (raw data lives outside Git) — evidence verification skipped by design; run it on the evidence host"
+          fi
+
+  deploy:
+    name: Compose render + resource guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: render and guard every platform stack at N=2
+        run: |
+          set -e
+          for p in fiware thingsboard edgex; do
+            echo "== deploy/$p"
+            ( cd "deploy/$p" \
+              && EDGEX_REPLICAS=2 THINGSBOARD_REPLICAS=2 FIWARE_REPLICAS=2 \
+                 docker compose --env-file .env.example config --quiet \
+              && EDGEX_REPLICAS=2 THINGSBOARD_REPLICAS=2 FIWARE_REPLICAS=2 \
+                 docker compose --env-file .env.example config --format json \
+                 | "$(pwd)/../../scripts/check-resources.sh" )
+          done
+      - name: render the experimental FIWARE history candidate
+        run: |
+          ( cd deploy/fiware/fiware-history-candidate \
+            && docker compose --env-file ../.env.example config --quiet && echo ok )
+
+      - name: render the monitoring stacks
+        run: |
+          docker compose -f monitoring/compose.yaml config --quiet && echo "monitoring ok"
+          ( cd monitoring/exporters && docker compose -f compose.edgex.yaml --env-file .env.example config --quiet 2>/dev/null || true )

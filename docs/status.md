@@ -143,7 +143,7 @@ any latency above 50 r/s is quoted (§3.3).
 | `docs/state-reconciliation` | this page + archived narratives + README readiness | committed (c53305c) |
 | `chore/repository-layout` | target directory layout, `git mv` + path updates only; SECURITY/CONTRIBUTING/CITATION + issue templates | committed (aee9e83) |
 | `fix/qualification-integrity` | sink unique identities (`iterationInTest`), TB/FIWARE identity attributes, sink-counter deltas in the verdict, `--record-identity` reconciliation vs planned arrivals, explicit ms, repo-root results root | **this branch** |
-| `chore/ci-and-release` | CI workflows (build/vet/test, shellcheck, compose render, resource + prereg checks), release packaging | pending |
+| `chore/ci-and-release` | CI workflows (build/vet/test, shellcheck, compose render + resource guards, D28 static check, prereg + evidence verification) — stacked on the integrity branch, which is the intended merge order | **this branch** (after fix commits) |
 | `feat/fiware-history-integration` | full-stack IoT-Agent/HAProxy path for the validated history candidate | deferred, explicitly experimental |
 
 ## 7. Owner inputs still owed

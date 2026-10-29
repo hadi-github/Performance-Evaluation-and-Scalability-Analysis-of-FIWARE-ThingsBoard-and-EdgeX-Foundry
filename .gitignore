@@ -10,3 +10,6 @@ workloads/**/results/
 # generated executables stay out of git
 bin/*
 !bin/.gitkeep
+
+__pycache__/
+*.pyc
