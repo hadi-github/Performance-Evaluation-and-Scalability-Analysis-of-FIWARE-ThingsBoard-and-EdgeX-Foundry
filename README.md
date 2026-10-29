@@ -6,15 +6,23 @@ One Docker Compose stack per platform. Every stack has the same shape:
 load generator ──HTTP──► HAProxy (always present, also at N=1) ──► replicated tier(s) ──► single stateful tier
 ```
 
-**The only thing you change to scale is the number of platform instances, N.** Each instance gets one dedicated
-CPU core, so the platform runs on exactly N cores (see "Resource layout").
+**The only thing you change to scale is the number of platform instances, N.** Each instance runs in the shared
+platform CPU pool covering `4 … 4+N-1` (see "Resource layout"). **N is not free choice at run time:** the memory
+budget accepts N per platform, and one qualification level per platform is currently owned (FIWARE and EdgeX k=4
+fit the budget; ThingsBoard's k decision is pending owner options O1–O5 — k=4 does not fit at 1280 MiB, see
+[`docs/status.md`](docs/status.md) §1-B6). Qualification levels beyond the owned ones need their own qualified run
+first, not an argument.
+
+> **State of this repository:** *benchmark tooling + exploratory qualification.* The main experimental campaign
+> has not been executed. What is verified, and how recent runs are labelled (exploratory vs campaign-grade), is
+> maintained in one page: [`docs/status.md`](docs/status.md). Per-session narratives are archived under
+> `docs/archive/sessions/` and may contradict each other; `docs/status.md` wins.
 
 ```bash
-cd fiware      && make up N=4 && make smoke N=4
-cd edgex       && make build && make up N=4 && make smoke N=4
-cd thingsboard && make install && make up N=4 && make smoke N=4
-make clean    # wipe all data between benchmark cells (cold start)
-make check N=4   # print the resource layout and refuse it if it does not fit the host (also run by `make up`)
+cd thingsboard && make install && make up N=2 && make smoke N=2    # example: the qualified TB level
+# cold start before the next benchmark cell ONLY, wipes all platform data — not part of normal startup:
+make clean
+make check N=2   # print the resource layout and refuse it if it does not fit the host (also run by `make up`)
 ```
 
 Only one platform can run at a time on the SUT (they share port 8404, and the platform pool cores).
@@ -34,13 +42,18 @@ replicas through Docker DNS (`server-template`, up to 16 per tier) within ~5 s.
 The load generator and the monitoring stack run on **ramonavm1**, the platforms on **ramonavm2** (the SUT).
 
 ```bash
-# ramonavm2: platform + its exporters
-cd thingsboard && make install && make up N=1 && make smoke N=1     # (fiware / edgex: make up N=1)
-cd ../monitoring/exporters && make up P=thingsboard
-# ramonavm1: one benchmark cell = a fixed rate for a fixed time
-cd workloads && ./run.sh thingsboard 200 10m
-# ramonavm2: cold start before the next cell
-cd thingsboard && make clean
+# Example cell: the currently qualified ThingsBoard level (k=2 at 1280 MiB; owner decision O1–O5 pending)
+cd thingsboard && make install && make up N=2 && make smoke N=2
+# FIWARE / EdgeX use the same rhythm; pick N within the platform's memory budget:
+cd fiware && make up N=1 && make smoke N=1
+cd edgex   && make build && make up N=1 && make smoke N=1
+# cold start before the next benchmark cell ONLY — wipes all platform data, not part of normal startup:
+make clean
+# SUT-side platform exporters
+cd monitoring/exporters && make up P=thingsboard
+# capacity statements come from the campaign-grade generator path (benchctl, see docs/generator.md);
+# workloads/run.sh is the legacy harness — its verdicts are exploratory by policy (docs/status.md §2)
+./workloads/run.sh thingsboard 200 10m
 ```
 
 See `workloads/README.md` (open workload model, options, what makes a run invalid) and `monitoring/README.md`
@@ -98,13 +111,15 @@ still reject the first requests for a few seconds; wait ~30 s after `make up` be
 | ThingsBoard pinned to 4.3.x | 4.4 moved to BUSL 1.1; 4.3.x is the last Apache-2.0 line | "Not latest" → licence scope of the paper |
 | TB: own HAProxy config | Official config limits each client IP to 100 req/10 s and pins REST by source IP | — |
 
-## Status: what was verified
+## Status: what is verified (2026-10-29)
 
-All three stacks were booted and smoke-tested on the SUT (ramonavm2, 8 vCPU / 16 GB) and exercised end to end
-from the load-generator host with the Yaade collections in `yaade/` (provision a device, send an integer, read the
-same integer back). Fixes found while booting (all listed in the compose headers): HAProxy file-descriptor limit,
-ThingsBoard installer dependency on Valkey and transport `/config` mount, EdgeX build version / Go module proxy /
-message-bus type, and the EdgeX smoke test's count field.
+- All three stacks boot and smoke-test on the SUT (ramonavm2, 8 vCPU / 16 GB) and are exercised end to end from
+  the load-generator host with the Yaade collections in `yaade/`; boot fixes are listed in the compose headers.
+- ThingsBoard (k=2, 1280 MiB, qualified under load 50/200 r/s), the generator ceiling (≤ 3200 r/s loopback,
+  recommended campaign max ≤ 1600), the FIWARE history pairing (Orion 4.5.0 → QL 1.0.0, 2048 MiB adopted) and the
+  EdgeX disk+WAL method are live-verified — all as **qualification**, not campaign, evidence.
+- The main benchmark campaign is **not** executed; per-claim state, evidence and limitations:
+  [`docs/status.md`](docs/status.md) (authoritative), `docs/qualification-blockers.md` (row-level record).
 
 ## Known limitations / open decisions
 

@@ -82,11 +82,11 @@ These are deferred under Step 5 and must not be run as part of qualification: D2
 The next stage is owner-decision-gated: the F1 stop-condition at k=1 needs an owner-recorded deviation (memory
 increase or k) before any further ThingsBoard scaling, and full rate qualification (B10/B12/B13) needs an
 owner-chosen target rate — or an authorized labelled generator-ceiling exploration first. Server access and the
-session's authorization scope are recorded in `docs/autonomous-work-plan.md`.
+session's authorization scope are recorded in `docs/archive/sessions/autonomous-work-plan.md`.
 
 ## Session authorization (recorded 2026-10-27)
 
-Full text under `docs/autonomous-work-plan.md` ("Owner authorization"); covers preflight, D28 controlled restart,
+Full text under `docs/archive/sessions/autonomous-work-plan.md` ("Owner authorization"); covers preflight, D28 controlled restart,
 the D27 read-only audit, the isolated FIWARE candidate, F1–F2, bounded smokes and qualification-scoped tests for
 this session only. It does NOT authorize: deleting existing data/volumes, index creation, F3/k=4, tuning, version
 switches, the main experimental campaign, pushes or publishing.
