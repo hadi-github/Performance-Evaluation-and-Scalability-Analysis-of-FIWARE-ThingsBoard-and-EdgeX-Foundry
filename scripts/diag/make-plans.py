@@ -9,12 +9,12 @@ import json
 import math
 
 PLANS = "workloads/plans/"
-DIAG = "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result."
-PGSTAT = ("DIAG ONLY: Postgres statistics on (edgex/diag/compose.diag-pgstat.yaml: pg_stat_statements, "
+DIAG = "DIAG run (docs/methodology/hypotheses.md, diagnostics round 1): not a capacity result."
+PGSTAT = ("DIAG ONLY: Postgres statistics on (deploy/edgex/diag/compose.diag-pgstat.yaml: pg_stat_statements, "
           "track_io_timing, track_wal_io_timing). Durability unchanged.")
-NOSYNC = ("DIAG ONLY, DURABILITY WEAKENED: synchronous_commit=off (edgex/diag/compose.diag-nosync.yaml). Persisted "
+NOSYNC = ("DIAG ONLY, DURABILITY WEAKENED: synchronous_commit=off (deploy/edgex/diag/compose.diag-nosync.yaml). Persisted "
           "data may be lost on a crash; never used outside DIAG runs (D25).")
-JMX = "DIAG ONLY: Kafka JMX port 9999 (thingsboard/diag/compose.diag-kafka-jmx.yaml) to read request metrics."
+JMX = "DIAG ONLY: Kafka JMX port 9999 (deploy/thingsboard/diag/compose.diag-kafka-jmx.yaml) to read request metrics."
 NOSINK = {
     "edgex": "DIAG observer run WITHOUT the sink path: app-http-export service stopped; no latency observation.",
     "thingsboard": "DIAG observer run WITHOUT the sink path: 'bench sink' REST node removed from the root rule chain.",

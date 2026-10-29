@@ -1,4 +1,4 @@
-// Feasibility probe B: a deterministic arrival schedule owned by the script (docs/k6-feasibility.md).
+// Feasibility probe B: a deterministic arrival schedule owned by the script (docs/methodology/k6-feasibility.md).
 // Planned arrival s (slot) is due at T0 + s/RATE, fixed in setup() before any request is sent. VU v (0-based) owns
 // slots v, v+VUS, v+2*VUS, ... (per-vu-iterations: one iteration per owned slot). An iteration waits until its slot's
 // absolute due time (a deadline, not a pacing sleep: the next due time never depends on when the last request

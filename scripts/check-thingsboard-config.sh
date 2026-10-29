@@ -7,7 +7,7 @@
 # Usage: scripts/check-thingsboard-config.sh        exit 0 pass, 1 check failed, 2 tooling error
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
-tb="$here/thingsboard"
+tb="$here/deploy/thingsboard"
 conf="$tb/tb-node/conf"
 
 command -v docker >/dev/null || { echo "docker is required" >&2; exit 2; }

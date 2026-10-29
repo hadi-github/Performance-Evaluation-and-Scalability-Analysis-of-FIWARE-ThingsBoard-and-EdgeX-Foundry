@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "plan_id": "diag-tb-obs-nosink-r100",
-  "purpose": "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result. diag-tb-obs-nosink-r100: warm-up 120 s at 50, then 180 s at 100 msg/s.",
+  "purpose": "DIAG run (docs/methodology/hypotheses.md, diagnostics round 1): not a capacity result. diag-tb-obs-nosink-r100: warm-up 120 s at 50, then 180 s at 100 msg/s.",
   "pilot_only": true,
   "seed": 20261022,
   "adapter": "thingsboard",
@@ -49,7 +49,7 @@
     "Outbound delivery to the Go sink on ramonavm1 configured for the measurement (scripts/outbound.sh); setup, not tuning.",
     "1000 devices round-robin (one device's messages >= 1 s apart at 1000 msg/s).",
     "ThingsBoard container memory raised for the exploratory runs (user decision 2026-10-22, D11): tb-core and tb-rule-engine 1536m, tb-http-transport 768m (TB_CORE_MEM / TB_RULE_ENGINE_MEM / TB_HTTP_TRANSPORT_MEM); JVM heap flags unchanged (-Xmx512m). At 1 GB, tb-core was OOM-killed during device provisioning (EXPL-tb-k4, 09:41 UTC).",
-    "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result.",
+    "DIAG run (docs/methodology/hypotheses.md, diagnostics round 1): not a capacity result.",
     "DIAG ONLY: Kafka JMX port 9999 (thingsboard/diag/compose.diag-kafka-jmx.yaml) to read request metrics.",
     "DIAG observer run WITHOUT the sink path: 'bench sink' REST node removed from the root rule chain."
   ]

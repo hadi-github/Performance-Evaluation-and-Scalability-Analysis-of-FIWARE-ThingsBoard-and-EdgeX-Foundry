@@ -2,8 +2,8 @@
 # CPU boundary snapshot (cgroup v2): one line per running container of a compose project with its cumulative
 # CPU usage read directly from the kernel (cpu.stat usage_usec), plus the snapshot time. Two snapshots give the
 # exact CPU-seconds of each container over the interval: (usage_usec_end - usage_usec_start) / 1e6.
-# Used to validate the Prometheus/cAdvisor CPU series (docs/metrics-dictionary.md); the future controller's
-# boundary-snapshot interface is in docs/tooling-interfaces.md.
+# Used to validate the Prometheus/cAdvisor CPU series (docs/methodology/metrics-dictionary.md); the future controller's
+# boundary-snapshot interface is in docs/development/tooling-interfaces.md.
 # Columns: snapshot epoch s, container, id, usage_usec, StartedAt, cpuset.
 #   ./cpu-snapshot.sh <project: tb|fiware|edgex> > snap.tsv
 #   ./cpu-snapshot.sh <project> --loop [interval_s]   (append a snapshot every interval until killed)

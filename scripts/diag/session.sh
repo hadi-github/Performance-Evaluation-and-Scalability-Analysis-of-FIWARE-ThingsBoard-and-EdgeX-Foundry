@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnostics round 1 orchestration, run from the workstation (docs/hypotheses.md). One function per step; each
+# Diagnostics round 1 orchestration, run from the workstation (docs/methodology/hypotheses.md). One function per step; each
 # DIAG run = collectors on the SUT + scripts/run-with-sink.sh on the load host + SUT data copied next to the run.
 #
 #   scripts/diag/session.sh <function> [args]     e.g. scripts/diag/session.sh fiware_all

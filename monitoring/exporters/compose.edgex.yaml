@@ -1,4 +1,4 @@
-# EdgeX: PostgreSQL + NATS (monitoring port 8222 is enabled in edgex/compose.yaml). Joins edgex_edgex-network.
+# EdgeX: PostgreSQL + NATS (monitoring port 8222 is enabled in deploy/edgex/compose.yaml). Joins edgex_edgex-network.
 services:
   postgres-exporter:
     restart: unless-stopped

@@ -1128,7 +1128,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/tooling-interfaces.md`. Needs qualified database instrumentation."
+    "content": "**Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/development/tooling-interfaces.md`. Needs qualified database instrumentation."
    }
   },
   {
@@ -2316,7 +2316,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "Per-run generator health (drops, ticks, achieved rate, send-lag p99, early sends, record completeness) is computed **offline** from the run directory (`benchctl check`, `health.json`), and reconciliation by message ID is `benchctl reconcile`. Neither is in Prometheus. Raw records: `results/runs/<run_id>/` on ramonavm1.\n\n**Unavailable:** sink receipts, qualified cross-host clock offset, history audit. **Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/tooling-interfaces.md`."
+    "content": "Per-run generator health (drops, ticks, achieved rate, send-lag p99, early sends, record completeness) is computed **offline** from the run directory (`benchctl check`, `health.json`), and reconciliation by message ID is `benchctl reconcile`. Neither is in Prometheus. Raw records: `results/runs/<run_id>/` on ramonavm1.\n\n**Unavailable:** sink receipts, qualified cross-host clock offset, history audit. **Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is derived from other metrics. See `docs/development/tooling-interfaces.md`."
    }
   },
   {
@@ -2367,7 +2367,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "C_SLO, CPU per persisted message (U), reference overhead (O), scaling efficiency (E), headroom and overload/recovery are **not computed here**. They need complete runs, audits and the future controller/offline analysis (`docs/tooling-interfaces.md`). Peak instantaneous throughput on this dashboard is not a capacity."
+    "content": "C_SLO, CPU per persisted message (U), reference overhead (O), scaling efficiency (E), headroom and overload/recovery are **not computed here**. They need complete runs, audits and the future controller/offline analysis (`docs/development/tooling-interfaces.md`). Peak instantaneous throughput on this dashboard is not a capacity."
    }
   }
  ]

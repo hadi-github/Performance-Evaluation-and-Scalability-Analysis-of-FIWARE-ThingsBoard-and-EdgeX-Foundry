@@ -2,9 +2,9 @@
 """Non-destructive baseline evidence manifest (D33 / Prompt 4 deliverable 5).
 
 Reads results/** only. Never writes into results/. Produces:
-  docs/evidence-integrity-manifest.csv     one row per file with size and SHA-256
-  docs/evidence-integrity-manifest.md      per-run summary, gaps, reproduction notes
-  docs/evidence-integrity.sha256           sha256sum -c compatible list (repo-relative)
+  evidence/evidence-integrity-manifest.csv     one row per file with size and SHA-256
+  evidence/evidence-integrity-manifest.md      per-run summary, gaps, reproduction notes
+  evidence/evidence-integrity.sha256           sha256sum -c compatible list (repo-relative)
 
 Run from the repository root:  python3 scripts/evidence-manifest.py
 """
@@ -218,8 +218,8 @@ def main() -> int:
                 "was created, edited, moved or deleted.\n\n")
         f.write("This manifest lists the retained evidence needed to reproduce the exploratory and diagnostic "
                 "findings, its hashes, the run verdict and the related decisions. The machine-readable form is "
-                "`docs/evidence-integrity-manifest.csv`; the bulk-verification list is "
-                "`docs/evidence-integrity.sha256`.\n\n")
+                "`evidence/evidence-integrity-manifest.csv`; the bulk-verification list is "
+                "`evidence/evidence-integrity.sha256`.\n\n")
         f.write("## Totals\n\n")
         f.write(f"- Files: **{len(rows)}**\n- Bytes: **{total_bytes:,}** ({total_bytes/1024/1024:.1f} MiB)\n")
         f.write(f"- Runs with a `benchctl` manifest: **{len(manifest_runs)}** "
@@ -261,11 +261,11 @@ def main() -> int:
 
         f.write("## Reproduction map\n\n")
         f.write("| Finding | Primary evidence | Reproduce with |\n|---|---|---|\n")
-        f.write("| Diagnostics report (`docs/diagnostics.md`) | `results/diag/**` | `scripts/diag/report.py` "
+        f.write("| Diagnostics report (`docs/operations/diagnostics.md`) | `results/diag/**` | `scripts/diag/report.py` "
                 "(reproduces the report except the embedded commit) |\n")
-        f.write("| Exploratory capacity (`docs/exploratory-capacity.md`) | `results/exploratory/**` | "
+        f.write("| Exploratory capacity (`docs/methodology/exploratory-capacity.md`) | `results/exploratory/**` | "
                 "`benchctl explore` per run with its sink/history/CPU files |\n")
-        f.write("| Generator calibration (`docs/calibration.md`) | `results/feasibility/**` | Re-run the feasibility "
+        f.write("| Generator calibration (`docs/methodology/calibration.md`) | `results/feasibility/**` | Re-run the feasibility "
                 "cases; no manifest exists, so the raw files are the record |\n")
         f.write("| TB memory deviation (`EXPL-tb-k4b`) | `results/exploratory/EXPL-tb-k4b.amendment.json` + "
                 "`sut-logs/tb-prep.*` | Compare `tb-prep.log` memory check with the manifest |\n")
@@ -277,15 +277,15 @@ def main() -> int:
                 "The manifest is additive.\n")
         f.write(f"- Do **not** stage the {total_bytes/1024/1024:.0f} MiB of raw evidence in Git automatically. If an "
                 "archive is needed, create a tar outside the repository or a release asset, and verify it against "
-                "`docs/evidence-integrity.sha256`.\n")
+                "`evidence/evidence-integrity.sha256`.\n")
         f.write("- A pattern scan found no credential values in the scanned logs, but raw evidence is still not "
                 "automatically publishable; review before any external release.\n")
         f.write("- A fresh clone does not contain `results/**` (`.gitignore`), so the manifest proves integrity only "
                 "when the files are present.\n\n")
         f.write("## Verification\n\n")
-        f.write("```bash\nsha256sum -c docs/evidence-integrity.sha256\n```\n")
+        f.write("```bash\nsha256sum -c evidence/evidence-integrity.sha256\n```\n")
 
-    print(f"wrote docs/evidence-integrity-manifest.md, .csv ({len(rows)} files) and evidence-integrity.sha256")
+    print(f"wrote evidence/evidence-integrity-manifest.md, .csv ({len(rows)} files) and evidence-integrity.sha256")
     return 0
 
 

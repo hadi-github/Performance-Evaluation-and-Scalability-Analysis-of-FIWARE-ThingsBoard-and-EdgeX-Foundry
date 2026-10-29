@@ -1,4 +1,4 @@
-// Package explore applies the exploratory capacity check's pass rule (docs/exploratory-capacity.md), declared
+// Package explore applies the exploratory capacity check's pass rule (docs/methodology/exploratory-capacity.md), declared
 // before any data on 2026-10-22 and not to be changed after seeing results.
 //
 // A step PASSES when all of these hold:

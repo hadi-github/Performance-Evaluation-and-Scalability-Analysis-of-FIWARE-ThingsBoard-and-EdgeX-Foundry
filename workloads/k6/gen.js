@@ -4,13 +4,13 @@
 // Every step is one constant-arrival-rate scenario. Within step s, iteration i (exec.scenario.iterationInTest) is
 //   seq               = s.seq_offset + i
 //   scheduled_send_ms = (scenario start) + i * 1000 / s.tick_rate
-// That mapping is exact only while no iteration is dropped (docs/k6-feasibility.md); a run with
+// That mapping is exact only while no iteration is dropped (docs/methodology/k6-feasibility.md); a run with
 // dropped_iterations > 0 is therefore INVALID. One iteration = at most one HTTP request; no retries, no sleeps.
 //
 // Step boundary guard: the executor runs GUARD_S longer than the step, and only iterations i < ticks are sent;
 // later ones return immediately ("beyond plan"). Without the guard k6 ran rate x duration - 1 iterations in 1 of
 // 10 one-minute steps: the last tick's timer fired after the scenario deadline and was neither started nor counted
-// as dropped (docs/calibration.md). With it, the last planned tick is never near a deadline.
+// as dropped (docs/methodology/calibration.md). With it, the last planned tick is never near a deadline.
 //
 // Outputs (no per-message console logging for successes, no IDs in metric tags):
 //   - counters per step: attempted, ack_success, explicit_failure, unknown, early sends, beyond-plan, thinned ticks;
@@ -40,7 +40,7 @@ const EARLY_EVERY = cfg.test_faults.early_every || 0;
 const FULL_JSON = __ENV.FULL_JSON === '1';
 
 // ---- metrics, declared in the init context of every VU. Keep the number of metric objects small: k6 creates them
-// per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/calibration.md).
+// per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/methodology/calibration.md).
 const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown'];
 const M = cfg.steps.map((s) => {
   const c = (n) => new Counter('g_' + n + '_s' + s.index);

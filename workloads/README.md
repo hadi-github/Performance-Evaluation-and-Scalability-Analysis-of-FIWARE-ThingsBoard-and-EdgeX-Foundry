@@ -5,13 +5,21 @@ requests per second for `DURATION` (default 10 min, after a 1 min warm-up), howe
 answers. This is the difference from the reference JMeter plans, which are closed loops (`threads` × `loops`): there
 the rate is whatever the platform sustains, so slow platforms get less load.
 
+> **Status: legacy / exploratory harness.** The campaign-grade generator is `workloads/k6/gen.js` run through
+> `benchctl` (`docs/methodology/generator.md`) with the planned-time schedule, identity-based recording and
+> reconciliation gates. This first-generation harness checks dropped iterations, achieved rate and **counts**
+> (stored == sent) — it cannot exclude a missing identity offset by a duplicate, and the shared `seq`
+> (`legacy/sink.js`) is per-process, not a unique-identity guarantee. Runs made with it are
+> **exploratory** by policy (`docs/status.md` §2). Historical runs wrote `results/` relative to this directory;
+> future runs will be re-pointed at the repository-root `results/` on the integrity branch.
+
 They run on the load-generator host (ramonavm1) in Docker and stream their metrics to the local Prometheus
-(`../monitoring`).
+(`../../monitoring`).
 
 ```bash
-./run.sh fiware 200                 # 200 req/s for 10 min (+1 min warm-up), 100 devices
-./run.sh edgex 500 5m --devices 1000
-./run.sh thingsboard 100 10m --warmup 2m --n 1
+./legacy/run.sh fiware 200                 # 200 req/s for 10 min (+1 min warm-up), 100 devices
+./legacy/run.sh edgex 500 5m --devices 1000
+./legacy/run.sh thingsboard 100 10m --warmup 2m --n 1
 ```
 
 | Option | Default | Meaning |
@@ -75,8 +83,11 @@ load, and they are reported.
 ## Files
 
 ```
-run.sh              one benchmark cell (docker run grafana/k6 ... + SUT health check + Grafana annotation)
-lib/common.js       options/scenarios, device selection, sensor values, summary and verdict
-lib/k6-summary.js   local copy of jslib.k6.io/k6-summary 0.1.0 (the VMs cannot reach jslib.k6.io)
-thingsboard.js fiware.js edgex.js
+legacy/run.sh              one benchmark cell (docker run grafana/k6 ... + SUT health check + Grafana annotation)
+legacy/lib/common.js       options/scenarios, device selection, sensor values, summary and verdict
+legacy/lib/k6-summary.js   local copy of jslib.k6.io/k6-summary 0.1.0 (the VMs cannot reach jslib.k6.io)
+legacy/thingsboard.js legacy/fiware.js legacy/edgex.js
+legacy/sink.js             generator-only sink workload (ceiling steps; seq is per-process - see status note)
+k6/                        campaign-grade generator (gen.js + lib) run by benchctl
+plans/                     generator plans (smoke, calibration, Poisson, diag/expl)
 ```

@@ -1,4 +1,4 @@
-// benchctl runs and checks open-model generator runs (docs/generator.md).
+// benchctl runs and checks open-model generator runs (docs/methodology/generator.md).
 //
 //	benchctl resolve   -plan P [-run-id ID]                 print the resolved plan (explicit steps, seq offsets)
 //	benchctl run       -plan P [-results results] [-image I] [-cpuset 0-1] [-full-json] [-env K=V ...]
@@ -101,7 +101,7 @@ func main() {
 	sinkFile := fs.String("sink", "", "sink NDJSON (cmd/sink)")
 	cpuFile := fs.String("cpu", "", "CPU snapshot TSV (monitoring/exporters/cpu-snapshot.sh --loop)")
 	history := fs.String("history", "", "history export NDJSON (scripts/history-ids.sh)")
-	gate := fs.String("gate", "", "explore: setup gate JSON; pass=false makes the run INVALID (edgex/scripts/provision-then-scale.sh)")
+	gate := fs.String("gate", "", "explore: setup gate JSON; pass=false makes the run INVALID (deploy/edgex/scripts/provision-then-scale.sh)")
 	persist := fs.String("persist", "", "explore: cumulative stored-count series TSV (time_ms, count), e.g. scripts/persist-series.sh; adds verdict_persistence (D23)")
 	check := fs.String("check", "", "explore: post-run platform check JSON; defect=true makes the run FAIL (platform defect)")
 	auditOut := fs.String("out", "", "audit: write the JSON report here (stdout otherwise)")

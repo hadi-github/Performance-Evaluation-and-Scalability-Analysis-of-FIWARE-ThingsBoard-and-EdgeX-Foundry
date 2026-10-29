@@ -2,7 +2,7 @@
 # monitoring/exporters) and receives the k6 stream by remote write (benchctl run -prom-rw ...).
 # Only one platform runs at a time, so the exporters of the other two platforms are expected to be DOWN.
 #
-# Labels (docs/metrics-dictionary.md):
+# Labels (docs/methodology/metrics-dictionary.md):
 #   host      ramonavm1 | ramonavm2
 #   role      loadgen | sut | monitoring
 #   platform  thingsboard | fiware | edgex      (SUT containers; from the compose project)

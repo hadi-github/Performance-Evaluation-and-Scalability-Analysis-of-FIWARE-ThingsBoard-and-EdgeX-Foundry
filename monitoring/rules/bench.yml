@@ -1,4 +1,4 @@
-# Recording rules for the IoT benchmark (docs/metrics-dictionary.md). Each rule only renames or aggregates
+# Recording rules for the IoT benchmark (docs/methodology/metrics-dictionary.md). Each rule only renames or aggregates
 # validated series; nothing here computes a research result (capacity, CPU per persisted message, verdicts).
 groups:
   - name: sut-cpu

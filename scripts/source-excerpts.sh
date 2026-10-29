@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Regenerate docs/evidence/source-excerpts.md: the platform source lines cited in docs/diagnostics.md, fetched from
+# Regenerate evidence/source-excerpts.md: the platform source lines cited in docs/operations/diagnostics.md, fetched from
 # GitHub at the pinned tags (raw.githubusercontent.com). Each entry: repo@tag, path, line range, purpose.
-#   scripts/source-excerpts.sh > docs/evidence/source-excerpts.md
+#   scripts/source-excerpts.sh > evidence/source-excerpts.md
 set -euo pipefail
 cite() { # repo tag path from to purpose
   local repo=$1 tag=$2 path=$3 from=$4 to=$5 purpose=$6

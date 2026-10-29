@@ -1,5 +1,5 @@
 // fixture-target serves internal/fixture: a controllable endpoint with switchable, seq-keyed faults for
-// qualifying the load generator (docs/k6-feasibility.md, docs/generator.md). It exits non-zero if any record was
+// qualifying the load generator (docs/methodology/k6-feasibility.md, docs/methodology/generator.md). It exits non-zero if any record was
 // lost to buffer overflow.
 package main
 

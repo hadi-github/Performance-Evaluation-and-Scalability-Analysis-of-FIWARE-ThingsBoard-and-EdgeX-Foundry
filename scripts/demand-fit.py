@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression-based service demands from explore.json (docs/exploratory-capacity.md, "Service demands").
+"""Regression-based service demands from explore.json (docs/methodology/exploratory-capacity.md, "Service demands").
 
   scripts/demand-fit.py [--json] results/exploratory/<run> [...]
 

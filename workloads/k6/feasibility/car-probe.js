@@ -1,4 +1,4 @@
-// Feasibility probe A: what native k6 tells an iteration about its planned arrival (docs/k6-feasibility.md).
+// Feasibility probe A: what native k6 tells an iteration about its planned arrival (docs/methodology/k6-feasibility.md).
 // constant-arrival-rate, one request per iteration, no sleep. Every request carries what the iteration knows about
 // itself in X-Bench-* headers; the fixture target records them with its own receipt time.
 //

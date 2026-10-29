@@ -1,4 +1,4 @@
-// feasibility-analyze summarises one k6 feasibility case (docs/k6-feasibility.md): it joins the fixture target's
+// feasibility-analyze summarises one k6 feasibility case (docs/methodology/k6-feasibility.md): it joins the fixture target's
 // records with k6's JSON output and reports what the iterations' native identifiers say about the planned schedule.
 //
 //	feasibility-analyze -case results/feasibility/A0-baseline -rate 200 [-probe car|slot]

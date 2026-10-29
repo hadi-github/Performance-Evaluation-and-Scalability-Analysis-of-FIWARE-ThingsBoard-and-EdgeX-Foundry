@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarise a V8 .cpuprofile (scripts/diag/node-cpuprof.js) by module group (docs/hypotheses.md H-F5).
+"""Summarise a V8 .cpuprofile (scripts/diag/node-cpuprof.js) by module group (docs/methodology/hypotheses.md H-F5).
 
   scripts/diag/cpuprof-summary.py <file.cpuprofile> [--json]
 

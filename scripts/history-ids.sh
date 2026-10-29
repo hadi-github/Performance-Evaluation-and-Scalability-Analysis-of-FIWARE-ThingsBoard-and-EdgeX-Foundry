@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Export the message ids a platform stored in its history, as NDJSON {"run_id","seq"} for `benchctl reconcile
-# -store` and `benchctl explore -history` (docs/exploratory-capacity.md, "Reconciliation"). Run on the SUT.
+# -store` and `benchctl explore -history` (docs/methodology/exploratory-capacity.md, "Reconciliation"). Run on the SUT.
 #
 #   scripts/history-ids.sh thingsboard <run_id> > history.ndjson   ts_kv rows of key "seq" joined with key "run_id"
 #   scripts/history-ids.sh edgex <run_id> > history.ndjson         core-data readings, objectValue seq/run_id

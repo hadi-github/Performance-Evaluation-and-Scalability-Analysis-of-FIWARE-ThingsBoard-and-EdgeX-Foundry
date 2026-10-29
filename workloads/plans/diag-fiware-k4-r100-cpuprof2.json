@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "plan_id": "diag-fiware-k4-r100-cpuprof2",
-  "purpose": "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result. diag-fiware-k4-r100-cpuprof2: warm-up 120 s at 100, then 180 s at 100 msg/s.",
+  "purpose": "DIAG run (docs/methodology/hypotheses.md, diagnostics round 1): not a capacity result. diag-fiware-k4-r100-cpuprof2: warm-up 120 s at 100, then 180 s at 100 msg/s.",
   "pilot_only": true,
   "seed": 20261022,
   "adapter": "fiware",
@@ -50,7 +50,7 @@
   "deviations": [
     "Outbound delivery to the Go sink on ramonavm1 configured for the measurement (scripts/outbound.sh); setup, not tuning.",
     "1000 devices round-robin (one device's messages >= 1 s apart at 1000 msg/s).",
-    "DIAG run (docs/hypotheses.md, diagnostics round 1): not a capacity result.",
+    "DIAG run (docs/methodology/hypotheses.md, diagnostics round 1): not a capacity result.",
     "FIWARE: the benchmark waits 65 s after creating the Orion subscription (replicated Orion refreshes its subscription cache every 60 s, -subCacheIval default; scripts/outbound.sh). Source: fiware-orion 4.5.0 doc/manuals/admin/cli.md (-subCacheIval) and perf_tuning.md#subscription-cache.",
     "DIAG: V8 CPU profiler (inspector via SIGUSR1 sent from the host) on fiware-iot-agent-1 for 60 s at steady load (scripts/diag/node-cpuprof.js); retry of DIAG-fiware-k4-r100-cpuprof, whose image has no kill binary."
   ]

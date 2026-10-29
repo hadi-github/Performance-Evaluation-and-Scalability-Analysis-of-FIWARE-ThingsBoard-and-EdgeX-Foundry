@@ -6,8 +6,8 @@ Operational monitoring for the IoT benchmark. It shows what happens during a run
 - CPU accounting uses counter boundary snapshots;
 - figures are generated from `results/`.
 
-What each metric means and how far it is verified: `docs/metrics-dictionary.md`. Validation evidence:
-`MONITORING_FINDINGS.md`.
+What each metric means and how far it is verified: `docs/methodology/metrics-dictionary.md`. Validation evidence:
+`research/findings/monitoring-findings.md`.
 
 ```
 ramonavm1 (load host, 4 vCPU)                                    ramonavm2 (SUT, 8 vCPU)
@@ -54,7 +54,7 @@ produced in both cases.
 
 ## Images
 
-All images are pinned; their digests are recorded in `MONITORING_FINDINGS.md`.
+All images are pinned; their digests are recorded in `research/findings/monitoring-findings.md`.
 - Docker Hub images come through `docker.arvancloud.ir` on ramonavm1 and the Liara mirror on ramonavm2.
 - cAdvisor comes from `ghcr.io/google/cadvisor:v0.60.6`, because gcr.io answers 403 from Iran. ramonavm1 cannot
   reach ghcr.io at all, so its copy was transferred with `docker save | docker load` from ramonavm2 (same image id).
@@ -84,12 +84,12 @@ All images are pinned; their digests are recorded in `MONITORING_FINDINGS.md`.
 - **SUT exporters:** reachable only from ramonavm1 (`firewall.sh`: iptables INPUT for host-network node-exporter,
   DOCKER-USER for the published ports, re-applied after every Docker start by `iot-bench-firewall.service`).
 - **PostgreSQL exporters** use the platforms' `postgres` superuser (as configured by the stacks). A
-  least-privilege `pg_monitor` role is in the backlog (`docs/tooling-interfaces.md`).
+  least-privilege `pg_monitor` role is in the backlog (`docs/development/tooling-interfaces.md`).
 - **Privileged mounts:** cAdvisor runs privileged with read-only `/`, `/sys`, `/var/lib/docker` and `/dev/kmsg` (OOM
   events). node-exporter has the host root read-only. `container-info.sh` runs as root via a systemd timer and calls
   `docker inspect`.
 
-## Overhead (indicative, one matched pair: details in MONITORING_FINDINGS.md)
+## Overhead (indicative, one matched pair: details in research/findings/monitoring-findings.md)
 
 | What | Measured |
 |---|---|

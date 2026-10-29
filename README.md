@@ -19,7 +19,7 @@ first, not an argument.
 > `docs/archive/sessions/` and may contradict each other; `docs/status.md` wins.
 
 ```bash
-cd thingsboard && make install && make up N=2 && make smoke N=2    # example: the qualified TB level
+cd deploy/thingsboard && make install && make up N=2 && make smoke N=2    # example: the qualified TB level
 # cold start before the next benchmark cell ONLY, wipes all platform data — not part of normal startup:
 make clean
 make check N=2   # print the resource layout and refuse it if it does not fit the host (also run by `make up`)
@@ -43,17 +43,17 @@ The load generator and the monitoring stack run on **ramonavm1**, the platforms 
 
 ```bash
 # Example cell: the currently qualified ThingsBoard level (k=2 at 1280 MiB; owner decision O1–O5 pending)
-cd thingsboard && make install && make up N=2 && make smoke N=2
+cd deploy/thingsboard && make install && make up N=2 && make smoke N=2
 # FIWARE / EdgeX use the same rhythm; pick N within the platform's memory budget:
-cd fiware && make up N=1 && make smoke N=1
-cd edgex   && make build && make up N=1 && make smoke N=1
+cd deploy/fiware && make up N=1 && make smoke N=1
+cd deploy/edgex  && make build && make up N=1 && make smoke N=1
 # cold start before the next benchmark cell ONLY — wipes all platform data, not part of normal startup:
 make clean
 # SUT-side platform exporters
 cd monitoring/exporters && make up P=thingsboard
-# capacity statements come from the campaign-grade generator path (benchctl, see docs/generator.md);
-# workloads/run.sh is the legacy harness — its verdicts are exploratory by policy (docs/status.md §2)
-./workloads/run.sh thingsboard 200 10m
+# capacity statements come from the campaign-grade generator path (benchctl, see docs/methodology/generator.md);
+# workloads/legacy/run.sh is the legacy harness — its verdicts are exploratory by policy (docs/status.md §2)
+./workloads/legacy/run.sh thingsboard 200 10m
 ```
 
 See `workloads/README.md` (open workload model, options, what makes a run invalid) and `monitoring/README.md`
@@ -119,7 +119,7 @@ still reject the first requests for a few seconds; wait ~30 s after `make up` be
   recommended campaign max ≤ 1600), the FIWARE history pairing (Orion 4.5.0 → QL 1.0.0, 2048 MiB adopted) and the
   EdgeX disk+WAL method are live-verified — all as **qualification**, not campaign, evidence.
 - The main benchmark campaign is **not** executed; per-claim state, evidence and limitations:
-  [`docs/status.md`](docs/status.md) (authoritative), `docs/qualification-blockers.md` (row-level record).
+  [`docs/status.md`](docs/status.md) (authoritative), `docs/qualification/qualification-blockers.md` (row-level record).
 
 ## Known limitations / open decisions
 
@@ -143,20 +143,23 @@ scripts/lib.sh            shared smoke-test helpers (LB health table, env preced
 scripts/resources.mk      N -> platform pool cores; refuses N that does not fit
 scripts/check-resources.sh  memory budget + "every service pinned and limited" check
 scripts/pin-images.sh     resolve tags -> digests into compose.pinned.yaml
-<platform>/compose.yaml   the stack (header lists every deviation from the official compose)
-<platform>/.env.example   versions, resource layout, tuning knobs (copied to .env by make)
-<platform>/haproxy/       LB config
-<platform>/scripts/smoke.sh
-edgex/config/core-data.yaml   official core-data config + NATS QueueGroup
-fiware/mongo/init-indexes.js  entity indexes from Orion's perf-tuning guide
-thingsboard/tb-transports/    the HTTP transport image's own default config, mounted at /config
+deploy/<platform>/compose.yaml   the stack (header lists every deviation from the official compose)
+deploy/<platform>/.env.example   versions, resource layout, tuning knobs (copied to .env by make)
+deploy/<platform>/haproxy/       LB config
+deploy/<platform>/scripts/       smoke + provisioning helpers
+deploy/edgex/config/core-data.yaml   official core-data config + NATS QueueGroup
+deploy/fiware/mongo/init-indexes.js  entity indexes from Orion's perf-tuning guide
+deploy/thingsboard/tb-transports/    the HTTP transport image's own default config, mounted at /config
+deploy/fiware/fiware-history-candidate/  explicit EXPERIMENT: isolated FIWARE history tier (see docs/architecture/fiware-history-design.md)
 yaade/                    Yaade collections (provision → send → read back) and the scripts that build/run them
-workloads/k6/             open-model generator (gen.js + adapters) run by benchctl (docs/generator.md)
+workloads/k6/             open-model generator (gen.js + adapters) run by benchctl (docs/methodology/generator.md)
 workloads/plans/          generator plans (smoke, calibration, Poisson)
+workloads/legacy/         first-generation run.sh + *.js — exploratory harness, kept with documented limits
 cmd/, internal/           Go: benchctl, fixture-target, plan/runner/report/reconcile/arrivals
 tests/                    feasibility probes and Docker integration tests
-docs/                     k6-feasibility, generator, calibration, generator-status, design-decisions
-workloads/                (first-generation smoke workloads: run.sh + *.js, not confirmatory)
+docs/                     status (authoritative), architecture, methodology, qualification, operations, development, archive
+evidence/                 integrity manifests + sha256 list + source excerpts for results/**
+research/                 preregistration archive, protocols, findings
 monitoring/               Prometheus + Grafana (load generator) and monitoring/exporters (SUT)
 ```
 

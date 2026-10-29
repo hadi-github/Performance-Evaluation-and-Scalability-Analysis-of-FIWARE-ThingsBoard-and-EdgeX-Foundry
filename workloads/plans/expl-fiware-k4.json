@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "plan_id": "expl-fiware-k4",
-  "purpose": "Exploratory capacity check (fiware, k4): does the platform exceed 500 msg/s? Warm-up 120 s at 50, then 3-minute constant-rate steps; judged offline by benchctl explore with the rule declared in docs/exploratory-capacity.md. 1000 devices round-robin so one device's messages are >= 1 s apart at 1000 msg/s (ThingsBoard keys telemetry by device and arrival ms). Not a paper result.",
+  "purpose": "Exploratory capacity check (fiware, k4): does the platform exceed 500 msg/s? Warm-up 120 s at 50, then 3-minute constant-rate steps; judged offline by benchctl explore with the rule declared in docs/methodology/exploratory-capacity.md. 1000 devices round-robin so one device's messages are >= 1 s apart at 1000 msg/s (ThingsBoard keys telemetry by device and arrival ms). Not a paper result.",
   "pilot_only": true,
   "seed": 20261022,
   "adapter": "fiware",

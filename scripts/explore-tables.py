@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Markdown tables for docs/exploratory-capacity.md from results/exploratory/<run>/explore.json.
+"""Markdown tables for docs/methodology/exploratory-capacity.md from results/exploratory/<run>/explore.json.
 
   scripts/explore-tables.py results/exploratory/EXPL-edgex-k4 [...]
 

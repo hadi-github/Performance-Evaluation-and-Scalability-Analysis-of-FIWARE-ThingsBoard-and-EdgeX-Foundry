@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run one k6 feasibility case against the local fixture target (docs/k6-feasibility.md).
+# Run one k6 feasibility case against the local fixture target (docs/methodology/k6-feasibility.md).
 #
 #   tests/feasibility/run-case.sh <case-name> <probe.js> [KEY=VALUE ...]
 #

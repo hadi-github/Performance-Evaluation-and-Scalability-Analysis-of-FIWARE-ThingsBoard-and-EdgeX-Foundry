@@ -3,5 +3,5 @@
 # Usage: scripts/check-preregistration.sh
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
-cd "$here/docs/preregistration"
+cd "$here/research/preregistration/preregistration-archive"
 sha256sum -c SHA256SUMS

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-run every k6 feasibility case of docs/k6-feasibility.md and print the analyses (about 5 minutes).
+# Re-run every k6 feasibility case of docs/methodology/k6-feasibility.md and print the analyses (about 5 minutes).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 A=workloads/k6/feasibility/car-probe.js

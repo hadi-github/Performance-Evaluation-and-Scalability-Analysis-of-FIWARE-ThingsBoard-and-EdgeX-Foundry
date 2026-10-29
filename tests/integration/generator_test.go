@@ -1,5 +1,5 @@
 // Integration tests: the generator (real k6 in Docker, pinned image) against the in-process fixture endpoint with
-// deliberate faults. They prove that each fault is classified and flagged correctly (docs/generator.md, section 10).
+// deliberate faults. They prove that each fault is classified and flagged correctly (docs/methodology/generator.md, section 10).
 // They need Docker and take a few minutes:  go test ./tests/integration -v      (skipped with -short)
 package integration
 

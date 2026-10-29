@@ -1,0 +1,28 @@
+cff-version: 1.2.1
+title: "iot-bench-deploy: replica-scalable fixed-resource deploys and open-model benchmarking of FIWARE, EdgeX and ThingsBoard"
+message: >-
+  Benchmark tooling with exploratory (not campaign) qualification for three
+  self-hosted IoT platforms behind HAProxy on fixed-core, fixed-memory
+  budgets, plus an open-model (constant-arrival) k6 generator with
+  identity-based reconciliation gates.
+type: software
+authors:
+  - name: "IoT benchmark project (owner of record pending — see SECURITY.md)"
+version: "0.1.0-dev"
+date-released: "2026-10-29"
+license: "UNLICENSED"  # owner decision pending; see docs/status.md §7
+repository-code: "https://example.invalid/iot-bench-deploy"
+abstract: >-
+  One Docker Compose stack per IoT platform, identical shape
+  (HAProxy -> replicated tier(s) -> single stateful tier), scaling only the
+  replica count N within fixed per-instance memory and shared-core pools;
+  k6-based open-model load generation; per-run manifests, resource guards
+  and identity-based store reconciliation.
+keywords:
+  - iot
+  - benchmark
+  - fiware
+  - edgex
+  - thingsboard
+  - k6
+  - reproducibility

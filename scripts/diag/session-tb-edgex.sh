@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnostics round 1, ThingsBoard and EdgeX sessions (docs/hypotheses.md). Run from the workstation.
+# Diagnostics round 1, ThingsBoard and EdgeX sessions (docs/methodology/hypotheses.md). Run from the workstation.
 #   scripts/diag/session-tb-edgex.sh <function> [args]
 set -euo pipefail
 cd "$(dirname "$0")/../.."

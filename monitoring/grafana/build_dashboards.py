@@ -112,7 +112,7 @@ def layout(items):
 
 
 UNAVAILABLE = ("**Unavailable: producer not implemented yet.** This panel stays empty on purpose; nothing here is "
-               "derived from other metrics. See `docs/tooling-interfaces.md`.")
+               "derived from other metrics. See `docs/development/tooling-interfaces.md`.")
 
 
 def overview():
@@ -286,7 +286,7 @@ def overview():
                                                     "showTime": True, "navigateToPanel": False}},
         text("Derived research metrics", "C_SLO, CPU per persisted message (U), reference overhead (O), scaling "
              "efficiency (E), headroom and overload/recovery are **not computed here**. They need complete runs, "
-             "audits and the future controller/offline analysis (`docs/tooling-interfaces.md`). Peak instantaneous "
+             "audits and the future controller/offline analysis (`docs/development/tooling-interfaces.md`). Peak instantaneous "
              "throughput on this dashboard is not a capacity.", w=12, h=8),
     ]
     return {

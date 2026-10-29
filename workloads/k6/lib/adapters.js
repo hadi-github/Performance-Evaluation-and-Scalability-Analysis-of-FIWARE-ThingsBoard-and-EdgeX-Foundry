@@ -173,7 +173,7 @@ const edgex = {
     const meta = cfg.target.metadata_url + '/api/v3';
     const get = { tags: { name: 'setup' }, responseType: 'none' };
     // Existing profile/devices are reused, never re-posted: with several device-rest replicas, adding a device makes
-    // core-metadata panic (docs/findings/edgex-device-validation-panic.md), so provisioning happens before scaling
+    // core-metadata panic (research/findings/edgex-device-validation-panic.md), so provisioning happens before scaling
     // out (edgex/scripts/provision-then-scale.sh) and this setup then creates nothing.
     if (must(http.get(meta + '/deviceprofile/name/' + EDGEX_PROFILE, get), [200, 404], 'get device profile').status === 404) {
       const p = must(http.post(meta + '/deviceprofile', JSON.stringify([{ apiVersion: 'v3', profile: {

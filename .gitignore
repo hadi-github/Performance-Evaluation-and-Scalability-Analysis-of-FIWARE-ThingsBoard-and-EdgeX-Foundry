@@ -1,10 +1,12 @@
 .env
+deploy/*/.env
+
 # raw results stay out of git; amendment files next to runs are versioned (never edit raw results or manifests)
 results/**
 !results/**/
 !results/**/*.amendment.json
-workloads/# raw results stay out of git; amendment files next to runs are versioned (never edit raw results or manifests)
-results/**
-!results/**/
-!results/**/*.amendment.json
+workloads/**/results/
+
+# generated executables stay out of git
 bin/*
+!bin/.gitkeep

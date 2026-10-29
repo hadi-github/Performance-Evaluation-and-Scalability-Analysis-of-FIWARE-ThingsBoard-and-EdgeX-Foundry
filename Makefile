@@ -1,5 +1,5 @@
 # Monitoring commands (monitoring/README.md); they wrap scripts/monitoring.sh, which also works without make.
-# Platform stacks have their own Makefiles (fiware/, edgex/, thingsboard/).
+# Platform stacks have their own Makefiles (deploy/fiware/, deploy/edgex/, deploy/thingsboard/).
 P ?=
 
 .PHONY: monitoring-up monitoring-check monitoring-reload monitoring-down exporters-up exporters-down exporters-install dashboards

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diagnostics round 1: numbers for docs/diagnostics.md, computed from the raw files of DIAG runs.
+"""Diagnostics round 1: numbers for docs/operations/diagnostics.md, computed from the raw files of DIAG runs.
 
   scripts/diag/analyze.py <results/diag> <run_id> [...]     (on ramonavm1: Prometheus at 127.0.0.1:9090)
   scripts/diag/analyze.py <results/diag> --idle DIAG-tb-idle
