@@ -29,6 +29,7 @@ import (
 
 	"iotbench/internal/arrivals"
 	"iotbench/internal/audit"
+	"iotbench/internal/cpubound"
 	"iotbench/internal/diskmetrics"
 	"iotbench/internal/explore"
 	"iotbench/internal/fixture"
@@ -112,6 +113,13 @@ func main() {
 	node := fs.String("node", "", "resources: node-exporter instance label of the SUT (HOST:9100)")
 	pgCounters := fs.String("pg-counters", "", "resources: pg-counters.ndjson from the diagnostic overlay (optional)")
 	queryStep := fs.Int("query-step-s", 5, "resources: Prometheus query_range step in seconds")
+	cpuBefore := fs.String("before", "", "cpu: boundary snapshot TSV before the measurement interval (cpu-snapshot.sh)")
+	cpuAfter := fs.String("after", "", "cpu: boundary snapshot TSV after the measurement interval")
+	cpuMessages := fs.Int64("messages", 0, "cpu: explicit denominator count (required unless -audit supplies it)")
+	cpuMessagesDef := fs.String("messages-definition", "", "cpu: definition of the denominator, named verbatim (e.g. 'correctness-qualified identities, measured window')")
+	cpuMessagesSrc := fs.String("messages-source", "explicit", "cpu: source label for the denominator (e.g. 'explicit', 'benchctl audit -history')")
+	cpuAudit := fs.String("audit-file", "", "cpu: audit JSON whose correctness_qualified.identities is the denominator")
+	cpuNote := fs.String("note", "", "cpu: free-form note carried into the report")
 	var env multi
 	fs.Var(&env, "env", "KEY=VALUE passed to k6 (repeatable; names are recorded, values are not)")
 	_ = fs.Parse(args)
@@ -227,6 +235,8 @@ func main() {
 		runAudit(*dir, *sinkFile, *history, *auditOut, *deadline, *maxExamples, *strict)
 	case "resources":
 		runResources(*dir, *promQuery, *node, *pgCounters, *queryStep, *auditOut)
+	case "cpu":
+		runCPU(*cpuBefore, *cpuAfter, *auditOut, *cpuMessages, *cpuMessagesDef, *cpuMessagesSrc, *cpuAudit, *cpuNote)
 	default:
 		die(2, "unknown command %q", cmd)
 	}
@@ -251,6 +261,80 @@ func readStore(path string) ([]reconcile.Stored, error) {
 		out = append(out, reconcile.Stored{RunID: r.RunID, Seq: *r.Seq})
 	}
 	return out, nil
+}
+
+// runCPU builds the CPU-boundary artifact of the run bundle:
+//
+//	benchctl cpu -before before.tsv -after after.tsv [-audit audit.json | -messages N -messages-definition ...]
+//	[-out FILE] [-note ...]
+//
+// Snapshots come from monitoring/exporters/cpu-snapshot.sh run on the SUT immediately before and after the
+// measurement interval. The denominator is named explicitly (who supplies N and its definition); the per-message
+// cost is absent, not zero, whenever the counters or the denominator are unavailable.
+func runCPU(beforePath, afterPath, outPath string, messages int64, messagesDef, messagesSrc, auditPath, note string) {
+	if beforePath == "" || afterPath == "" {
+		die(2, "cpu: -before and -after snapshot files are required")
+	}
+	bf, err := os.Open(beforePath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	before, err := cpubound.Parse(bf)
+	bf.Close()
+	if err != nil {
+		die(2, "%s: %v", beforePath, err)
+	}
+	af, err := os.Open(afterPath)
+	if err != nil {
+		die(2, "%v", err)
+	}
+	after, err := cpubound.Parse(af)
+	af.Close()
+	if err != nil {
+		die(2, "%s: %v", afterPath, err)
+	}
+	var denom *cpubound.Denominator
+	switch {
+	case messages > 0:
+		denom = &cpubound.Denominator{Count: messages, Source: messagesSrc,
+			Definition: messagesDef, Present: true}
+	case auditPath != "":
+		b, err := os.ReadFile(auditPath)
+		if err != nil {
+			die(2, "%v", err)
+		}
+		var a struct {
+			Qualified *struct {
+				Identities int `json:"identities"`
+			} `json:"correctness_qualified"`
+		}
+		if err := json.Unmarshal(b, &a); err != nil {
+			die(2, "%s: %v", auditPath, err)
+		}
+		if a.Qualified == nil || a.Qualified.Identities <= 0 {
+			// unavailable stays unavailable: the cost claim does not get a made-up denominator
+			denom = &cpubound.Denominator{}
+			note += "; denominator from audit is unavailable"
+		} else {
+			denom = &cpubound.Denominator{Count: int64(a.Qualified.Identities), Source: auditPath,
+				Definition: "correctness-qualified identities (acknowledged AND at the sink AND retrievable from history, measured window)", Present: true}
+		}
+	}
+	rep := cpubound.Diff(before, after, denom, note)
+	out := os.Stdout
+	if outPath != "" {
+		f, err := os.Create(outPath)
+		if err != nil {
+			die(2, "%v", err)
+		}
+		defer f.Close()
+		out = f
+	}
+	enc := json.NewEncoder(out)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(rep); err != nil {
+		die(2, "%v", err)
+	}
 }
 
 // runAudit implements the measurement-integrity reconciliation selected on 2026-10-26 (D33). It never writes into

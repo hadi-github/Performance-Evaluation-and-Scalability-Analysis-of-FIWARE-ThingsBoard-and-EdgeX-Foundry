@@ -94,6 +94,29 @@ Interval CPU = Σ (end − start) / 1e6 over containers present at both edges wi
 `StartedAt`. If a container restarted or appeared or disappeared, the interval is **incomplete**: report it as such
 instead of a cost. Prometheus rate integrals are not a substitute: they were 9-38% low in validation.
 
+**Compute step (implemented 2026-10-29, `internal/cpubound` + `benchctl cpu`):**
+
+```bash
+# on the SUT, immediately before and after the measurement interval:
+monitoring/exporters/cpu-snapshot.sh <project> > cpu-before.tsv
+# ... measurement interval ...
+monitoring/exporters/cpu-snapshot.sh <project> >   cpu-after.tsv
+
+# on the analysis host, into the run bundle:
+bin/benchctl cpu -before cpu-before.tsv -after cpu-after.tsv \
+  [-audit-file <run>/audit.json | -messages N -messages-definition "..." \
+     -messages-source "explicit|benchctl audit -history"] -out <run>/cpu-boundary.json -note "..."
+```
+
+- `cpu-boundary.json` records per-container before/after `usage_usec`, container id, `StartedAt`, cpuset, the
+  interval delta (`cpu_seconds`), the aggregate `total_cpu_seconds`, and — only when all counters are `ok` and a
+  denominator is available — `total_cpu_seconds_per_message` with the denominator named (`denominator.source`,
+  `denominator.definition`, `denominator.count`).
+- Statuses `missing_before`/`missing_after`/`no_counter_before`/`no_counter_after`/`restarted`/`rewound` mark the
+  container unmeasured; the aggregate claim is withheld (`counters_ok: false`) and nothing is zero-filled. The
+  known-answer tests in `internal/cpubound/cpubound_test.go` cover exact deltas, restart, rewind, missing and NA
+  counters.
+
 ## Offline analysis
 - **Exists:** `benchctl explore` applies the declared pass rule and writes `explore.json` (capacity bracket,
   outstanding work, optional D23 persistence verdict); `scripts/explore-tables.py` renders the per-step tables and
