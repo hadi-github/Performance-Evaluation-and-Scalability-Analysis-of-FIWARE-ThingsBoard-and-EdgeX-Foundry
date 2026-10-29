@@ -1,0 +1,40 @@
+{
+ "op": "rehearsal-record",
+ "recorded": "2026-10-29",
+ "bundle": "results/rehearsals-20261029/ (SHAs in SHA256SUMS)",
+ "purpose": "end-to-end measurement-chain verification of the campaign-grade path (benchctl + workloads/k6/gen.js) on all three platforms at one low rate; bounded debug-scope rehearsals per the 2026-10-29 authorization, NOT campaign steps and NOT capacity results",
+ "commit_basis": {
+  "source_tree": "fix/qualification-integrity",
+  "benchctl_build": "commit 204d0c8b2ce380eb2715c8051a8ea9c890e50b60, built from the workstation checkout; deployed trees are /root/iot-bench-verify20261029 (SUT) and /root/iot-bench-verify20261029 (load host) with GIT_REV written"
+ },
+ "rehearsal_plans": ["workloads/plans/rehearsal-thingsboard-25.json", "workloads/plans/rehearsal-edgex-25.json", "workloads/plans/rehearsal-fiware-25.json"],
+ "runs": [
+  {"run_id": "REH-TB-V2", "platform": "thingsboard", "plan_vu_fix_note": "v1 run REH-TB-K2-25-20261029T1247Z INVALID in warm-up (12 dropped, p99 ack 3433 ms) with fixed pre-allocated 25 VUs; v2 raises warm-up VUs to 150 per the sizing rule; the INVALID v1 run is retained", "verdict": "VALID", "planned": 3300, "ack": 3300, "sink_unique": 3300, "history_unique": 3300, "dups_or_orphans": 0, "qualified_p99_ms": 242.4, "sut_state": "tb k=2, tb-core/tb-rule-engine 1280 MiB each (verified via docker inspect 1342177280 B), cpuset 4-5; haproxy/kafka/zookeeper/valkey/postgres up", "path": "gen.js -> HAProxy :8080 -> tb-http-transport -> tb-core -> rule chain 'bench sink' REST node -> load-host sink; history via ts_kv export"},
+  {"run_id": "REH-EDGEX-V1", "platform": "edgex", "verdict": "VALID", "planned": 3300, "ack": 3300, "sink_unique": 3300, "history_unique": 3300, "dups_or_orphans": 0, "qualified_p99_ms": 13.8, "sut_state": "edgex stack freshly started from stopped (volumes preserved), app-http-export profile only, LB_STATS_PORT=28404, SINK_URL=18091", "path": "gen.js -> HAProxy :59986 -> device-rest -> core-data -> configdb/app-http-export HTTPExport -> load-host sink"},
+  {"run_id": "REH-FIWARE-V4", "platform": "fiware", "verdict": "VALID", "planned": 3300, "ack": 3300, "sink_unique": 3300, "history_unique": 3300, "dups_or_orphans": 0, "qualified_p99_ms": 313.2, "sut_state": "fiware baseline stack started (1 replica, ports 1026/4041/7896, LB stats moved to 28405); fiwhc orion+quantumleap started 2026-10-29 (compose start, volumes preserved)", "path": "gen.js -> HAProxy :7896 -> IoT Agent UL -> Orion :1026 -> two Orion subscriptions: QuantumLeap 1.0.0 (fiwhc, :8668/v2/notify, normalized) and external sink (87.107.191.32:18091/fiware, keyValues)"}
+ ],
+ "diagnostic_failures_retained": [
+  "REH-TB-K2-25-20261029T1247Z (TB v1): warm-up step INVALID - dropped_iterations 12 with send_lag p99 1202 ms under 25 VUs during the platform's cold transient (ack p99 3433 ms at 10 r/s); offered-load defect, NOT a platform-capacity statement. The measurement-phase step was perfect (3000/3000).",
+  "A FIWARE attempt aborted by plan validation errors (target.south_url missing) and one aborted by DUPLICATE_GROUP 409 after a re-provisioning attempt of run id REH-FIWARE-V3; the orphan service group/devices of the aborted attempt were deleted from the IoT Agent registry (k6-created bench artifacts only), documented in the handoff."
+ ],
+ "integrity": {
+  "model": "planned -> ack -> sink -> history identity reconciliation via benchctl audit, exports via scripts/history-ids-audit.sh thingsboard|edgex and scripts/history-ids.sh fiware (all read-only)",
+  "unknown_outcomes": 0,
+  "explicit_failures": 0,
+  "duplicates_sink": 0,
+  "duplicates_history": 0,
+  "other_run_ids": 0,
+  "missing_run_id_rows": 0
+ },
+ "outcome_deadline_note": "sink receipts were first-receipt complete at drain (received 3300 == planned for every run); the drain deadline implied by scripts/run-with-sink.sh (30 s quiet window) sufficed; no message was outstanding at the deadline",
+ "monitoring": {
+  "dashboard": "iot-run-review UID integrated into the load-host Grafana dashboards directory (/root/iot-bench-deploy/monitoring/grafana/dashboards, provisioned path /var/lib/grafana/dashboards)",
+  "remote_write": "benchctl -prom-rw http://127.0.0.1:9090/api/v1/write succeeded for all three runs (Prometheus on the load host)",
+  "live_render_export": "phase 3 export of the REH-TB-V2 window attempted this session; see handoff for its state"
+ },
+ "scope_limits": [
+  "25 r/s only; every platform quote in this record is at this single low rate with a 2-minute measurement window, and none of it establishes capacity at 200 r/s or above",
+  "loopback concerns do not apply to the identity assertions, but the ack/latency percentiles are load-host clock recordings; cross-host timing remains unqualified (B11)",
+  "cgroup CPU boundary counters: SUT exporters (cpuset 0, cadvisor) were live and Prometheus has the series; the authoritative boundary-counter capture per run was not performed in this session and remains a rehearsal-bundle gap"
+ ]
+}

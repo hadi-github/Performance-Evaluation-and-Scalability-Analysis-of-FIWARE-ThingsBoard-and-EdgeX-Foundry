@@ -1,0 +1,79 @@
+{
+ "schema_version": 1,
+ "plan_id": "rehearsal-fiware-25",
+ "purpose": "Bounded end-to-end rehearsal through the intended full benchmark path (HAProxy + IoT Agent UL -> Orion -> [QL history candidate + external sink]). Reduced debug scope: warm-up 30 s at 10 msg/s, measurement 120 s at 25 msg/s. Not a capacity result.",
+ "pilot_only": true,
+ "seed": 20261029,
+ "adapter": "fiware",
+ "target": {
+  "base_url": "http://87.107.191.107:1026",
+  "north_url": "http://87.107.191.107:4041",
+  "south_url": "http://87.107.191.107:7896"
+ },
+ "devices": 100,
+ "request_timeout_ms": 5000,
+ "connection": {
+  "keep_alive": true
+ },
+ "arrivals": {
+  "model": "constant"
+ },
+ "vus": {
+  "pre_allocated": 50,
+  "max": 75
+ },
+ "schedule": {
+  "type": "steps",
+  "steps": [
+   {
+    "phase": "warmup",
+    "rate": 10,
+    "duration_s": 30,
+    "vus": 25
+   },
+   {
+    "phase": "sweep",
+    "rate": 25,
+    "duration_s": 120,
+    "vus": 50
+   }
+  ]
+ },
+ "health": {
+  "min_achieved_ratio": 0.99,
+  "send_lag_p99_ms": 10,
+  "early_tolerance_ms": 2,
+  "max_core_busy": 0
+ },
+ "histogram_ms": [
+  0,
+  1,
+  2,
+  3,
+  5,
+  7,
+  10,
+  15,
+  20,
+  30,
+  50,
+  75,
+  100,
+  150,
+  200,
+  300,
+  500,
+  750,
+  1000,
+  2000,
+  5000,
+  10000
+ ],
+ "cleanup": false,
+ "test_faults": {},
+ "deviations": [
+  "Bounded rehearsal: durations far below the campaign protocol by explicit debug-scope decision.",
+  "UL path exercised in full: generator -> HAProxy -> IoT Agent -> Orion -> QuantumLeap history + external sink notifications.",
+  "Orion containers keep latest values only; exact identity accounting comes from the QuantumLeap/Timescale export and the sink, per the measurement-integrity doc."
+ ]
+}

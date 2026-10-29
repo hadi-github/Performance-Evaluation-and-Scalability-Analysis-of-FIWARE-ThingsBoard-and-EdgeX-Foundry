@@ -24,8 +24,8 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 | B2 | Deploy (FIWARE) | CLAIM-READY | Four-payload probe + duplicate/same-timestamp behaviour reproduced on the isolated candidate (`fiwhc`), QL 1.0.0. Rerun probe if any pinned image changes. |
 | B3 | Deploy (FIWARE) | CLAIM-READY | Orion 4.5.0 → QL 1.0.0 end-to-end live pairing (10/10 labelled; deliberate drop preserved). One live low-rate pairing only; upstream-tested range still ends at 3.3.1. |
 | B4 | Deploy (FIWARE) | ADOPTED | 2,048 MiB history tier adopted by the owner 2026-10-29; 3,001/3,001 identities live at 50 r/s (`results/auto-20261029/fiware/`). **Open: adequacy above 50 r/s.** |
-| B5 | Claim/Smoke (FIWARE) | CLAIM-READY (store-side) | `history-ids.sh fiware` implemented + live-replayed 24 identities incl. deliberate drop/restart. **Open: exercise through the full-stack (IoT-Agent) path.** |
-| B6 | Run (ThingsBoard) | PENDING-OWNER | 1280 MiB qualified under load: 50 + 200 r/s VALID ×2, 400 r/s INVALID at k=2; memory 76–79%; k=4 overflow 1,280 MiB. Owner options O1–O5 recorded; O4 (cap k=3) is the measured-consistent choice. Nothing runs further until the owner records the k decision. |
+| B5 | Claim/Smoke (FIWARE) | CLOSED (rehearsal scope) | 2026-10-29 rehearsal `REH-FIWARE-V4` exercised the **full-stack path** (HAProxy → IoT Agent UL → Orion → QL/Timescale candidate + external sink): 3,000/3,000 measurement identities reconciled with 0 missing/dups/unrecoverable at 25 r/s (`results/rehearsals-20261029/`). Store-side results remain scoped to that rehearsal rate; above 50 r/s still open. |
+| B6 | Run (ThingsBoard) | ADOPTED (2026-10-29) | 1280 MiB qualified under load: 50 + 200 r/s VALID ×2, 400 r/s INVALID at k=2. The owner's k decision was recorded on 2026-10-29 per the working authorization: **application CPU budgets k ∈ {1,2,3}, actual replica counts recorded per run**, consistent with option O4. |
 | B7 | Deploy (TB) | CLOSED (except probe) | Config/entrypoint/JVM/log isolation live-verified 2026-10-27. Remaining: intentional isolated OOM probe on a disposable container (needs authorization). |
 | B8 | Claim/Run (FIWARE index) | OPEN | Live read-only audit 2026-10-27 found the registry **empty at rest** — duplicate detection logic has not surfaced on *populated* data through the device index. The 2026-10-29 populated identity reconciliations (3,001 FIWARE history rows; 600 EdgeX readings) went through the history exports, **not** the device-index duplicate audit. To-clear stands: repeat the live audit on a populated registry. |
 | B9 | Claim (EdgeX disk+WAL) | CLOSED | Disk 2026-10-28, **WAL 2026-10-29**: benchctl vs independent recomputation match to 4+ decimals via the DIAG-only postgres overlay (`results/auto-20261029/wal/`, commit `a51fcc1`). Benchmark config stays the plain compose. |
@@ -40,7 +40,11 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 
 The per-row blocker text, evidence and history remain in `docs/qualification/qualification-blockers.md` (2026-10-27 basis,
 maintained through 2026-10-29). This section reconciles it against the 2026-10-29 correction; rows above carry
-the reconciled wording.
+the reconciled wording. **2026-10-29 addition:** the D33 measurement-integrity components (identity/audit chain,
+D33 items 1–7) were live-validated for the first time in the bounded rehearsals on all three platforms —
+`results/rehearsals-20261029/` (TS `REH-TB-V2`, `REH-EDGEX-V1`, `REH-FIWARE-V4`, each 3,300/3,300 identities
+ack → sink → history with 0 duplicates/orphans/malformed; session close-out
+`docs/archive/sessions/verify-20261029.md`).
 
 ---
 
@@ -77,16 +81,15 @@ B8’s to-clear condition (“live audit when a registry holds provisioned data�
 *populated* reconciliations (2026-10-29) exercise the **history exports**, not the device-index duplicate audit.
 Do not mark B8 closed on the strength of §4’s populated-data runs.
 
-### 3.3 The 200 r/s confirm latency — unit conflict, **unresolved**
-`results/auto-20261029/ceiling/all-summaries.txt:24` reports `p99=1.469761` (and `p95=0.997103`) for
-`thingsboard-n1-r200-20261027T233211Z`; the archived progress report states **1,469.8 ms**. K6 `http_req_duration`
-trend values are milliseconds, and every other run in the same combined summary is consistent in ms
-(gen rows 0.70–82 ms; TB r50/r100/r200-first/r400 66–10010 ms) — the confirm row is the sole outlier, so a
-seconds-vs-milliseconds reporting defect in whatever produced that run is suspected. The repository contains only
-the combined summary for these runs; the per-run `summary.json`/`manifest.json` remain on the load host under
-`/root/iot-bench-cand-auto20261027/workloads/results/`. **Until those originals are fetched and checked, the value
-is published nowhere and no latency statement at 200 r/s beyond the first pass (p95 ≈ 230 ms, p99 ≈ 330 ms) is
-made.** The “p99 1.47 s, variability is real” and the VU-sizing lesson derived from it are provisional (§4).
+### 3.3 The 200 r/s confirm latency — **RESOLVED 2026-10-29 (unit misreading)**
+The per-run originals were fetched from the load host (`results/auto-20261029/per-run-originals/`,
+bag SHA-256 `99c74f56…`; amendment `latency-unit-resolution.amendment.json`). The value `p(99)=1.469761`
+in `thingsboard-n1-r200-20261027T233211Z/summary.json` is **milliseconds** and belongs to a run whose
+steady phase had `error_rate = 1.0` (every request failed) — it is the latency profile of the failing
+requests (max 18.7 ms), **not** a 1.47 s service latency. The archived "1,469.8 ms" narrative was a
+unit misreading of that figure. The healthy 200 r/s confirm runs (`…T232557Z`, `…T232253Z`) report
+p95 230.3 / 291.9 ms, p99 330.0 / 415.2 ms, consistent with the first-pass quote; historical raw
+evidence was not edited.
 
 ### 3.4 “Platform bottleneck above 200 r/s” — attribution withdrawn
 The 400 r/s run (p95 = the 10 s timeout, 6,465 dropped) is **INVALID and cannot establish the service-SLO
@@ -148,7 +151,18 @@ any latency above 50 r/s is quoted (§3.3).
 
 ## 7. Owner inputs still owed
 
-1. Per-run summaries/manifests from the load host (§4) — needed for §3.3 and the ceiling record.
-2. The B6 k decision (O1–O5; O4 is the measured-consistent choice).
+1. ~~Per-run summaries/manifests from the load host (§4)~~ — **fetched 2026-10-29** and archived under
+   `results/auto-20261029/per-run-originals/` (§3.3 closed; §4's "Known incompleteness" resolved).
+2. ~~The B6 k decision (O1–O5)~~ — **recorded 2026-10-29** per the working authorization: k ∈ {1,2,3}, actual replica counts recorded per run.
 3. Target external research-archive location/CID range for the evidence bundles.
 4. Licence + citation metadata decision (LICENSE/CITATION.cff are owner content, not agent-generated).
+
+## 8. Remaining technical blockers (session verify-20261029)
+
+1. Live Grafana PNG/HTML export of a rehearsal window (matplotlib unavailable on all three hosts;
+   fixture-validated only — next action: obtain matplotlib or render via Grafana image-render).
+2. 400/s generator/receiver qualification with the real benchmark configuration (monitoring + recording
+   enabled) — the remaining precondition for the 200/s campaign ceiling claim (B10).
+3. CPU-boundary cgroup counter capture at measurement boundaries in the rehearsal bundle format
+   (exporters live; capture procedure pending a qualifying run).
+4. SLO profiles pending (owner) — no thresholds are invented in the meantime; verification continues.
