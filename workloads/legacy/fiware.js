@@ -1,6 +1,6 @@
 // FIWARE workload: IoT Agent UltraLight 2.0 over HTTP -> Orion -> MongoDB.
 // setup:    one service group (API key) + DEVICES devices (batch provisioning on the IoT Agent north port 4041)
-// iteration: POST :7896/iot/d?k=<apikey>&i=<device>  body "t|<int>|h|<int>|p|<int>"
+// iteration: POST :7896/iot/d?k=<apikey>&i=<device>  body "t|<int>|h|<int>|p|<int>|run_id|<testid>|seq|<n>"
 // teardown: verify that every device's entity was updated during the run (Orion keeps only the latest value, so an
 //           exact stored==sent count is impossible), then delete devices, entities and the service group.
 import http from 'k6/http';
@@ -44,6 +44,10 @@ export function setup() {
         { object_id: 't', name: 'temperature', type: 'Integer' },
         { object_id: 'h', name: 'humidity', type: 'Integer' },
         { object_id: 'p', name: 'pressure', type: 'Integer' },
+        // identity attributes: (run_id, seq) reconcile the store via scripts/history-ids-audit.sh fiware
+        // (SUT side, QL/Timescale candidate) instead of count-only verification
+        { object_id: 'run_id', name: 'run_id', type: 'Text' },
+        { object_id: 'seq', name: 'seq', type: 'Number' },
       ],
     }));
     must(http.post(NORTH + '/iot/devices', JSON.stringify({ devices }),
@@ -56,8 +60,10 @@ export function setup() {
 export default function (data) {
   const id = data.ids[deviceIndex()];
   const s = sensor();
+  // seq is unique across the whole test (shared counter over all VUs/scenarios, incl. warmup)
+  const seq = exec.scenario.iterationInTest;
   const res = http.post(SOUTH + '/iot/d?k=' + data.apikey + '&i=' + id,
-    't|' + s.temperature + '|h|' + s.humidity + '|p|' + s.pressure,
+    't|' + s.temperature + '|h|' + s.humidity + '|p|' + s.pressure + '|run_id|' + cfg.testid + '|seq|' + seq,
     { headers: { 'Content-Type': 'text/plain' }, tags: { name: 'send' }, timeout: cfg.timeout, responseType: 'none' });
   if (check(res, { 'status is 200': (r) => r.status === 200 })) sentOk.add(1);
 }

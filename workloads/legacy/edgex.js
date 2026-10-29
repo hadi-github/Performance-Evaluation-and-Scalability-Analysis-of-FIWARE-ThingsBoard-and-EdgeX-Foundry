@@ -35,6 +35,10 @@ function items(res, ok, what) {
 }
 
 function send(dev, value, tags) {
+  // count-based ledger only: device-rest carries one Int64 per request, so no (run_id, seq) identity is
+  // transportable here — a duplicate can offset a loss in the stored==sent check. Identity-based reconciliation
+  // for EdgeX requires the campaign-grade generator (workloads/k6/gen.js EDGEX_PROFILE), whose objectValue
+  // reading carries seq/run_id (scripts/history-ids-audit.sh edgex).
   return http.post(REST + '/resource/' + dev + '/temperature', String(value),
     { headers: { 'Content-Type': 'text/plain' }, tags, timeout: cfg.timeout, responseType: 'none' });
 }

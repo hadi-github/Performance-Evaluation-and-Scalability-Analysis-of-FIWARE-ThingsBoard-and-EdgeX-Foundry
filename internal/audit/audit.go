@@ -56,17 +56,18 @@ type Planned struct {
 
 // SetSummary is the accounting at one observation point.
 type SetSummary struct {
-	Available       bool    `json:"available"`
-	Unique          int     `json:"unique_identities"`
-	Missing         int     `json:"missing_acknowledged"`
-	MissingSeqs     []int64 `json:"missing_seqs,omitempty"`
-	DuplicateSeqs   int     `json:"sequences_with_extra_copies"`
-	DuplicateCopies int     `json:"extra_copies"`
-	Duplicates      []int64 `json:"duplicate_seqs,omitempty"`
-	Orphans         int     `json:"orphan_identities"`
-	OrphanSeqs      []int64 `json:"orphan_seqs,omitempty"`
-	OtherRunIDs     int     `json:"identities_with_other_run_id"`
-	Ambiguous       []int64 `json:"ambiguous_outcome_but_observed,omitempty"`
+	Available           bool    `json:"available"`
+	Unique              int     `json:"unique_identities"`
+	Missing             int     `json:"missing_acknowledged"`
+	MissingSeqs         []int64 `json:"missing_seqs,omitempty"`
+	DuplicateSeqs       int     `json:"sequences_with_extra_copies"`
+	DuplicateCopies     int     `json:"extra_copies"`
+	Duplicates          []int64 `json:"duplicate_seqs,omitempty"`
+	Orphans             int     `json:"orphan_identities"`
+	OrphanSeqs          []int64 `json:"orphan_seqs,omitempty"`
+	OtherRunIDs         int     `json:"identities_with_other_run_id"`
+	MalformedIdentities int     `json:"identities_with_missing_run_id"` // rows whose identity is absent; unaccountable
+	Ambiguous           []int64 `json:"ambiguous_outcome_but_observed,omitempty"`
 }
 
 // StepQualified is the correctness-qualified accounting for one plan step. A sweep's aggregate quantiles mix
@@ -251,6 +252,10 @@ func Analyse(r *plan.Resolved, sum *report.Summary, records []report.Record, sin
 	sinkFirst := map[int64]float64{}
 	sinkCopies := map[int64]int{}
 	for _, s := range sink {
+		if s.RunID == "" {
+			res.Sink.MalformedIdentities++
+			continue
+		}
 		if s.RunID != r.RunID {
 			res.Sink.OtherRunIDs++
 			continue
@@ -284,6 +289,10 @@ func Analyse(r *plan.Resolved, sum *report.Summary, records []report.Record, sin
 	histCopies := map[int64]int{}
 	if hasHistory {
 		for _, h := range history {
+			if h.RunID == "" {
+				res.History.MalformedIdentities++
+				continue
+			}
 			if h.RunID != r.RunID {
 				res.History.OtherRunIDs++
 				continue

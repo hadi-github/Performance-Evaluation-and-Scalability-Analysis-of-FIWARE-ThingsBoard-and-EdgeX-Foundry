@@ -20,5 +20,8 @@ for _ in $(seq 1 90); do
   [ $same -ge 3 ] && break; sleep 10
 done
 echo "sink drain: received $n, stopped $(date -u +%T)" >> "$RES/$ID.run.txt"
+# preserve the sink's own counters in the run evidence: recording loss (overflow) and unparsable
+# deliveries must stay visible to the run audit, not just in the console
+scripts/sink.sh status > "$RES/$ID.sink-metrics.txt" 2>&1 || true
 scripts/sink.sh stop
 echo "$ID" > /root/run.done

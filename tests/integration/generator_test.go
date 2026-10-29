@@ -265,6 +265,56 @@ func TestDuplicateSeqIsDetectedDownstream(t *testing.T) {
 	}
 }
 
+// One deliberately missing delivery (200 to the generator, never stored), offset by one duplicate: stored
+// counts stay EQUAL while identities differ. Equal row counts must never pass for identity equality.
+func TestMissingDeliveryOffsetByDuplicateKeepsCountsEqualButNotClean(t *testing.T) {
+	needDocker(t)
+	tg := startFixture(t, fixture.Config{DropSeqs: []int64{7}})
+	p := basePlan(tg.url, 100, 3)
+	p.TestFaults.DuplicateSeqs = []int64{42}
+	d, m := run(t, p, "")
+	st := tg.stop(t)
+	if m.Verdict != "VALID" {
+		t.Fatalf("verdict: %v", m.Health.Reasons)
+	}
+	res, err := reconcile.Run(d, st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StoredUnique+res.DuplicateCopies != res.Planned || res.StoredUnique != res.Planned-1 {
+		t.Fatalf("fixture must keep stored ROW counts equal to planned (%d rows vs %d planned, %d unique)",
+			res.StoredUnique+res.DuplicateCopies, res.Planned, res.StoredUnique)
+	}
+	if len(res.AckLost) != 1 || res.AckLost[0] != 7 || len(res.Duplicates) != 1 || res.Duplicates[0] != 42 || res.Clean {
+		t.Fatalf("reconcile: %+v", res)
+	}
+}
+
+// Every n-th stored row loses its run_id: the row exists, the identity does not. It must stay in its own
+// unaccountable category and must not be reported as a lost message.
+func TestMalformedIdentityIsStoredButUnaccountable(t *testing.T) {
+	needDocker(t)
+	tg := startFixture(t, fixture.Config{MalformedEvery: 50})
+	d, m := run(t, basePlan(tg.url, 100, 4), "")
+	st := tg.stop(t)
+	if m.Verdict != "VALID" {
+		t.Fatalf("verdict: %v", m.Health.Reasons)
+	}
+	res, err := reconcile.Run(d, st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.MalformedIdentities) != 8 { // seqs 0,50,...,350 of 400
+		t.Fatalf("want 8 malformed-identity rows, got %+v", res.MalformedIdentities)
+	}
+	if len(res.AckLost) != 0 || res.Clean {
+		t.Fatalf("malformed rows must be reattributed, not counted as ack-lost: %+v", res)
+	}
+	if res.StoredUnique != 392 { // 400 minus the 8 unidentifiable rows
+		t.Fatalf("stored unique %d", res.StoredUnique)
+	}
+}
+
 func TestEarlySendIsInvalid(t *testing.T) {
 	needDocker(t)
 	tg := startFixture(t, fixture.Config{})

@@ -10,18 +10,20 @@
 // dropped_iterations and the achieved/offered ratio are the schedule-integrity gates.
 import http from 'k6/http';
 import { check } from 'k6/metrics';
+import exec from 'k6/execution';
 import { cfg, makeOptions, makeSummary, sentOk } from './lib/common.js';
 
 const SINK = __ENV.SINK_URL || 'http://127.0.0.1:18090';
 const JSON_HDR = { headers: { 'Content-Type': 'application/json' }, tags: { name: 'send' } };
 
-let seq = 0;
-
 export const options = makeOptions();
 
 export default function () {
-  // one labelled message per arrival, round-robin over a synthetic device space
-  seq = seq + 1;
+  // one labelled message per arrival, round-robin over a synthetic device space.
+  // The identity is (run_id, seq) with seq unique across the whole test (shared counter over all VUs and
+  // scenarios, incl. warmup), so the sink's duplicate detection keys on real message identities, and stored
+  // counts can exclude a missing message being offset by a duplicate.
+  const seq = exec.scenario.iterationInTest;
   const res = http.post(SINK + '/sinkgen',
     JSON.stringify({ run_id: cfg.testid, seq: seq, device: 'gen-' + (seq % 100), ts: Date.now() }),
     { headers: JSON_HDR.headers, tags: { name: 'send' }, timeout: cfg.timeout, responseType: 'none' });
@@ -29,7 +31,7 @@ export default function () {
 }
 
 export function handleSummary(data) {
-  // reuse the shared summary shape (valid/invalid_reasons incl. dropped iterations + achieved rate)
+  // reuse the shared summary shape (valid/invalid_reasons incl. dropped iterations + achieved rate);
+  // makeSummary writes summary.json/k6-summary.json/summary.txt itself
   return makeSummary(data, "skipped"); // no platform-side verify: the sink counters are the record gate
-  return { 'summary.json': JSON.stringify(summary, null, 2) };
 }

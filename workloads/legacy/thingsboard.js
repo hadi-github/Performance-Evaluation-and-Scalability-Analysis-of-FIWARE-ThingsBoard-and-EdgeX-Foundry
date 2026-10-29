@@ -50,7 +50,15 @@ export function setup() {
 
 export default function (data) {
   const d = data.devices[deviceIndex()];
-  const res = http.post(BASE + '/api/v1/' + d.token + '/telemetry', JSON.stringify(sensor()),
+  // Identity attributes on every message: (testid, iterationInTest) is unique across all VUs and scenarios
+  // (incl. warmup), so the store-side export (scripts/history-ids-audit.sh thingsboard <testid>, run on the SUT)
+  // reconciles identity sets, not only counts — a missing message can no longer be offset by a duplicate.
+  // Same-millisecond collisions still overwrite (TB stamps ts on arrival); the export reports them as missing.
+  const seq = exec.scenario.iterationInTest;
+  const body = sensor();
+  body.run_id = cfg.testid;
+  body.seq = seq;
+  const res = http.post(BASE + '/api/v1/' + d.token + '/telemetry', JSON.stringify(body),
     { headers: JSON_HDR, tags: { name: 'send' }, timeout: cfg.timeout, responseType: 'none' });
   if (check(res, { 'status is 200': (r) => r.status === 200 })) sentOk.add(1);
 }

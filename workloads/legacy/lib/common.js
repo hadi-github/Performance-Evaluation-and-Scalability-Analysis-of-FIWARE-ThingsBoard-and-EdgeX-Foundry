@@ -111,6 +111,7 @@ function metric(data, name, stat) {
 
 export function makeSummary(data, verifyKind) {
   const steadyS = seconds(cfg.duration);
+  const warmupS = seconds(cfg.warmup);
   const steadyReqs = metric(data, 'http_reqs{scenario:steady}', 'count');
   const achieved = steadyS > 0 ? steadyReqs / steadyS : 0;
   const dropped = metric(data, 'dropped_iterations', 'count');
@@ -144,7 +145,11 @@ export function makeSummary(data, verifyKind) {
     target_rate: cfg.rate,
     steady_duration_s: steadyS,
     warmup: cfg.warmup,
+    warmup_s: warmupS,
     devices: cfg.devices,
+    // the executor schedules rate x duration arrivals in the steady phase (and the same in warmup);
+    // dropped_iterations + the achieved-rate check verify that the planned schedule was delivered
+    planned_arrivals: Math.round((steadyS + warmupS) * cfg.rate),
     valid: invalid.length === 0,
     invalid_reasons: invalid,
     findings,
@@ -152,6 +157,8 @@ export function makeSummary(data, verifyKind) {
       requests: steadyReqs,
       achieved_rate: Number(achieved.toFixed(3)),
       error_rate: steadyFailRate,
+      // k6 http_req_duration trend values are milliseconds; keep the unit explicit at every level
+      latency_unit: 'ms',
       latency_ms: data.metrics['http_req_duration{scenario:steady}']
         ? data.metrics['http_req_duration{scenario:steady}'].values : {},
     },
@@ -164,7 +171,9 @@ export function makeSummary(data, verifyKind) {
   const verdict = '\n==== ' + cfg.testid + ': ' + (result.valid ? 'VALID' : 'INVALID') + ' run ====\n'
     + 'steady: ' + steadyReqs + ' requests, ' + achieved.toFixed(2) + ' req/s (target ' + cfg.rate + '), errors '
     + (steadyFailRate * 100).toFixed(3) + '%, p95 '
-    + (result.steady.latency_ms['p(95)'] || 0).toFixed(1) + ' ms\n'
+    + (result.steady.latency_ms['p(95)'] || 0).toFixed(1) + ' ms, p99 '
+    + (result.steady.latency_ms['p(99)'] || 0).toFixed(1) + ' ms (latency unit: ms)\n'
+    + 'planned arrivals (steady+warmup): ' + Math.round((steadyS + warmupS) * cfg.rate) + '\n'
     + 'verification: ' + verification + '\n'
     + (invalid.length ? 'INVALID because: ' + invalid.join('; ') + '\n' : '')
     + (findings.length ? 'findings: ' + findings.join('; ') + '\n' : '');

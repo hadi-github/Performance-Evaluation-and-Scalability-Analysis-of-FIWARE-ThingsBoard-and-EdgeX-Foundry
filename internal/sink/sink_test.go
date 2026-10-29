@@ -3,6 +3,7 @@ package sink
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -46,6 +47,35 @@ func TestExtractPlatformBodies(t *testing.T) {
 				t.Fatalf("%s: missing %v in %v", name, w, got)
 			}
 		}
+	}
+}
+
+// Buffer overflow must never pass silently: with a bounded buffer and no drain, excess records are
+// counted as overflow, every record still observes "received", and the counter is exact.
+func TestServerBufferOverflowIsCountedNotSilent(t *testing.T) {
+	// Same construction as New, but with no writer goroutine: the buffer cannot drain, which makes the
+	// overflow path deterministic (New's writer drains concurrently in production).
+	s := &Server{records: make(chan Record, 1), done: make(chan struct{}), seen: map[string]struct{}{}}
+	srv := httptest.NewServer(s)
+	for i := int64(1); i <= 5; i++ {
+		res, err := http.Post(srv.URL+"/tb", "application/json",
+			strings.NewReader(fmt.Sprintf(`{"run_id":"r","seq":%d}`, i)))
+		if err != nil || res.StatusCode != 200 {
+			t.Fatalf("post %d: %v %v", i, err, res)
+		}
+		res.Body.Close()
+	}
+	srv.Close()
+	if got := s.Overflow(); got != 4 { // capacity 1, five posted: one buffered, four dropped
+		t.Fatalf("overflow=%d, want 4", got)
+	}
+	if s.Received() != 5 || s.dups.Load() != 0 {
+		t.Fatalf("received=%d dups=%d, want 5/0", s.Received(), s.dups.Load())
+	}
+	// drain what was kept
+	close(s.records)
+	for len(s.records) > 0 {
+		_ = <-s.records
 	}
 }
 

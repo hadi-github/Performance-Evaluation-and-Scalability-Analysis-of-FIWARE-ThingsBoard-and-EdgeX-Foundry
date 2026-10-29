@@ -5,13 +5,19 @@ requests per second for `DURATION` (default 10 min, after a 1 min warm-up), howe
 answers. This is the difference from the reference JMeter plans, which are closed loops (`threads` × `loops`): there
 the rate is whatever the platform sustains, so slow platforms get less load.
 
-> **Status: legacy / exploratory harness.** The campaign-grade generator is `workloads/k6/gen.js` run through
-> `benchctl` (`docs/methodology/generator.md`) with the planned-time schedule, identity-based recording and
-> reconciliation gates. This first-generation harness checks dropped iterations, achieved rate and **counts**
-> (stored == sent) — it cannot exclude a missing identity offset by a duplicate, and the shared `seq`
-> (`legacy/sink.js`) is per-process, not a unique-identity guarantee. Runs made with it are
-> **exploratory** by policy (`docs/status.md` §2). Historical runs wrote `results/` relative to this directory;
-> future runs will be re-pointed at the repository-root `results/` on the integrity branch.
+> **Status: legacy / exploratory harness (repaired 2026-10-29).** The campaign-grade generator is
+> `workloads/k6/gen.js` run through `benchctl` (`docs/methodology/generator.md`). On the integrity branch, the
+> legacy harness gained the missing gate pieces: **(a)** unique identities — every message carries
+> `(run_id, seq)` with `seq` unique across the whole test (`exec.scenario.iterationInTest`); ThingsBoard and
+> FIWARE likewise record `run_id`/`seq` attributes (EdgeX's device-rest transport cannot carry identity: its
+> legacy verification therefore remains count-based and states so); **(b)** the recording path participates in
+> the verdict via the sink's before/after counter deltas (`SINK_METRICS_URL`, default the local sink at
+> :18090/metrics: duplicates/unparsed/overflow deltas = INVALID); **(c)** `--record-identity
+> <ssh-alias>:<repo-dir-on-SUT>` exports the run's stored identities from the SUT store
+> (`scripts/history-ids-audit.sh`) and reconciles them against the planned arrivals — a missing identity is not
+> allowed to be offset by a duplicate; unavailable export is recorded as a finding, never as a clean pass.
+> Still: the legacy harness does not implement the benchctl planned-time schedule ledger; runs made with it
+> stay **exploratory** and must be labelled as such (`docs/status.md` §2).
 
 They run on the load-generator host (ramonavm1) in Docker and stream their metrics to the local Prometheus
 (`../../monitoring`).

@@ -48,16 +48,18 @@ the reconciled wording.
 
 Critical to interpret any recent verdict correctly. There are two generator paths in the tree:
 
-| | **Legacy path** `workloads/{edgex,fiware,thingsboard}.js` + `workloads/run.sh` | **Generator path** `workloads/k6/gen.js` via `benchctl` |
+| | **Legacy path** `workloads/legacy/{edgex,fiware,thingsboard}.js` + `run.sh` | **Generator path** `workloads/k6/gen.js` via `benchctl` |
 |---|---|---|
-| Gate | dropped iteration == 0; achieved ≈ target rate ±1%; TB/EdgeX: **stored count == sent count**; FIWARE: devices-with-data; no SUT OOM/restart during the run window | the legacy gates **plus** planned-time schedule integrity, error rate, complete run record, identity-based reconciliation through the store export by design |
-| Identity basis | counts only (a missing identity can offset a duplicate and still read "stored == sent") | unique `(run_id, seq)` identities (`workloads/sink.js` before the fix increments `seq` per VU — scheduled for the integrity branch) |
+| Gate | dropped iteration == 0; achieved ≈ target rate ±1%; TB/EdgeX: **stored count == sent count**; FIWARE: devices-with-data; sink counter deltas (dup/unparsed/overflow = INVALID); with `--record-identity`: identity-set reconciliation vs planned arrivals; no SUT OOM/restart during the run window | the legacy gates **plus** planned-time schedule integrity, error rate, complete run record, identity-based reconciliation through the store export by design |
+| Identity basis | unique `(run_id, seq)` since the 2026-10-29 repair (`iterationInTest`); EdgeX remains count-based (transport limitation, documented in the harness header) | unique `(run_id, seq)` identities by design (`workloads/k6/...` + Go runner) |
 | Verdict label | **exploratory** | **campaign-grade** |
 
-Session auto-20261029's generator-ceiling and TB 1280 MiB runs went through the **legacy path**. Their VALID
-verdicts establish drops/rate/recording sanity — they are real and retained — but they do **not** establish the
-full planned schedule/record/reconciliation gate. Every such result is labelled *exploratory* in §4.
-`fix/qualification-integrity` closes the tooling gap (§6).
+Session auto-20261029's generator-ceiling and TB 1280 MiB runs went through the **legacy path pre-repair**
+(count-only, per-process `seq`). Their VALID verdicts establish drops/rate/recording sanity — they are real and
+retained — but they do **not** establish identity reconciliation or planned-schedule parity. Every such result is
+labelled *exploratory* in §4. The repair (2026-10-29, `fix/qualification-integrity`) gives the legacy harness
+unique identities, sink-counter verdicts and optional `--record-identity` reconciliation; campaign parity still
+lives on the benchctl path only.
 
 ---
 
@@ -139,8 +141,8 @@ any latency above 50 r/s is quoted (§3.3).
 | Branch | Scope | State |
 |---|---|---|
 | `docs/state-reconciliation` | this page + archived narratives + README readiness | committed (c53305c) |
-| `chore/repository-layout` | target directory layout, `git mv` + path updates only; SECURITY/CONTRIBUTING/CITATION + issue templates | **this branch** |
-| `fix/qualification-integrity` | sink unique identities, legacy run-gate completion, explicit ms, TB identity-set reconciliation | pending |
+| `chore/repository-layout` | target directory layout, `git mv` + path updates only; SECURITY/CONTRIBUTING/CITATION + issue templates | committed (aee9e83) |
+| `fix/qualification-integrity` | sink unique identities (`iterationInTest`), TB/FIWARE identity attributes, sink-counter deltas in the verdict, `--record-identity` reconciliation vs planned arrivals, explicit ms, repo-root results root | **this branch** |
 | `chore/ci-and-release` | CI workflows (build/vet/test, shellcheck, compose render, resource + prereg checks), release packaging | pending |
 | `feat/fiware-history-integration` | full-stack IoT-Agent/HAProxy path for the validated history candidate | deferred, explicitly experimental |
 

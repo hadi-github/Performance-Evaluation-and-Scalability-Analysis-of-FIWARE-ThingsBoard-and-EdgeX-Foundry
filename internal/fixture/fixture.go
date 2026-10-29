@@ -41,6 +41,12 @@ type Config struct {
 	Mode207      bool
 	Fail207Every int64
 	ForwardURL   string
+	// DropSeqs are answered 200 but never stored: acknowledged-but-unavailable-at-history (mixed with an
+	// equivalent duplicate, stored counts stay equal while identities differ).
+	DropSeqs []int64
+	// MalformedEvery strips the run_id from every n-th stored record: the row exists but its identity
+	// does not, so it must remain unaccountable instead of silently counting as stored.
+	MalformedEvery int64
 }
 
 // Record is one received request. Times are epoch milliseconds (float, sub-ms resolution) and monotonic ns.
@@ -168,6 +174,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		delay += time.Duration(float64(c.RampTo) * min(1, f))
 	}
 	keyed := func(n int64) bool { return n > 0 && rec.Seq >= 0 && rec.Seq%n == 0 }
+	dropped := map[int64]struct{}{}
+	for _, q := range s.cfg.DropSeqs {
+		dropped[q] = struct{}{}
+	}
 
 	status, stored := http.StatusOK, true
 	switch {
@@ -175,6 +185,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status, stored = c.FailStatus, c.StoreFailed
 	case keyed(c.SlowEvery):
 		delay = c.SlowDelay
+	}
+	// Deliberate injection AFTER the status path: the answer is a normal 200, the message just never
+	// reaches the history point (acknowledged but absent), and every n-th stored row loses its identity.
+	if _, missing := dropped[rec.Seq]; missing {
+		stored = false
+	}
+	if keyed(c.MalformedEvery) {
+		rec.RunID = ""
 	}
 	rec.Status, rec.Stored, rec.DelayMs = status, stored, float64(delay)/float64(time.Millisecond)
 	// Stored on receipt (before the answer), so a request the client gave up on is still persisted.
