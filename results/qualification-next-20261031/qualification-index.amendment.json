@@ -1,0 +1,126 @@
+{
+  "recorded_utc": "2026-10-31T19:12:11.715060+00:00",
+  "source_commit": "2541e08e51cf8c590f54a6b079ebb59ecc8ff5e8",
+  "deployed_source_commit": "b67fe860199e7479427cec5036091e6318ea4f6a",
+  "main_campaign": "NO_GO",
+  "immediate_blocker": "SUT unreachable from both workstation and load host; all claims requiring its final state or receipt ledger remain unavailable",
+  "runs": {
+    "P3-edgex-delay700-20261031": {
+      "generator_verdict": "INVALID",
+      "planned_devices": 1000,
+      "adapter": "edgex",
+      "attempted": 0,
+      "ack_success": 0,
+      "unknown": 0,
+      "dropped_iterations": 0,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    },
+    "P3-edgex-immediate-20261031": {
+      "generator_verdict": "INVALID",
+      "planned_devices": 1000,
+      "adapter": "edgex",
+      "attempted": 0,
+      "ack_success": 0,
+      "unknown": 0,
+      "dropped_iterations": 0,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    },
+    "P3-fiware-delay700-20261031": {
+      "generator_verdict": "INVALID",
+      "planned_devices": 1000,
+      "adapter": "fiware",
+      "attempted": 0,
+      "ack_success": 0,
+      "unknown": 0,
+      "dropped_iterations": 0,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    },
+    "P3-fiware-immediate-20261031": {
+      "generator_verdict": "INVALID",
+      "planned_devices": 1000,
+      "adapter": "fiware",
+      "attempted": 0,
+      "ack_success": 0,
+      "unknown": 0,
+      "dropped_iterations": 0,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    },
+    "P3-thingsboard-delay700-20261031": {
+      "generator_verdict": "INVALID",
+      "planned_devices": 1000,
+      "adapter": "thingsboard",
+      "attempted": 46622,
+      "ack_success": 44522,
+      "unknown": 2100,
+      "dropped_iterations": 3278,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    },
+    "P3-thingsboard-immediate-20261031": {
+      "generator_verdict": "VALID",
+      "planned_devices": 1000,
+      "adapter": "thingsboard",
+      "attempted": 49500,
+      "ack_success": 49500,
+      "unknown": 0,
+      "dropped_iterations": 0,
+      "receiver_reconciliation": "UNAVAILABLE: SUT ledger inaccessible",
+      "platform_capacity_claim": "NOT_EVALUATED",
+      "source": {
+        "dirty": "false",
+        "sha": "b67fe860199e7479427cec5036091e6318ea4f6a",
+        "source": "GIT_REV file"
+      },
+      "scripts_sha256": "cc5ca01bb960e61d2637937794461e4cff4c89efc6e19753de8319f674e73efc"
+    }
+  },
+  "handoff": "docs/archive/sessions/qualification-next-20261031.md",
+  "prior_evidence_modified": false,
+  "new_platform_cpu_tests": "NOT_RUN",
+  "new_fiware_history_rate_tests": "NOT_RUN",
+  "new_live_scaling_tests": "NOT_RUN",
+  "kafka_exporter_validation": "BLOCKED; target connection refused and exporter absent before outage",
+  "approved_decisions_changed": false,
+  "graphs": [
+    "results/qualification-next-20261031/graphs/P3-thingsboard-delay700-20261031/index.html",
+    "results/qualification-next-20261031/graphs/P3-thingsboard-immediate-20261031/index.html"
+  ],
+  "binaries": {
+    "benchctl": "70dd430f9258567607979f9153a4c2324349d39c83e88d4904743717f2880d96",
+    "sink": "4e67e2daca0e1158d1f5491ccb01d4a4bf508b5d68213b94860b16fcdf0dc4d4"
+  }
+}
