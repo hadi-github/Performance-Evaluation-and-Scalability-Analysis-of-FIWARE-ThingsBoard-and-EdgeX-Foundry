@@ -137,6 +137,15 @@ func TestInvalidSnapshotRejected(t *testing.T) {
 	}
 }
 
+func TestTierTotals(t *testing.T) {
+	b := parse(t, "1\tapp\ta\t1000000\tS\t4\torion\tapplication\n1\tdb\tb\t1000000\tS\t2-3\ttimescale\tsupporting\n")
+	a := parse(t, "2\tapp\ta\t3000000\tS\t4\torion\tapplication\n2\tdb\tb\t4000000\tS\t2-3\ttimescale\tsupporting\n")
+	r := Diff(b, a, denom(), "")
+	if r.CPUSecondsByTier["application"] != 2 || r.CPUSecondsByTier["supporting"] != 3 || *r.TotalCPUSeconds != 5 {
+		t.Fatalf("bad tier totals: %+v", r)
+	}
+}
+
 func TestMissingContainerOrCounterIsUnavailable(t *testing.T) {
 	// container disappears between boundaries
 	before := parse(t, snap("1", "app-1", "idA", "1000", "S1", ""))

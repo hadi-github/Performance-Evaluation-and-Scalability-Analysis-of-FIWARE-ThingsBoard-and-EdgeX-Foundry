@@ -31,6 +31,8 @@ type SnapshotRecord struct {
 	Cpuset    string
 	UsageUsec int64 // present only when the kernel counter was readable
 	HasUsage  bool  // false when the counter read failed (reported NO_COUNTER)
+	Service   string
+	Tier      string
 }
 
 type Status = string
@@ -69,18 +71,21 @@ type ContainerCost struct {
 	IDAfter         string   `json:"container_id_after,omitempty"`
 	EpochBefore     string   `json:"snapshot_before_epoch_seconds,omitempty"`
 	EpochAfter      string   `json:"snapshot_after_epoch_seconds,omitempty"`
+	Service         string   `json:"service,omitempty"`
+	Tier            string   `json:"tier,omitempty"`
 }
 
 // Report is the CPU-cost artifact. Available cost-per-message requires every container ok (that is, no
 // omitted counter anywhere); per-container costs are reported individually so a partial failure stays
 // visible rather than silently zeroing.
 type Report struct {
-	Denominator               *Denominator    `json:"denominator,omitempty"` // nil = no denominator supplied
-	Containers                []ContainerCost `json:"containers"`
-	AllOK                     bool            `json:"counters_ok"`
-	TotalCPUSeconds           *float64        `json:"total_cpu_seconds,omitempty"` // sum of ok deltas
-	TotalCPUSecondsPerMessage *float64        `json:"total_cpu_seconds_per_message,omitempty"`
-	Note                      string          `json:"note,omitempty"`
+	Denominator               *Denominator       `json:"denominator,omitempty"` // nil = no denominator supplied
+	Containers                []ContainerCost    `json:"containers"`
+	AllOK                     bool               `json:"counters_ok"`
+	TotalCPUSeconds           *float64           `json:"total_cpu_seconds,omitempty"` // sum of ok deltas
+	TotalCPUSecondsPerMessage *float64           `json:"total_cpu_seconds_per_message,omitempty"`
+	Note                      string             `json:"note,omitempty"`
+	CPUSecondsByTier          map[string]float64 `json:"cpu_seconds_by_tier,omitempty"`
 }
 
 // Parse reads one snapshot TSV (the header-less output of cpu-snapshot.sh). Lines with unreadable
@@ -121,6 +126,12 @@ func Parse(r io.Reader) ([]SnapshotRecord, error) {
 		}
 		if len(f) > 5 {
 			rec.Cpuset = f[5]
+		}
+		if len(f) > 6 {
+			rec.Service = f[6]
+		}
+		if len(f) > 7 {
+			rec.Tier = f[7]
 		}
 		out = append(out, rec)
 	}
@@ -176,6 +187,8 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 		c := &rep.Containers[i]
 		if b, ok := firstByName(before, c.Name); ok {
 			c.EpochBefore = b.EpochS
+			c.Service = b.Service
+			c.Tier = b.Tier
 		}
 		if a, ok := firstByName(after, c.Name); ok {
 			c.EpochAfter = a.EpochS
@@ -195,6 +208,14 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 	}
 	rep.AllOK = len(rep.Containers) > 0 && !bad
 	if rep.AllOK {
+		rep.CPUSecondsByTier = map[string]float64{}
+		for _, c := range rep.Containers {
+			tier := c.Tier
+			if tier == "" {
+				tier = "unclassified"
+			}
+			rep.CPUSecondsByTier[tier] += *c.DeltaSeconds
+		}
 		total := sum
 		rep.TotalCPUSeconds = &total
 		if denom != nil && denom.Present && denom.Count > 0 && denom.Definition != "" && denom.Source != "" {

@@ -4,7 +4,7 @@
 # scaled out afterwards (replicas load their devices from core-metadata at startup). Same procedure at every N.
 #
 #   deploy/edgex/scripts/provision-then-scale.sh prepare <N> <devices> <run_id> [gate.json]
-#       cold start (volumes wiped) at 1 replica on the final pool cpuset, create the profile and devices
+#       resume-safe start (volumes preserved) at 1 replica on the final pool cpuset, create/reuse the profile and devices
 #       bench-<run_id>-00000.., scale to N, start the export service (profile export), then the health gate:
 #       every device-rest replica, addressed directly (not through the LB), accepts a reading for every device,
 #       and core-metadata has zero restarts and zero panics. Exit 4 if the gate fails (run is INVALID: setup failure).
@@ -30,8 +30,9 @@ case "${1:-}" in
     mkdir -p "$(dirname "$GATE")"
     export POOL_CPUSET="$pool"
     make -s check N="$N" >/dev/null
-    docker compose --profile ui --profile export down -v --remove-orphans
-    EDGEX_REPLICAS=1 docker compose up -d --remove-orphans
+    # Never reset deployment data during qualification. Shrinking device-rest to
+    # one replica is required before provisioning, but databases/volumes remain.
+    EDGEX_REPLICAS=1 docker compose up -d
     until curl -sf -m3 -o /dev/null $META/ping && curl -sf -m3 -o /dev/null http://127.0.0.1:59986/api/v3/ping; do sleep 2; done
 
     echo "provisioning profile + $D devices at 1 replica"

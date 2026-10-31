@@ -48,7 +48,7 @@ tmp=$(mktemp "$DIR/.bench.XXXXXX")
   [[ -n "$ids" ]] && docker inspect --format \
     '{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.service"}}|{{.Name}}|{{.HostConfig.CpusetCpus}}|{{.RestartCount}}|{{.State.OOMKilled}}|{{.State.Status}}' $ids |
   while IFS='|' read -r project service name cpuset restarts oom status; do
-    case "$project" in tb|fiware|edgex|exporters) ;; *) continue ;; esac
+    case "$project" in tb|fiware|fiwhc|edgex|exporters) ;; *) continue ;; esac
     name=${name#/}
     n=0
     if [[ -n "$cpuset" ]]; then
@@ -57,7 +57,7 @@ tmp=$(mktemp "$DIR/.bench.XXXXXX")
         if [[ "$p" == *-* ]]; then n=$((n + ${p#*-} - ${p%-*} + 1)); else n=$((n + 1)); fi
       done
     fi
-    case "$project" in tb) platform=thingsboard ;; exporters) platform="" ;; *) platform=$project ;; esac
+    case "$project" in tb) platform=thingsboard ;; fiwhc) platform=fiware ;; exporters) platform="" ;; *) platform=$project ;; esac
     l="project=\"$project\",platform=\"$platform\",service=\"$service\",container=\"$name\""
     echo "bench_container_cpuset_cpus{$l} $n"
     echo "bench_container_info{$l,cpuset=\"${cpuset:-none}\",status=\"$status\"} 1"

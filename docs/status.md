@@ -1,6 +1,6 @@
 # Project status — single authoritative page
 
-**Last reconciled: 2026-10-29** (branch `docs/state-reconciliation`).
+**Last reconciled: 2026-10-31** (branch `chore/ci-and-release`).
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
 preserved verbatim — and may contradict each other — under [`docs/archive/sessions/`](archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
@@ -29,7 +29,7 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 | B7 | Deploy (TB) | CLOSED (except probe) | Config/entrypoint/JVM/log isolation live-verified 2026-10-27. Remaining: intentional isolated OOM probe on a disposable container (needs authorization). |
 | B8 | Claim/Run (FIWARE index) | CLOSED (populated read-only audit) | D27 export plus file audit on the populated baseline IoT Agent registry: **100 rows, 0 incomplete keys, 0 duplicate groups**. Evidence: `results/verification-20261031/d27/`. No index created and no devices deleted. This is a snapshot audit, not a guarantee of future uniqueness. |
 | B9 | Claim (EdgeX disk+WAL) | CLOSED | Disk 2026-10-28, **WAL 2026-10-29**: benchctl vs independent recomputation match to 4+ decimals via the DIAG-only postgres overlay (`results/auto-20261029/wal/`, commit `a51fcc1`). Benchmark config stays the plain compose. |
-| B10 | Run | PARTIAL | Generator-only ceiling measured (loopback): 3200 r/s ×2 consecutive VALID, 6400 INVALID; sink qualified at 3200 r/s through the real path; **recommended max campaign rate ≤ 1600 r/s**, subject to cross-host path + platform rate. Platform side: 100/200 r/s VALID at 1280 MiB; **nothing above 200 r/s is a capacity statement** (see §3.4). |
+| B10 | Run | PARTIAL | Approved initial ceiling remains **200/s conditional on the actual configuration qualifying at 400/s**. Earlier loopback and 100-device fixture results retain their limited scope. New 1,000-device ThingsBoard-adapter immediate-response run is generator-VALID at 400/s, but its independent receiver ledger is not yet retrieved; delayed and remaining adapter attempts were interrupted by SUT network loss. No common campaign ceiling is newly qualified. See `docs/archive/sessions/qualification-next-20261031.md`. |
 | B11 | Claim (cross-host timing) | OPEN | Corrected probe: load↔SUT offset ∈ [−63, +50] ms. No SLO exists yet; U ≤ P/10 unadopted. Cross-host timing claims remain unqualified. |
 | B12 | Run (sink capacity) | PARTIAL | Sink qualified AT 3200 r/s (0 unparsed/overflow, 240k msgs). Own envelope stress beyond the ceiling steps not yet run. |
 | B13 | Run (monitoring cost) | OPEN | SUT-side exporters installed (cpuset 0, 128m limits); their cost inside a 2× check not isolated. |
@@ -77,9 +77,9 @@ Status: **CLOSED**. Sanity note: the handoff was written before the WAL run; its
 while `results/auto-20261029/wal/` was added afterwards.
 
 ### 3.2 B8 — empty audit vs later populated tests
-B8’s to-clear condition (“live audit when a registry holds provisioned data”) is **still open**. The later
-*populated* reconciliations (2026-10-29) exercise the **history exports**, not the device-index duplicate audit.
-Do not mark B8 closed on the strength of §4’s populated-data runs.
+The historical history-export reconciliations alone did not close B8. The subsequent **read-only
+device-index audit of 100 populated registry rows** did close that specific condition, with zero
+incomplete keys and duplicate groups (`results/verification-20261031/d27/`). No index was created.
 
 ### 3.3 The 200 r/s confirm latency — **RESOLVED 2026-10-29 (unit misreading)**
 The per-run originals were fetched from the load host (`results/auto-20261029/per-run-originals/`,
@@ -114,11 +114,9 @@ generator ceiling §1-B10, and the sentence “the platform binds first at this 
 | D29a WAL live verification | `wal/` + README + `wal-verify.py` | CLOSED (§3.1) |
 | TB memory budget k=1..4 + owner options O1–O5 | `tb-memory-budget.md` | decision input |
 
-**Known incompleteness:** only `ceiling/all-summaries.txt` (combined) exists here — the per-run summaries and
-manifests for the ceiling and TB-qualification runs live on the **load host** (`/root/iot-bench-cand-auto20261027/
-workloads/results/`, the 11 new dirs recorded in the archived close-out). Checksums in `SHA256SUMS` guarantee
-integrity of what was fetched, not completeness of what was fetched. Fetching the originals is required before
-any latency above 50 r/s is quoted (§3.3).
+**Former incompleteness resolved:** per-run originals were fetched from the load host and preserved
+under `results/auto-20261029/per-run-originals/`; see §3.3 and its dated amendment. Original evidence
+was not rewritten. A checksum inventory certifies the included files, not experimental validity.
 
 ---
 
@@ -182,3 +180,22 @@ Updated **2026-10-31**, follow-up evidence: `results/verification-20261031/`.
    external 3GPP attribution remains unverified. No SLO verdicts are introduced.
 
 Full follow-up handoff: `docs/archive/sessions/verify-followup-20261031.md`.
+
+## 9. Current blocker: SUT network loss during 1,000-device qualification
+
+The continuation from `9c7fc5f` is retained in `results/qualification-next-20261031/` and
+`docs/archive/sessions/qualification-next-20261031.md`. All unrelated benchmark stacks were
+stopped before the controlled-receiver performance tests; required monitoring stayed up.
+
+The TB adapter immediate-response run delivered 48,000 measured requests at 400/s with zero
+drops and complete HTTP outcomes. During the delayed run, SUT reachability disappeared around
+**18:48:35–18:48:40 UTC** (node/cAdvisor scrape failures); the delayed run is INVALID, and FIWARE/
+EdgeX attempts aborted during setup. The load host remains reachable and its bundles were retrieved.
+The SUT's receiver ledgers and final service state could not be retrieved after bounded retries.
+
+No new platform CPU workload, Kafka traffic validation, FIWARE rate extension or live k=1/2/3
+scaling test was started after that failure. Static fit checks are **arithmetic only**, not live
+qualification. CPU tier reporting, clock/capture helpers, resume-safe EdgeX preparation and
+FIWARE-history monitoring coverage fixes are tested locally but not claimed live-qualified.
+Restore SUT reachability, retrieve/flush the existing receiver ledgers without reusing output paths,
+then resume the gates. Main campaign remains **NO-GO**; no rate or SLO decision is changed.

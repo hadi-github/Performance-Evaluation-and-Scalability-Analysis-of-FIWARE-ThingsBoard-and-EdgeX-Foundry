@@ -90,6 +90,29 @@ project), record at measurement start and end:
 
 `monitoring/exporters/cpu-snapshot.sh <project>` produces exactly these columns (TSV).
 
+The current project-mode TSV adds `service` and `tier` after the original six columns
+(`epoch_seconds`, `name`, `id`, `usage_usec`, `StartedAt`, `cpuset`). The parser accepts old
+six-column snapshots as unclassified, not as zero-cost tiers. Tier totals are computed only
+when every counter is valid. A known-answer application/supporting sum test covers the arithmetic.
+
+For bounded qualification, `scripts/cpu-capture-server.py --project tb --allow LOAD_HOST`
+provides a source-restricted read-only `/snapshot`, `/inventory` and `/clock` helper on the SUT.
+Pin it to the monitoring core and stop it after evidence collection. FIWARE needs both
+`--project fiware --project fiwhc`; keep the unused candidate Orion/Mongo stopped. Save the
+inventory and paired `scripts/clock-bound.py` samples before/after the run.
+The helper inventory is an observation of running containers, **not proof that every configured
+replica started**. First compare it with the intended compose services/replica counts and startup
+health; a service already absent at both edges must not disappear from the claim's declared scope.
+
+Independently verify:
+
+```bash
+python3 scripts/verify-cpu-boundary.py RUN_DIRECTORY --inventory INVENTORY.json
+```
+
+This verifies integer-counter deltas and tier totals against all declared running containers;
+it explicitly does **not** turn a bracketing capture interval into exact phase-specific CPU cost.
+
 Interval CPU = Σ (end − start) / 1e6 over containers present at both edges with the same id and an unchanged
 `StartedAt`. If a container restarted or appeared or disappeared, the interval is **incomplete**: report it as such
 instead of a cost. Prometheus rate integrals are not a substitute: they were 9-38% low in validation.
