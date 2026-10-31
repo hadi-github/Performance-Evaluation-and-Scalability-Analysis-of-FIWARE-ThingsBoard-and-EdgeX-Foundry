@@ -199,3 +199,9 @@ qualification. CPU tier reporting, clock/capture helpers, resume-safe EdgeX prep
 FIWARE-history monitoring coverage fixes are tested locally but not claimed live-qualified.
 Restore SUT reachability, retrieve/flush the existing receiver ledgers without reusing output paths,
 then resume the gates. Main campaign remains **NO-GO**; no rate or SLO decision is changed.
+
+**Bounded recovery check, 2026-11-01:** SUT SSH still times out. Load-host observations at
+2026-10-31 23:03 UTC show healthy load-host services, a timed-out SUT receiver probe and all SUT
+scrape targets down. No tests, restoration or network changes were attempted. SUT identity/state,
+ledger recovery and reconciliation remain unavailable. Evidence: `results/recovery-20261101/`;
+handoff: `docs/archive/sessions/recovery-check-20261101.md`.

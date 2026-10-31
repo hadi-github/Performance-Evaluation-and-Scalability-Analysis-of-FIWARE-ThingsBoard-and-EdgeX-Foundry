@@ -1,0 +1,31 @@
+{
+  "checkpoint": "9f907b4",
+  "observed_utc": "2026-10-31T23:03:42.128528+00:00",
+  "sut_ssh": "single check timed out; no repeated retries",
+  "load_host": "reachable; identity ramona-vm-q",
+  "sut_receiver_probe": "one 5-second timeout",
+  "sut_targets": {
+    "cadvisor": "down",
+    "haproxy": "down",
+    "kafka": "down",
+    "mongodb": "down",
+    "nats": "down",
+    "node": "down",
+    "postgres": "down"
+  },
+  "manifest_hashes_match_prior_local_evidence": {
+    "P3-edgex-delay700-20261031": true,
+    "P3-edgex-immediate-20261031": true,
+    "P3-fiware-delay700-20261031": true,
+    "P3-fiware-immediate-20261031": true,
+    "P3-thingsboard-delay700-20261031": true,
+    "P3-thingsboard-immediate-20261031": true
+  },
+  "receiver_reconciliation": "UNAVAILABLE",
+  "sut_current_state": "UNAVAILABLE",
+  "service_restoration": "NOT_ATTEMPTED",
+  "new_tests": "NOT_RUN",
+  "network_changes": false,
+  "main_campaign": "NO_GO",
+  "handoff": "docs/archive/sessions/recovery-check-20261101.md"
+}
