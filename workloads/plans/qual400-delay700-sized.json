@@ -1,0 +1,76 @@
+{
+ "schema_version": 1,
+ "seed": 20261031,
+ "pilot_only": true,
+ "adapter": "fixture",
+ "devices": 100,
+ "request_timeout_ms": 5000,
+ "connection": {
+  "keep_alive": true
+ },
+ "arrivals": {
+  "model": "constant"
+ },
+ "health": {
+  "min_achieved_ratio": 0.99,
+  "send_lag_p99_ms": 10,
+  "early_tolerance_ms": 2,
+  "max_core_busy": 0
+ },
+ "histogram_ms": [
+  0,
+  1,
+  2,
+  3,
+  5,
+  7,
+  10,
+  15,
+  20,
+  30,
+  50,
+  75,
+  100,
+  150,
+  200,
+  300,
+  500,
+  750,
+  1000,
+  2000,
+  5000,
+  10000
+ ],
+ "cleanup": false,
+ "test_faults": {},
+ "schedule": {
+  "type": "steps",
+  "steps": [
+   {
+    "phase": "warmup",
+    "rate": 100,
+    "duration_s": 30,
+    "vus": 150
+   },
+   {
+    "phase": "sweep",
+    "rate": 400,
+    "duration_s": 120,
+     "vus": 700
+   }
+  ]
+ },
+ "plan_id": "qual400-delay700-sized",
+ "purpose": "700 ms receiver answer with a VU pool sized by the rule rate x worst observed ack latency x 2 = 400 x 0.75 x 2 = 600, rounded up to 700.",
+ "target": {
+  "base_url": "http://87.107.191.107:18081"
+ },
+ "vus": {
+  "pre_allocated": 700,
+  "max": 700
+ },
+ "deviations": [
+  "Receiver: controlled fixture-target in container qual-ft-delay (SUT cpuset 7, 256 MiB), -delay 700ms.",
+  "VU pool sized per the generator sizing rule (docs/methodology/generator.md)."
+ ]
+}

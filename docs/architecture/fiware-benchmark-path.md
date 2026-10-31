@@ -1,7 +1,7 @@
 # FIWARE benchmark path with the QuantumLeap/TimescaleDB history candidate
 
 Recorded 2026-10-29 after the `REH-FIWARE-V4` rehearsal (`results/rehearsals-20261029/`). Supersedes
-the "candidate only" reading of `fiware-history-design.md` for the ingesion path question;
+the "candidate only" reading of `fiware-history-design.md` for the ingestion path question;
 that design document's own status line ("local design only, not deployed") refers to its
 proposed optimal layout, several points of which remain undone (that design's direct
 `orion→both-subscriptions` wiring, with agents inside the history-candidate stack, is still NOT the
@@ -38,6 +38,12 @@ generator (k6/gen.js on the load host)
 | fiwhc Orion 4.5.0 → fiwhc QL 1.0.0 (isolated pairing) | B2/B3 (2026-10-29, deliberate drop preserved) |
 | QL 1.0.0 insert semantics | per-notification rows, **no upsert**, same-timestamp duplicates keep separate rows (source review `docs/architecture/fiware-history-design.md` section 3) |
 | History tier budget | adopted 2026-10-29: Timescale 1536 MiB + QuantumLeap 512 MiB inside the fixed supporting tier (B4) |
+
+This is a measured local compatibility result, not an upstream support claim: the documented
+upstream-tested Orion range ends at 3.3.1. The local pairing uses Orion 4.5.0 and QuantumLeap
+1.0.0 and must be requalified if either pinned image changes. A read-only 2026-10-31 inspect
+reconfirmed IoT Agent UL 3.7.0, Orion 4.5.0, QL 1.0.0 and Timescale/PostGIS 2.3.0-pg13,
+with the adopted 512 MiB / 1536 MiB history limits (see verification service-state evidence).
 
 ## 3. Baseline vs candidate — what each stack is
 

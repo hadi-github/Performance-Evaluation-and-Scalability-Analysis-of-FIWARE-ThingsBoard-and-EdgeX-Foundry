@@ -95,6 +95,48 @@ func TestRewoundCounterIsUnavailable(t *testing.T) {
 	}
 }
 
+func TestReplacementIDCannotProduceCost(t *testing.T) {
+	before := parse(t, snap("1", "app", "old-id", "100", "same", "4"))
+	after := parse(t, snap("61", "app", "new-id", "9000", "same", "4"))
+	r := Diff(before, after, denom(), "")
+	c := byName(t, r, "app")
+	if r.AllOK || r.TotalCPUSeconds != nil || c.Status != Restarted || c.DeltaSeconds != nil {
+		t.Fatalf("replacement container must invalidate cost: %+v", r)
+	}
+	if c.IDAfter != "new-id" || c.EpochBefore != "1" || c.EpochAfter != "61" {
+		t.Fatalf("boundary provenance missing: %+v", c)
+	}
+}
+
+func TestReversedWindowAndUnnamedDenominator(t *testing.T) {
+	b := parse(t, snap("61", "app", "id", "100", "S", "4"))
+	a := parse(t, snap("1", "app", "id", "900", "S", "4"))
+	r := Diff(b, a, denom(), "")
+	if r.AllOK || r.TotalCPUSeconds != nil || byName(t, r, "app").Status != InvalidWindow {
+		t.Fatal("reversed interval must be unavailable")
+	}
+	b[0].EpochS = "0.5"
+	r = Diff(b, a, &Denominator{Count: 100, Present: true}, "")
+	if !r.AllOK || r.TotalCPUSecondsPerMessage != nil {
+		t.Fatal("unnamed denominator must not produce a cost claim")
+	}
+}
+
+func TestInvalidSnapshotRejected(t *testing.T) {
+	for name, text := range map[string]string{
+		"negative":        snap("1", "app", "id", "-1", "S", "4"),
+		"missing_started": snap("1", "app", "id", "1", "", "4"),
+		"nan_time":        snap("NaN", "app", "id", "1", "S", "4"),
+		"duplicate":       snap("1", "app", "id", "1", "S", "4") + snap("1", "app", "id2", "2", "S", "4"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Parse(strings.NewReader(text)); err == nil {
+				t.Fatal("invalid snapshot accepted")
+			}
+		})
+	}
+}
+
 func TestMissingContainerOrCounterIsUnavailable(t *testing.T) {
 	// container disappears between boundaries
 	before := parse(t, snap("1", "app-1", "idA", "1000", "S1", ""))

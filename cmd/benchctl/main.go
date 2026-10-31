@@ -96,6 +96,7 @@ func main() {
 	cpuset := fs.String("cpuset", "0-1", "generator cores")
 	fullJSON := fs.Bool("full-json", false, "also write k6's full JSON output (calibration only)")
 	promRW := fs.String("prom-rw", "", "Prometheus remote-write URL for live monitoring (e.g. http://127.0.0.1:9090/api/v1/write)")
+	cpuSnapshotCmd := fs.String("cpu-snapshot-command", "", "run: trusted shell command emitting a complete SUT cpu-snapshot.sh TSV; preserves captures and brackets measured steps")
 	grafana := fs.String("grafana-url", "", "post a run annotation to this Grafana (password: env BENCH_GRAFANA_PASSWORD)")
 	dir := fs.String("run", "", "run directory")
 	store := fs.String("store", "", "store file: NDJSON with run_id, seq (and optional stored); fixture or history export")
@@ -143,7 +144,7 @@ func main() {
 		if *planPath == "" {
 			die(2, "-plan is required")
 		}
-		d, m, err := runner.Run(runner.Options{PlanPath: *planPath, RepoRoot: repoRoot(), ResultsDir: *results, RunID: *runID,
+		d, m, err := runner.Run(runner.Options{CPUSnapshotCommand: *cpuSnapshotCmd, PlanPath: *planPath, RepoRoot: repoRoot(), ResultsDir: *results, RunID: *runID,
 			Image: *image, Cpuset: *cpuset, FullJSON: *fullJSON, Env: env, PromRW: *promRW, GrafanaURL: *grafana})
 		if err != nil {
 			die(2, "run %s: %v", d, err)

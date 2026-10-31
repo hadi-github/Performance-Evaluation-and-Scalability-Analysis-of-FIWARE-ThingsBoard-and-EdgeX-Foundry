@@ -96,6 +96,24 @@ instead of a cost. Prometheus rate integrals are not a substitute: they were 9-3
 
 **Compute step (implemented 2026-10-29, `internal/cpubound` + `benchctl cpu`):**
 
+**Automatic bundle capture (2026-10-31):** `benchctl run -cpu-snapshot-command '<trusted command>'`
+continuously captures the command's complete snapshot (every 250 ms after the previous call completes;
+10 s call timeout). The command normally invokes `cpu-snapshot.sh` on the SUT, over existing
+authenticated access. Include **every relevant compose project** in one command; FIWARE requires
+both `fiware` and `fiwhc`, not just the baseline. `--name CONTAINER` is available for a standalone
+controlled receiver. Do not put credentials in the command: it is recorded in the manifest.
+
+The runner retains `cpu-snapshots.jsonl` (request/response UTC, status, errors, raw TSV), selects
+snapshots bracketing each non-warmup scenario using `scenario_start_ms` from the k6 summary, and
+writes `cpu-step-NN-before.tsv`, `cpu-step-NN-after.tsv` and `cpu-boundary.json`. It reports the
+actual capture interval and boundary skew, **not falsely exact phase CPU**. Counter deltas include
+that skew. The automatic denominator is explicitly `attempted HTTP sends in this measured step`;
+use `benchctl cpu -audit-file ...` separately for a correctness-qualified denominator after audit.
+Cross-host phase alignment requires a qualified clock relationship; the counter delta itself is
+on the SUT and does not require cross-host clock subtraction. An omitted capture command or failed
+capture produces an explicit `UNAVAILABLE` artifact. Existing historical bundles are never backfilled
+with estimated CPU endpoint counters.
+
 ```bash
 # on the SUT, immediately before and after the measurement interval:
 monitoring/exporters/cpu-snapshot.sh <project> > cpu-before.tsv

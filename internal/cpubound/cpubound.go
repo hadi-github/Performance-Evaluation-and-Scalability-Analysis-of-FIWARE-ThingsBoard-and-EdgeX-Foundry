@@ -15,6 +15,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -42,6 +43,7 @@ const (
 	MissingAfter  = "missing_after"
 	Restarted     = "restarted" // StartedAt differs: the counter was reset by the daemon
 	Rewound       = "rewound"   // after < before: the counter was reset without a restart
+	InvalidWindow = "invalid_window"
 )
 
 // Denominator is the explicitly named message count used for cost-per-message.
@@ -64,6 +66,9 @@ type ContainerCost struct {
 	DeltaSeconds    *float64 `json:"cpu_seconds,omitempty"` // counter delta, only when status == ok
 	Status          Status   `json:"status"`
 	Cpuset          string   `json:"cpuset,omitempty"`
+	IDAfter         string   `json:"container_id_after,omitempty"`
+	EpochBefore     string   `json:"snapshot_before_epoch_seconds,omitempty"`
+	EpochAfter      string   `json:"snapshot_after_epoch_seconds,omitempty"`
 }
 
 // Report is the CPU-cost artifact. Available cost-per-message requires every container ok (that is, no
@@ -83,6 +88,7 @@ type Report struct {
 // this snapshot is distinguishable from a container with a zero delta.
 func Parse(r io.Reader) ([]SnapshotRecord, error) {
 	var out []SnapshotRecord
+	seen := map[string]bool{}
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 0, 1<<16), 1<<20)
 	for sc.Scan() {
@@ -91,13 +97,21 @@ func Parse(r io.Reader) ([]SnapshotRecord, error) {
 			continue
 		}
 		f := strings.Split(line, "\t")
-		if len(f) < 4 {
-			return nil, fmt.Errorf("cpu-boundary: expected >=4 tab-separated fields, got %d: %q", len(f), line)
+		if len(f) < 5 {
+			return nil, fmt.Errorf("cpu-boundary: expected >=5 tab-separated fields, got %d: %q", len(f), line)
 		}
+		epoch, err := strconv.ParseFloat(f[0], 64)
+		if err != nil || math.IsNaN(epoch) || math.IsInf(epoch, 0) || epoch <= 0 || f[1] == "" || f[2] == "" || f[4] == "" {
+			return nil, fmt.Errorf("cpu-boundary: missing or invalid timestamp/container identity/StartedAt: %q", line)
+		}
+		if seen[f[1]] {
+			return nil, fmt.Errorf("cpu-boundary: duplicate container name %q in a single snapshot", f[1])
+		}
+		seen[f[1]] = true
 		rec := SnapshotRecord{EpochS: f[0], Name: f[1], ID: f[2], HasUsage: false}
 		if f[3] != "NA" {
 			v, err := strconv.ParseInt(f[3], 10, 64)
-			if err != nil {
+			if err != nil || v < 0 {
 				return nil, fmt.Errorf("cpu-boundary: bad usage_usec %q: %v", f[3], err)
 			}
 			rec.HasUsage, rec.UsageUsec = true, v
@@ -138,13 +152,15 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: arec.ID, StartedAtAfter: arec.StartedAt, UsageAfterUsec: usagePtr(arec), Status: MissingBefore, Cpuset: arec.Cpuset})
 		case !inA:
 			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: brec.ID, StartedAtBefore: brec.StartedAt, UsageBeforeUsec: usagePtr(brec), Status: MissingAfter, Cpuset: brec.Cpuset})
+		case !ordered(brec.EpochS, arec.EpochS):
+			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: brec.ID, Status: InvalidWindow})
 		case !(brec.HasUsage && arec.HasUsage):
 			status := NoUsageAfter
 			if !brec.HasUsage {
 				status = NoUsageBefore
 			}
 			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: brec.ID, StartedAt: brec.StartedAt, UsageBeforeUsec: usagePtr(brec), UsageAfterUsec: usagePtr(arec), Status: status, Cpuset: brec.Cpuset})
-		case brec.StartedAt != arec.StartedAt:
+		case brec.ID != arec.ID || brec.StartedAt != arec.StartedAt:
 			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: brec.ID, StartedAtBefore: brec.StartedAt, StartedAtAfter: arec.StartedAt, UsageBeforeUsec: usagePtr(brec), UsageAfterUsec: usagePtr(arec), Status: Restarted, Cpuset: brec.Cpuset})
 		default:
 			d := arec.UsageUsec - brec.UsageUsec
@@ -154,6 +170,16 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 			}
 			total := float64(d) / 1e6
 			rep.Containers = append(rep.Containers, ContainerCost{Name: name, ID: brec.ID, StartedAt: arec.StartedAt, UsageBeforeUsec: usagePtr(brec), UsageAfterUsec: usagePtr(arec), DeltaSeconds: &total, Status: OK, Cpuset: brec.Cpuset})
+		}
+	}
+	for i := range rep.Containers {
+		c := &rep.Containers[i]
+		if b, ok := firstByName(before, c.Name); ok {
+			c.EpochBefore = b.EpochS
+		}
+		if a, ok := firstByName(after, c.Name); ok {
+			c.EpochAfter = a.EpochS
+			c.IDAfter = a.ID
 		}
 	}
 	// Counters are ok only when every container we can name contributed an ok delta. A denominator makes
@@ -171,7 +197,7 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 	if rep.AllOK {
 		total := sum
 		rep.TotalCPUSeconds = &total
-		if denom != nil && denom.Present && denom.Count > 0 {
+		if denom != nil && denom.Present && denom.Count > 0 && denom.Definition != "" && denom.Source != "" {
 			per := total / float64(denom.Count)
 			rep.TotalCPUSecondsPerMessage = &per
 		}
@@ -179,6 +205,12 @@ func Diff(before, after []SnapshotRecord, denom *Denominator, note string) *Repo
 		rep.Note = strings.TrimSpace(rep.Note + "; one or more containers are unavailable/restarted/reset at the boundaries: CPU-seconds are unmeasured for them, not zero")
 	}
 	return rep
+}
+
+func ordered(before, after string) bool {
+	b, e1 := strconv.ParseFloat(before, 64)
+	a, e2 := strconv.ParseFloat(after, 64)
+	return e1 == nil && e2 == nil && a > b
 }
 
 func usagePtr(r SnapshotRecord) *int64 {

@@ -27,45 +27,47 @@ import (
 )
 
 type Options struct {
-	PlanPath   string
-	RepoRoot   string   // contains workloads/k6
-	ResultsDir string   // run directories are created inside
-	RunID      string   // optional; generated if empty
-	Image      string   // k6 image reference
-	Cpuset     string   // generator cores, e.g. "0-1"
-	FullJSON   bool     // also write k6's full JSON output (calibration runs only: 13 samples per request)
-	CPUs       string   // docker --cpus limit for k6; tests only (deliberate generator starvation)
-	PromRW     string   // optional Prometheus remote-write URL (k6 -o experimental-prometheus-rw); monitoring only
-	GrafanaURL string   // optional: post a run annotation; password from env BENCH_GRAFANA_PASSWORD
-	Env        []string // passed to k6 (credentials, never stored in artifacts)
-	Stdout     *os.File
+	CPUSnapshotCommand string // optional trusted shell command returning one SUT snapshot TSV
+	PlanPath           string
+	RepoRoot           string   // contains workloads/k6
+	ResultsDir         string   // run directories are created inside
+	RunID              string   // optional; generated if empty
+	Image              string   // k6 image reference
+	Cpuset             string   // generator cores, e.g. "0-1"
+	FullJSON           bool     // also write k6's full JSON output (calibration runs only: 13 samples per request)
+	CPUs               string   // docker --cpus limit for k6; tests only (deliberate generator starvation)
+	PromRW             string   // optional Prometheus remote-write URL (k6 -o experimental-prometheus-rw); monitoring only
+	GrafanaURL         string   // optional: post a run annotation; password from env BENCH_GRAFANA_PASSWORD
+	Env                []string // passed to k6 (credentials, never stored in artifacts)
+	Stdout             *os.File
 }
 
 type Manifest struct {
-	SchemaVersion int               `json:"schema_version"`
-	RunID         string            `json:"run_id"`
-	PlanID        string            `json:"plan_id"`
-	PilotOnly     bool              `json:"pilot_only"`
-	PlanSHA256    string            `json:"plan_sha256"`
-	Deviations    []string          `json:"deviations,omitempty"` // from the plan
-	Resolved      *plan.Resolved    `json:"resolved_plan"`
-	K6            map[string]string `json:"k6"`
-	Git           map[string]string `json:"git"`
-	ScriptsSHA256 string            `json:"k6_scripts_sha256"` // content of workloads/k6 as executed (independent of git)
-	Host          map[string]string `json:"generator_host"`
-	Cpuset        string            `json:"generator_cpuset"`
-	CPUsLimit     string            `json:"generator_cpus_limit,omitempty"`
-	PromRW        string            `json:"prometheus_remote_write,omitempty"`
-	Annotation    string            `json:"grafana_annotation,omitempty"`
-	FullJSON      bool              `json:"full_k6_json_output"`
-	EnvKeys       []string          `json:"env_keys_passed"` // names only, values redacted
-	Connection    map[string]any    `json:"connection_model"`
-	Payload       *report.Sample    `json:"sample_payload"`
-	StartUTC      string            `json:"start_utc"`
-	EndUTC        string            `json:"end_utc"`
-	K6ExitCode    int               `json:"k6_exit_code"`
-	Health        *report.Health    `json:"health"`
-	Verdict       string            `json:"verdict"`
+	CPUSnapshotCommand string            `json:"cpu_snapshot_command,omitempty"`
+	SchemaVersion      int               `json:"schema_version"`
+	RunID              string            `json:"run_id"`
+	PlanID             string            `json:"plan_id"`
+	PilotOnly          bool              `json:"pilot_only"`
+	PlanSHA256         string            `json:"plan_sha256"`
+	Deviations         []string          `json:"deviations,omitempty"` // from the plan
+	Resolved           *plan.Resolved    `json:"resolved_plan"`
+	K6                 map[string]string `json:"k6"`
+	Git                map[string]string `json:"git"`
+	ScriptsSHA256      string            `json:"k6_scripts_sha256"` // content of workloads/k6 as executed (independent of git)
+	Host               map[string]string `json:"generator_host"`
+	Cpuset             string            `json:"generator_cpuset"`
+	CPUsLimit          string            `json:"generator_cpus_limit,omitempty"`
+	PromRW             string            `json:"prometheus_remote_write,omitempty"`
+	Annotation         string            `json:"grafana_annotation,omitempty"`
+	FullJSON           bool              `json:"full_k6_json_output"`
+	EnvKeys            []string          `json:"env_keys_passed"` // names only, values redacted
+	Connection         map[string]any    `json:"connection_model"`
+	Payload            *report.Sample    `json:"sample_payload"`
+	StartUTC           string            `json:"start_utc"`
+	EndUTC             string            `json:"end_utc"`
+	K6ExitCode         int               `json:"k6_exit_code"`
+	Health             *report.Health    `json:"health"`
+	Verdict            string            `json:"verdict"`
 }
 
 func run(name string, args ...string) string {
@@ -320,6 +322,7 @@ func Run(o Options) (string, *Manifest, error) {
 		ScriptsSHA256: scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")),
 		Connection: map[string]any{"keep_alive": p.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
 			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": p.RequestTimeMs}}
+	m.CPUSnapshotCommand = o.CPUSnapshotCommand
 	for _, kv := range o.Env {
 		m.EnvKeys = append(m.EnvKeys, strings.SplitN(kv, "=", 2)[0])
 	}
@@ -365,6 +368,11 @@ func Run(o Options) (string, *Manifest, error) {
 	go func() { sample(ctx, container, cpuFile); close(done) }()
 
 	m.StartUTC = time.Now().UTC().Format(time.RFC3339Nano)
+	var cpuDone chan struct{}
+	if o.CPUSnapshotCommand != "" {
+		cpuDone = make(chan struct{})
+		go func() { captureCPU(ctx, o.CPUSnapshotCommand, dir); close(cpuDone) }()
+	}
 	var stdout bytes.Buffer
 	cmd := exec.Command("docker", args...)
 	cmd.Stdout, cmd.Stderr = &stdout, &stdout
@@ -377,6 +385,9 @@ func Run(o Options) (string, *Manifest, error) {
 	}
 	m.EndUTC = time.Now().UTC().Format(time.RFC3339Nano)
 	stop()
+	if cpuDone != nil {
+		<-cpuDone
+	}
 	<-done
 	cpuFile.Close()
 	_ = os.WriteFile(filepath.Join(dir, "k6-stdout.log"), stdout.Bytes(), 0o644)
@@ -386,6 +397,13 @@ func Run(o Options) (string, *Manifest, error) {
 
 	if err := Finish(dir, m); err != nil {
 		return dir, m, err
+	}
+	if cpuDone != nil {
+		if err := finishCPU(dir); err != nil {
+			_ = writeJSON(filepath.Join(dir, "cpu-boundary.json"), map[string]string{"status": "UNAVAILABLE", "error": err.Error()})
+		}
+	} else {
+		_ = writeJSON(filepath.Join(dir, "cpu-boundary.json"), map[string]string{"status": "UNAVAILABLE", "reason": "No CPU snapshot command configured; no boundary counters captured"})
 	}
 	if o.GrafanaURL != "" {
 		m.Annotation = annotate(o.GrafanaURL, m)

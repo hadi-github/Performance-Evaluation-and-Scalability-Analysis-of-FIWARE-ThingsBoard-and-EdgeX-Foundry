@@ -7,7 +7,20 @@
 # Columns: snapshot epoch s, container, id, usage_usec, StartedAt, cpuset.
 #   ./cpu-snapshot.sh <project: tb|fiware|edgex> > snap.tsv
 #   ./cpu-snapshot.sh <project> --loop [interval_s]   (append a snapshot every interval until killed)
+#   ./cpu-snapshot.sh --name <container> > snap.tsv   (a standalone container outside any compose project)
 set -euo pipefail
+if [[ "${1:-}" == --name ]]; then
+  name="${2:?container name}"
+  now=$(date +%s.%N)
+  ids=$(docker ps -q --no-trunc --filter "name=^/${name}$")
+  [[ -n "$ids" ]] || exit 0
+  docker inspect --format '{{.Id}}|{{.Name}}|{{.State.StartedAt}}|{{.HostConfig.CpusetCpus}}' $ids |
+  while IFS='|' read -r id cname started cpuset; do
+    usage=$(awk '$1 == "usage_usec" {print $2}' "/sys/fs/cgroup/system.slice/docker-$id.scope/cpu.stat" 2>/dev/null || echo NA)
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$now" "${cname#/}" "$id" "$usage" "$started" "${cpuset:-none}"
+  done
+  exit 0
+fi
 project="${1:?compose project}"
 if [[ "${2:-}" == --loop ]]; then
   while :; do "$0" "$project"; sleep "${3:-1}"; done

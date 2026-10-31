@@ -27,7 +27,7 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 | B5 | Claim/Smoke (FIWARE) | CLOSED (rehearsal scope) | 2026-10-29 rehearsal `REH-FIWARE-V4` exercised the **full-stack path** (HAProxy → IoT Agent UL → Orion → QL/Timescale candidate + external sink): 3,000/3,000 measurement identities reconciled with 0 missing/dups/unrecoverable at 25 r/s (`results/rehearsals-20261029/`). Store-side results remain scoped to that rehearsal rate; above 50 r/s still open. |
 | B6 | Run (ThingsBoard) | ADOPTED (2026-10-29) | 1280 MiB qualified under load: 50 + 200 r/s VALID ×2, 400 r/s INVALID at k=2. The owner's k decision was recorded on 2026-10-29 per the working authorization: **application CPU budgets k ∈ {1,2,3}, actual replica counts recorded per run**, consistent with option O4. |
 | B7 | Deploy (TB) | CLOSED (except probe) | Config/entrypoint/JVM/log isolation live-verified 2026-10-27. Remaining: intentional isolated OOM probe on a disposable container (needs authorization). |
-| B8 | Claim/Run (FIWARE index) | OPEN | Live read-only audit 2026-10-27 found the registry **empty at rest** — duplicate detection logic has not surfaced on *populated* data through the device index. The 2026-10-29 populated identity reconciliations (3,001 FIWARE history rows; 600 EdgeX readings) went through the history exports, **not** the device-index duplicate audit. To-clear stands: repeat the live audit on a populated registry. |
+| B8 | Claim/Run (FIWARE index) | CLOSED (populated read-only audit) | D27 export plus file audit on the populated baseline IoT Agent registry: **100 rows, 0 incomplete keys, 0 duplicate groups**. Evidence: `results/verification-20261031/d27/`. No index created and no devices deleted. This is a snapshot audit, not a guarantee of future uniqueness. |
 | B9 | Claim (EdgeX disk+WAL) | CLOSED | Disk 2026-10-28, **WAL 2026-10-29**: benchctl vs independent recomputation match to 4+ decimals via the DIAG-only postgres overlay (`results/auto-20261029/wal/`, commit `a51fcc1`). Benchmark config stays the plain compose. |
 | B10 | Run | PARTIAL | Generator-only ceiling measured (loopback): 3200 r/s ×2 consecutive VALID, 6400 INVALID; sink qualified at 3200 r/s through the real path; **recommended max campaign rate ≤ 1600 r/s**, subject to cross-host path + platform rate. Platform side: 100/200 r/s VALID at 1280 MiB; **nothing above 200 r/s is a capacity statement** (see §3.4). |
 | B11 | Claim (cross-host timing) | OPEN | Corrected probe: load↔SUT offset ∈ [−63, +50] ms. No SLO exists yet; U ≤ P/10 unadopted. Cross-host timing claims remain unqualified. |
@@ -159,10 +159,26 @@ any latency above 50 r/s is quoted (§3.3).
 
 ## 8. Remaining technical blockers (session verify-20261029)
 
-1. Live Grafana PNG/HTML export of a rehearsal window (matplotlib unavailable on all three hosts;
-   fixture-validated only — next action: obtain matplotlib or render via Grafana image-render).
-2. 400/s generator/receiver qualification with the real benchmark configuration (monitoring + recording
-   enabled) — the remaining precondition for the 200/s campaign ceiling claim (B10).
-3. CPU-boundary cgroup counter capture at measurement boundaries in the rehearsal bundle format
-   (exporters live; capture procedure pending a qualifying run).
-4. SLO profiles pending (owner) — no thresholds are invented in the meantime; verification continues.
+Updated **2026-10-31**, follow-up evidence: `results/verification-20261031/`.
+
+1. **Rehearsal exports completed** without rerunning the platforms: three offline reports, 36 PNG/SVG
+   pairs, raw Prometheus responses and CSVs. All 10,302 finite CSV values match raw responses;
+   four unavailable queries per run stay `NO_DATA`, not zero. Reports:
+   `results/verification-20261031/reports-final/<run_id>/index.html`.
+2. **Cross-host controlled receiver path verified** at 400/s for 120 s, both immediate and 700 ms
+   delayed responses (700 VUs); at 800/s for 60 s with immediate responses. All valid runs reconciled
+   51,000/51,000 identities (warm-up included). The undersized 100-VU control was correctly INVALID.
+   Scope: fixture adapter, logical telemetry payload, 100 round-robin device identities, load host
+   cpuset 0-1 → SUT receiver cores 6/7, recording and monitoring enabled. This does **not** qualify
+   1,000-device provisioning or platform-specific adapter overhead at 400/s; those remain gates
+   before calling the complete campaign generator configuration qualified.
+3. **CPU bundle capture implemented and live-tested** on the controlled receiver: raw cumulative
+   counters, IDs, StartedAt, timestamps, bracketing skew and named denominator are retained.
+   Counter-reset/restart/missing tests pass. Old platform rehearsals still have no endpoint CPU
+   counters; no exact platform CPU cost is inferred. Cross-host phase alignment and full platform
+   boundary membership require verification on the next platform qualification run.
+4. **SLO profiles remain pending**. The archived TELEM-500 primary candidate and 250/1000/5000 ms
+   sensitivities are reconciled in `research/protocols/slo-profile-reconciliation-20261029.md`;
+   external 3GPP attribution remains unverified. No SLO verdicts are introduced.
+
+Full follow-up handoff: `docs/archive/sessions/verify-followup-20261031.md`.
