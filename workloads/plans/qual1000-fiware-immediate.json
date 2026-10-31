@@ -1,0 +1,78 @@
+{
+ "schema_version": 1,
+ "seed": 20261031,
+ "pilot_only": true,
+ "adapter": "fiware",
+ "devices": 1000,
+ "request_timeout_ms": 5000,
+ "connection": {
+  "keep_alive": true
+ },
+ "arrivals": {
+  "model": "constant"
+ },
+ "health": {
+  "min_achieved_ratio": 0.99,
+  "send_lag_p99_ms": 10,
+  "early_tolerance_ms": 2,
+  "max_core_busy": 0
+ },
+ "histogram_ms": [
+  0,
+  1,
+  2,
+  3,
+  5,
+  7,
+  10,
+  15,
+  20,
+  30,
+  50,
+  75,
+  100,
+  150,
+  200,
+  300,
+  500,
+  750,
+  1000,
+  2000,
+  5000,
+  10000
+ ],
+ "cleanup": false,
+ "test_faults": {},
+ "schedule": {
+  "type": "steps",
+  "steps": [
+   {
+    "phase": "warmup",
+    "rate": 100,
+    "duration_s": 15,
+    "vus": 150
+   },
+   {
+    "phase": "sweep",
+    "rate": 400,
+    "duration_s": 120,
+    "vus": 150
+   }
+  ]
+ },
+ "plan_id": "qual1000-fiware-immediate",
+ "purpose": "Bounded 1000-device adapter generator qualification against controlled setup/ingress APIs, not platform capacity.",
+ "target": {
+  "base_url": "http://87.107.191.107:18083",
+  "north_url": "http://87.107.191.107:18083",
+  "south_url": "http://87.107.191.107:18083"
+ },
+ "vus": {
+  "pre_allocated": 150,
+  "max": 150
+ },
+ "deviations": [
+  "Unmodified platform adapter performs real setup requests and serializes each send; controlled APIs use synthetic credentials and memory registry, not real platform authentication or persistence.",
+  "Response delay: 0 ms. Monitoring remote-write and outcome recording enabled; no main campaign."
+ ]
+}
