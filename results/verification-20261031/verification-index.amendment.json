@@ -1,0 +1,27 @@
+{
+  "recorded": "2026-10-31",
+  "source_commit": "4e67107d661507831645a0f4d698a972e701e44f",
+  "main_campaign": "NO_GO",
+  "original_rehearsals_modified": false,
+  "handoff": "docs/archive/sessions/verify-followup-20261031.md",
+  "reports": [
+    "results/verification-20261031/reports-final/REH-EDGEX-V1/index.html",
+    "results/verification-20261031/reports-final/REH-FIWARE-V4/index.html",
+    "results/verification-20261031/reports-final/REH-TB-V2/index.html"
+  ],
+  "receiver_analysis_command": "python3 scripts/verify-controlled-receiver.py results/verification-20261031",
+  "export_analysis_command": "python3 scripts/verify-run-export.py results/verification-20261031/reports-final/*",
+  "receiver_results": "receiver-reconciliation-verified.json",
+  "cpu_result": "qual400-20261031/Q800-RECEIVER-CPU-20261031/cpu-boundary.json",
+  "scope_limits": [
+    "Fixture adapter and 100 round-robin device identities, not full campaign generator configuration.",
+    "No retrospective exact CPU cost for original platform rehearsals.",
+    "CPU delta covers reported capture interval; cross-host phase alignment not newly qualified.",
+    "Old original checksum manifest has a pre-existing missing SHA256SUMS.tmp entry; 42 original files verify."
+  ],
+  "platforms_rehearsals_rerun": false,
+  "binaries": {
+    "fixture-target-static": "1b65c8b5b0a89f73fe79b277796949f23267d0325fe792bc375bff10ccaa2e87",
+    "benchctl-cpu": "43defc18bf1494c3cfb1569cbcf0ba8cb83ce1c8bf1e7525f1efb82848537d80"
+  }
+}
