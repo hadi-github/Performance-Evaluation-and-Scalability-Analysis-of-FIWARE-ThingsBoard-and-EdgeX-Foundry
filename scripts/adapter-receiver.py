@@ -127,6 +127,9 @@ def handler(state, allow):
                     parts = raw.split('|')
                     fields = dict(zip(parts[::2], parts[1::2]))
                     message = dict(run_id=fields['r'], seq=int(fields['q']), scheduled_send_ms=float(fields['s']), temperature=int(fields['t']), humidity=int(fields['h']), pressure=int(fields['p']))
+                    if 'd' in fields:
+                        # Explicit M1e payload mode: the padding alias is stored as actual wire text.
+                        message['padding'] = fields['d']
                     adapter = 'fiware'
                 elif path.startswith('/api/v3/resource/') and path.endswith('/reading'):
                     device = state.devices.get(path.split('/')[4])

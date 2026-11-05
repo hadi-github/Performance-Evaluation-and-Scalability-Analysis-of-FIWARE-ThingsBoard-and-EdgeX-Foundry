@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "interpretation": "synthetic-service-observations-v1",
+  "source": "SYNTHETIC M2e — caller-supplied ThingsBoard service observations for an offline dry run; not collected from Docker or a SUT",
+  "run_id": "m2e-synthetic-pass-thingsboard-20261105-01",
+  "run_date": "2026-11-05",
+  "run_tag": "m2e-synthetic-pass-thingsboard",
+  "observations": [
+    {
+      "service": "haproxy",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "kafka",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "healthy",
+      "functional_evidence": false
+    },
+    {
+      "service": "postgres",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "healthy",
+      "functional_evidence": false
+    },
+    {
+      "service": "tb-core",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "tb-http-transport",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "tb-install",
+      "present": true,
+      "replicas": 1,
+      "running": false,
+      "health": "none",
+      "exit_code": 0,
+      "functional_evidence": false
+    },
+    {
+      "service": "tb-rule-engine",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "valkey",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "healthy",
+      "functional_evidence": false
+    },
+    {
+      "service": "zookeeper",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    }
+  ]
+}

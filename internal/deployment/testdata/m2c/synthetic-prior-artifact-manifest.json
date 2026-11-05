@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "interpretation": "runtime-artifact-manifest-v1",
+  "run_id": "m2c-synthetic-prior-20261105-preserved",
+  "run_date": "2026-11-05",
+  "run_tag": "m2c-synthetic-prior",
+  "platform": "all",
+  "artifacts": [
+    {
+      "role": "other",
+      "path": "results/m2c-synthetic-prior-20261105-preserved/prior-note.txt",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "bytes": 999999,
+      "origin": "this_run",
+      "required": true
+    }
+  ]
+}

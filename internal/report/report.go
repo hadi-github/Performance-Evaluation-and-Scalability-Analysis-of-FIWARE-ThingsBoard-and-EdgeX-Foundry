@@ -32,26 +32,38 @@ type Sample struct {
 	URLBytes  int    `json:"url_bytes"`
 	BodyBytes int    `json:"body_bytes"`
 	Body      string `json:"body"`
+	// Adapter-payload accounting. These are omitted for legacy plans that do not select an adapter
+	// payload, so an old sample remains exactly interpretable as the historical wire body.
+	LogicalBytes           int    `json:"logical_bytes,omitempty"`
+	AdapterBodyBytes       int    `json:"adapter_body_bytes,omitempty"`
+	HTTPOverheadBytes      int    `json:"http_overhead_bytes,omitempty"`
+	PayloadEncoding        string `json:"payload_encoding,omitempty"`
+	PayloadSizeOffsetBytes *int   `json:"payload_size_offset_bytes,omitempty"`
+	NativeMapping          string `json:"native_mapping,omitempty"`
 }
 
 type StepSummary struct {
-	Index           int          `json:"index"`
-	Name            string       `json:"name"`
-	ScenarioStartMs float64      `json:"scenario_start_ms"`
-	Attempted       float64      `json:"attempted"`
-	AckSuccess      float64      `json:"ack_success"`
-	ExplicitFailure float64      `json:"explicit_failure"`
-	Unknown         float64      `json:"unknown"`
-	Early           float64      `json:"early"`
-	BeyondPlan      float64      `json:"beyond_plan"`
-	Thinned         float64      `json:"thinned"`
-	DupInjected     float64      `json:"dup_injected"`
-	Dropped         float64      `json:"dropped_iterations"`
-	HTTPReqs        float64      `json:"http_reqs"`
-	DataSentBytes   float64      `json:"data_sent_bytes"`
-	SendLag         TrendStats   `json:"send_lag_ms"`
-	AckLatency      TrendStats   `json:"ack_latency_ms"`
-	AckByMinute     []TrendStats `json:"ack_latency_ms_by_minute"`
+	Index           int     `json:"index"`
+	Name            string  `json:"name"`
+	ScenarioStartMs float64 `json:"scenario_start_ms"`
+	Attempted       float64 `json:"attempted"`
+	AckSuccess      float64 `json:"ack_success"`
+	ExplicitFailure float64 `json:"explicit_failure"`
+	Unknown         float64 `json:"unknown"`
+	// IncompleteResponse and OversizedResponse are diagnostic subsets of ExplicitFailure. They are
+	// surfaced separately instead of being counted as acknowledgements; no retry is implied.
+	IncompleteResponse float64      `json:"incomplete_response"`
+	OversizedResponse  float64      `json:"oversized_response"`
+	Early              float64      `json:"early"`
+	BeyondPlan         float64      `json:"beyond_plan"`
+	Thinned            float64      `json:"thinned"`
+	DupInjected        float64      `json:"dup_injected"`
+	Dropped            float64      `json:"dropped_iterations"`
+	HTTPReqs           float64      `json:"http_reqs"`
+	DataSentBytes      float64      `json:"data_sent_bytes"`
+	SendLag            TrendStats   `json:"send_lag_ms"`
+	AckLatency         TrendStats   `json:"ack_latency_ms"`
+	AckByMinute        []TrendStats `json:"ack_latency_ms_by_minute"`
 }
 
 // TrendStats are exact statistics of a k6 Trend (sub-)metric, in ms.
@@ -80,6 +92,21 @@ type Record struct {
 	RespMs    float64 `json:"response_ms"`
 	Detail    string  `json:"detail"`
 	Early     bool    `json:"early"`
+}
+
+// BoundaryDetailPrefixes are the stable detail prefixes written for boundary failures. The ledger
+// outcome remains the legacy explicit_failure; report.EvaluateInputs still treats these records as
+// explicit-failure subsets, not acknowledgements.
+var boundaryDetailPrefixes = []string{"incomplete_response:", "oversized_response:"}
+
+// BoundarySubtype returns the adapter-boundary subtype stored in an explicit-failure ledger detail.
+func BoundarySubtype(detail string) (string, bool) {
+	for _, prefix := range boundaryDetailPrefixes {
+		if len(detail) >= len(prefix) && detail[:len(prefix)] == prefix {
+			return prefix[:len(prefix)-1], true
+		}
+	}
+	return "", false
 }
 
 // CPUSample is one line of gen-cpu.ndjson: per-core busy fraction over the previous interval, and k6 memory.
@@ -241,6 +268,12 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	return &r, &s, EvaluateInputs(&r, &s, recs, cpu), nil
+}
+
+// EvaluateInputs is the existing health calculation without filesystem access.
+// Callers must establish schema, completeness and input availability separately.
+func EvaluateInputs(r *plan.Resolved, s *Summary, recs []Record, cpu []CPUSample) *Health {
 	h := &Health{Valid: true, VUsPeak: s.VUsPeak, VUsMax: r.VUs.Max, RecordsTotal: len(recs)}
 	for _, c := range cpu {
 		h.K6MemPeakB = max(h.K6MemPeakB, c.K6MemB)
@@ -283,7 +316,7 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 		}
 		ss := s.Steps[i]
 		sh := StepHealth{Index: st.Index, Name: st.Name, Phase: st.Phase, Rate: st.Rate, DurationS: st.DurationS,
-			PlannedTicks: st.Ticks, PlannedSends: PlannedSends(&r, st), Valid: true}
+			PlannedTicks: st.Ticks, PlannedSends: PlannedSends(r, st), Valid: true}
 		sh.WindowStartMs = ss.ScenarioStartMs
 		if sh.WindowStartMs == 0 {
 			sh.WindowStartMs = s.SetupEndMs + float64(st.StartS)*1000
@@ -294,7 +327,8 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 			sh.AchievedRatio = float64(sh.Sends) / float64(sh.PlannedSends)
 		}
 		sh.Outcomes = map[string]float64{"ack_success": ss.AckSuccess, "explicit_failure": ss.ExplicitFailure,
-			"unknown": ss.Unknown, "not_sent": ss.Dropped}
+			"unknown": ss.Unknown, "not_sent": ss.Dropped,
+			"incomplete_response": ss.IncompleteResponse, "oversized_response": ss.OversizedResponse}
 		sh.SendLagMs = fromTrend(ss.SendLag)
 		sh.AckLatencyMs = fromTrend(ss.AckLatency)
 		for _, m := range ss.AckByMinute {
@@ -383,5 +417,5 @@ func Evaluate(dir string) (*plan.Resolved, *Summary, *Health, error) {
 		h.Valid = false
 	}
 	sort.Strings(h.Warnings)
-	return &r, &s, h, nil
+	return h
 }

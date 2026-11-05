@@ -1,0 +1,439 @@
+{
+  "schema_version": 2,
+  "interpretation": "deployment-orchestration-plan-v2",
+  "mode": "offline-blueprint-only",
+  "authorization": "separate-review-and-authorization-required",
+  "execution_blocked": true,
+  "stages": [
+    {
+      "stage": "pre_deploy_inventory",
+      "purpose": "SYNTHETIC M2c fixture; Read and validate the declared descriptor, inventory and unchanged stack files without contacting anything.",
+      "permissible_actions": [
+        "Read",
+        "Validate",
+        "Attest"
+      ],
+      "execution_blocked_here": false,
+      "expected_evidence": [
+        "descriptor",
+        "inventory",
+        "compose",
+        "env",
+        "makefile",
+        "protocol",
+        "profile"
+      ]
+    },
+    {
+      "stage": "provision_on_sut",
+      "purpose": "SYNTHETIC M2c fixture; Reference the future provisioned replica set. Provisioning is not performed by M2b.",
+      "permissible_actions": [
+        "Validate",
+        "Attest"
+      ],
+      "blocked_actions": [
+        "Apply",
+        "Scale"
+      ],
+      "execution_blocked_here": true,
+      "expected_evidence": [
+        "orchestration_plan"
+      ]
+    },
+    {
+      "stage": "dry_run_render",
+      "purpose": "SYNTHETIC M2c fixture; Render the deterministic plan and attestation from caller-supplied documents.",
+      "permissible_actions": [
+        "Read",
+        "Validate",
+        "RenderDryRun",
+        "Attest"
+      ],
+      "execution_blocked_here": false,
+      "expected_evidence": [
+        "orchestration_plan"
+      ]
+    },
+    {
+      "stage": "apply",
+      "purpose": "SYNTHETIC M2c fixture; Reference only: a future, separately authorized deployment would be applied here.",
+      "permissible_actions": [
+        "Attest"
+      ],
+      "blocked_actions": [
+        "Apply",
+        "Scale",
+        "Restart",
+        "Stop"
+      ],
+      "execution_blocked_here": true,
+      "expected_evidence": [
+        "orchestration_plan"
+      ]
+    },
+    {
+      "stage": "validate_health",
+      "purpose": "SYNTHETIC M2c fixture; Compare caller-supplied health and inventory attestations with the declaration.",
+      "permissible_actions": [
+        "Read",
+        "Validate",
+        "Attest"
+      ],
+      "execution_blocked_here": false,
+      "expected_evidence": [
+        "inventory",
+        "monitoring_export",
+        "log"
+      ]
+    },
+    {
+      "stage": "evidence",
+      "purpose": "SYNTHETIC M2c fixture; Package hashes, logs and preserved ledgers without rewriting any prior artifact.",
+      "permissible_actions": [
+        "Read",
+        "Validate",
+        "Attest"
+      ],
+      "execution_blocked_here": false,
+      "expected_evidence": [
+        "run_manifest",
+        "k6_summary",
+        "sink_ledger",
+        "adapter_ledger",
+        "receipt_ledger",
+        "sha256sums",
+        "packet"
+      ]
+    },
+    {
+      "stage": "rollback",
+      "purpose": "SYNTHETIC M2c fixture; Reference only: restoration rules and the interrupt exception; no restoration is executed.",
+      "permissible_actions": [
+        "Read",
+        "Validate",
+        "Attest"
+      ],
+      "blocked_actions": [
+        "Restart",
+        "Stop",
+        "Reset",
+        "Delete"
+      ],
+      "execution_blocked_here": true,
+      "expected_evidence": [
+        "run_manifest",
+        "log"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "platform": "thingsboard",
+      "project": "tb",
+      "state_machine": [
+        "pre_deploy_inventory",
+        "provision_on_sut",
+        "dry_run_render",
+        "apply",
+        "validate_health",
+        "evidence",
+        "rollback"
+      ],
+      "application_services": [
+        {
+          "service": "tb-core",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "tb-rule-engine",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "tb-http-transport",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        }
+      ],
+      "supporting_services": [
+        {
+          "service": "zookeeper",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "kafka",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "postgres",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "valkey",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "haproxy",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "tb-install",
+          "replicas": 1,
+          "lifecycle": "one_shot",
+          "activation": "optional_profile",
+          "healthcheck": "none"
+        }
+      ],
+      "health_checks": [
+        "SYNTHETIC M2c fixture: these declarations are not live observations and were not collected from Docker or a SUT",
+        "explicit healthchecks (kafka, postgres, valkey) must report healthy; unhealthy is FAIL and missing health evidence is UNAVAILABLE",
+        "services with healthcheck:none (tb-core, tb-rule-engine, tb-http-transport, zookeeper, haproxy) require running plus functional evidence, never a synthetic healthy value",
+        "tb-install is one_shot behind the install profile: not started by default and NOT_ASSESSED unless activated; when activated it must exit 0",
+        "declared replica counts match observed contiguous replicas for persistent default-start services",
+        "haproxy stats endpoint readable read-only"
+      ],
+      "allowed_evidence_roles": [
+        "descriptor",
+        "inventory",
+        "compose",
+        "env",
+        "makefile",
+        "protocol",
+        "profile",
+        "run_manifest",
+        "monitoring_export",
+        "log",
+        "sha256sums",
+        "packet"
+      ],
+      "required_attestation_roles": [
+        "descriptor",
+        "inventory",
+        "run_manifest",
+        "sha256sums",
+        "packet"
+      ],
+      "missing_evidence_status": "UNAVAILABLE"
+    },
+    {
+      "platform": "fiware",
+      "project": "fiware",
+      "state_machine": [
+        "pre_deploy_inventory",
+        "provision_on_sut",
+        "dry_run_render",
+        "apply",
+        "validate_health",
+        "evidence",
+        "rollback"
+      ],
+      "application_services": [
+        {
+          "service": "orion",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "iot-agent",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        }
+      ],
+      "supporting_services": [
+        {
+          "service": "mongo",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "mongo-init",
+          "replicas": 1,
+          "lifecycle": "one_shot",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "haproxy",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        }
+      ],
+      "health_checks": [
+        "SYNTHETIC M2c fixture: these declarations are not live observations and were not collected from Docker or a SUT",
+        "mongo explicit healthcheck must report healthy; unhealthy is FAIL and missing health evidence is UNAVAILABLE",
+        "mongo-init is a default-start one_shot job: successful completion (exit 0) is required, running/healthy is not applicable, and a missing exit code is UNAVAILABLE",
+        "orion, iot-agent and haproxy have healthcheck:none and require running plus functional evidence, never a synthetic healthy value",
+        "declared replica counts match observed contiguous replicas"
+      ],
+      "allowed_evidence_roles": [
+        "descriptor",
+        "inventory",
+        "compose",
+        "env",
+        "makefile",
+        "protocol",
+        "profile",
+        "run_manifest",
+        "monitoring_export",
+        "log",
+        "sha256sums",
+        "packet"
+      ],
+      "required_attestation_roles": [
+        "descriptor",
+        "inventory",
+        "run_manifest",
+        "sha256sums",
+        "packet"
+      ],
+      "missing_evidence_status": "NOT_ASSESSED"
+    },
+    {
+      "platform": "edgex",
+      "project": "edgex",
+      "state_machine": [
+        "pre_deploy_inventory",
+        "provision_on_sut",
+        "dry_run_render",
+        "apply",
+        "validate_health",
+        "evidence",
+        "rollback"
+      ],
+      "application_services": [
+        {
+          "service": "core-data",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "device-rest",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        }
+      ],
+      "supporting_services": [
+        {
+          "service": "database",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "nats",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "declared"
+        },
+        {
+          "service": "core-keeper",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "core-common-config-bootstrapper",
+          "replicas": 1,
+          "lifecycle": "one_shot",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "core-metadata",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "haproxy",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "default_start",
+          "healthcheck": "none"
+        },
+        {
+          "service": "app-http-export",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "optional_profile",
+          "healthcheck": "none"
+        },
+        {
+          "service": "ui",
+          "replicas": 1,
+          "lifecycle": "persistent",
+          "activation": "optional_profile",
+          "healthcheck": "none"
+        }
+      ],
+      "health_checks": [
+        "SYNTHETIC M2c fixture: these declarations are not live observations and were not collected from Docker or a SUT",
+        "database and nats explicit healthchecks must report healthy; unhealthy is FAIL and missing health evidence is UNAVAILABLE",
+        "core-common-config-bootstrapper is a default-start one_shot job: successful completion (exit 0) is required, running/healthy is not applicable, and a missing exit code is UNAVAILABLE",
+        "core-keeper, core-metadata, core-data, device-rest and haproxy have healthcheck:none and require running plus functional evidence, never a synthetic healthy value",
+        "app-http-export and ui are optional_profile declarations and are NOT_ASSESSED unless explicitly activated",
+        "declared replica counts match observed contiguous replicas"
+      ],
+      "allowed_evidence_roles": [
+        "descriptor",
+        "inventory",
+        "compose",
+        "env",
+        "makefile",
+        "protocol",
+        "profile",
+        "run_manifest",
+        "monitoring_export",
+        "log",
+        "sha256sums",
+        "packet"
+      ],
+      "required_attestation_roles": [
+        "descriptor",
+        "inventory",
+        "run_manifest",
+        "sha256sums",
+        "packet"
+      ],
+      "missing_evidence_status": "UNAVAILABLE"
+    }
+  ]
+}

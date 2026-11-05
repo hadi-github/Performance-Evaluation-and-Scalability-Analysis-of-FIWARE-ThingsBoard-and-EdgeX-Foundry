@@ -48,3 +48,16 @@ Genuinely new (owner-level) decisions still owed before any SLO-based campaign e
 
 Until those decisions exist, the current status stands exactly as authorized: **SLO profiles pending;
 measurement verification and qualification proceed without them.**
+
+## Addendum — owner mappings approved 2026-11-01
+
+The owner has now explicitly approved the three named mappings recorded in
+[D44](../../docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01):
+Quick delivery (500 ms scheduled→first-sink p99 primary, 250/1000/5000 sensitivities),
+Reliability of saved data (zero acknowledged identities missing from independent history,
+zero duplicate stored events in the documented scope/window), and High number of devices
+(W2 100-vs-10,000 at matched ~50%/~75% C_SLO(500,1) rates, N=1; no device-capacity cutoff).
+The dated [offline policy](offline-profiles-20261101.json) implements those mappings.
+This supersedes the pending-mapping status above, not the archived texts, external-source
+verification gap or missing reference/capture/qualification evidence. It does not adopt a
+complete campaign C_SLO or authorize runs. **Campaign remains NO-GO.**

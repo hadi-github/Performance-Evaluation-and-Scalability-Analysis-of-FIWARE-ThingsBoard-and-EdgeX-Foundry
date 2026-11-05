@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "fiware",
+  "source": "SYNTHETIC M2d caller-supplied inventory; not a live observation; no Docker, SUT or observer was contacted",
+  "services": [
+    {
+      "project": "fiware",
+      "service": "orion",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "fiware",
+          "service": "orion",
+          "container_id": "synthetic-m2d-orion-0",
+          "replica": 0,
+          "image": "fiware/orion:4.5.0",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "fiware",
+      "service": "iot-agent",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "fiware",
+          "service": "iot-agent",
+          "container_id": "synthetic-m2d-iot-agent-0",
+          "replica": 0,
+          "image": "fiware/iotagent-ul:3.7.0",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "fiware",
+      "service": "mongo",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "fiware",
+          "service": "mongo",
+          "container_id": "synthetic-m2d-mongo-0",
+          "replica": 0,
+          "image": "mongo:8.0",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "fiware",
+      "service": "mongo-init",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "fiware",
+          "service": "mongo-init",
+          "container_id": "synthetic-m2d-mongo-init-0",
+          "replica": 0,
+          "image": "mongo:8.0",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "exited",
+          "state_reason": "synthetic one-shot completion fixture; inventory schema does not carry an exit code"
+        }
+      ]
+    },
+    {
+      "project": "fiware",
+      "service": "haproxy",
+      "replicas": 1,
+      "cpuset": "1",
+      "containers": [
+        {
+          "project": "fiware",
+          "service": "haproxy",
+          "container_id": "synthetic-m2d-haproxy-0",
+          "replica": 0,
+          "image": "haproxy:3.2-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    }
+  ]
+}

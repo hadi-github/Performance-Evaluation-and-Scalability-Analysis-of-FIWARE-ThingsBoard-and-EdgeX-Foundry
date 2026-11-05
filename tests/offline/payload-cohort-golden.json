@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "label": "SYNTHETIC OFFLINE ENGINEERING FIXTURE ONLY - not live evidence, not runtime capture, not storage proof",
+  "provenance": {
+    "protocol_id": "iotbench-telemetry-v0.1.0-pilot.1",
+    "protocol_sha256": "7176b1faed9f5d1b08720f8c2e38256418c4cef65b1182e6157c9b276d0d24ee",
+    "profile_sha256": "1b6aa76d5156eeb1561b0d02641b6f01d3ca6a3447904182a3c219b5930ed1f8",
+    "encoding_id": "logical-json-ascii-v1",
+    "field_order": [
+      "run_id",
+      "seq",
+      "device_id",
+      "scheduled_send_ms",
+      "temperature",
+      "humidity",
+      "pressure",
+      "padding"
+    ],
+    "padding_salt": "0x50414431",
+    "size_points_status": "proposed_not_qualified",
+    "note": "Size offsets are proposed engineering pilot points, not a frozen scientific grid. Numeric telemetry is fixed by this fixture; no rounding is applied."
+  },
+  "seed": 17,
+  "run_id": "SYNTHETIC-m1c-offline-payload",
+  "telemetry": {
+    "temperature": 20,
+    "humidity": 40,
+    "pressure": 1000
+  },
+  "size_offsets_bytes": [
+    0,
+    1024,
+    4096
+  ],
+  "cohort_step": {
+    "index": 1,
+    "step_name": "s01-measurement-r1",
+    "phase": "measurement",
+    "note": "M1b synthetic plan resolution: warmup 2s then measurement 5s at 1/s, devices=5, seed=17; measurement seq 2..6 map to device seq%5."
+  },
+  "cohort": [
+    {
+      "name": "cohort-seq-2",
+      "seq": 2,
+      "device_id": "device-2",
+      "scheduled_send_ms": 1700000002000,
+      "timestamp_token": "1700000002000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":2,\"device_id\":\"device-2\",\"scheduled_send_ms\":1700000002000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "d2a4678fe9b13f48036c66a4d03d3f3fcd6dd40397b1453cee9afb893baf9724",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 167,
+          "sha256": "d2a4678fe9b13f48036c66a4d03d3f3fcd6dd40397b1453cee9afb893baf9724",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1191,
+          "sha256": "3b6a3d26fcf57cf383453b28870587caaf16e8a5f1c6a42eb982ca413b4e4f49",
+          "padding_length": 1024,
+          "padding_sha256": "886b6aada53f1722445a2d8c7c8c60727f77bbcb517fe011407a027a1a339f52"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4263,
+          "sha256": "560195d63076c5eb1e4eba7529f9d2693fcefb380448a84c0f847a3a00b1b723",
+          "padding_length": 4096,
+          "padding_sha256": "8c22d12730e0f427877f12d27cee4dcfb7d6850d8779ac56616bc620453f5517"
+        }
+      ]
+    },
+    {
+      "name": "cohort-seq-3",
+      "seq": 3,
+      "device_id": "device-3",
+      "scheduled_send_ms": 1700000003000,
+      "timestamp_token": "1700000003000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":3,\"device_id\":\"device-3\",\"scheduled_send_ms\":1700000003000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "c47814ae19e88ff1d03daa6cfc807ca0ce73a4c2fe934a5a5918661d9042c54c",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 167,
+          "sha256": "c47814ae19e88ff1d03daa6cfc807ca0ce73a4c2fe934a5a5918661d9042c54c",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1191,
+          "sha256": "6fbe447403f41bf8c0630b103d2929174db81029b2571d76a4e91f4183a5c494",
+          "padding_length": 1024,
+          "padding_sha256": "fc688e652c926dfb4cc8a0e764188813346dd8c886242fc9f64127f2254de66b"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4263,
+          "sha256": "ffd70c88189741ad4eef2e81eac86ba00c4468337f8ef794d81be58744b38461",
+          "padding_length": 4096,
+          "padding_sha256": "5c00c6fdccfc4b0c06c258465f129e0c8cf801514f2b108766126391186df9e6"
+        }
+      ]
+    },
+    {
+      "name": "cohort-seq-4",
+      "seq": 4,
+      "device_id": "device-4",
+      "scheduled_send_ms": 1700000004000,
+      "timestamp_token": "1700000004000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":4,\"device_id\":\"device-4\",\"scheduled_send_ms\":1700000004000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "9d8ec6066548b2ba49215f2e9f947c36d1c711bd6243c5432cddc9f79b9063d6",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 167,
+          "sha256": "9d8ec6066548b2ba49215f2e9f947c36d1c711bd6243c5432cddc9f79b9063d6",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1191,
+          "sha256": "4e0d1aa36555e082fb0a38eb4fdd1e583af0dd2cab38325f207f2ff75c29b694",
+          "padding_length": 1024,
+          "padding_sha256": "6bdcb7c78a086746c9150e23003b7f88adce735d2ceda2caa2e57a5ccb251bd7"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4263,
+          "sha256": "f8683dd496a7d33d5be31bf4f9b77f628ee6e8e495f0a9df95f08e40eeff302c",
+          "padding_length": 4096,
+          "padding_sha256": "a0bb22d58a633b4ed6722e5820ad5191a4203c830ae8b57ecdf71dd078ade92a"
+        }
+      ]
+    },
+    {
+      "name": "cohort-seq-5",
+      "seq": 5,
+      "device_id": "device-0",
+      "scheduled_send_ms": 1700000005000,
+      "timestamp_token": "1700000005000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":5,\"device_id\":\"device-0\",\"scheduled_send_ms\":1700000005000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "b27dbce88023531897bdd0b1c80d880b4a63d7a4f8d11306a26feb0eab51ce24",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 167,
+          "sha256": "b27dbce88023531897bdd0b1c80d880b4a63d7a4f8d11306a26feb0eab51ce24",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1191,
+          "sha256": "6f379de6f02b3a161c0575a017b5785cebf1eda6ef59557bc9ab927012f57bf8",
+          "padding_length": 1024,
+          "padding_sha256": "d3c5eef989f95259027d30ab51e6f149a6ef18af426a6c64b705f1a03c1bfbba"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4263,
+          "sha256": "9d294f457d70130e29c5791f25223ab57be21bc30bd8ba5b2a901b739e0c7998",
+          "padding_length": 4096,
+          "padding_sha256": "621f9b7dd59af5fe18fe568b0d9857a4de01c1e8b522caa229682a57355cd08e"
+        }
+      ]
+    },
+    {
+      "name": "cohort-seq-6",
+      "seq": 6,
+      "device_id": "device-1",
+      "scheduled_send_ms": 1700000006000,
+      "timestamp_token": "1700000006000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":6,\"device_id\":\"device-1\",\"scheduled_send_ms\":1700000006000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "29f0bf38353e72763a173c105b4fff0571a1672856793dea309377c70334512d",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 167,
+          "sha256": "29f0bf38353e72763a173c105b4fff0571a1672856793dea309377c70334512d",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1191,
+          "sha256": "1d5d6a24332640315426ff7ae4cdf6e2faad6d2341e2b643e7c615556d199c55",
+          "padding_length": 1024,
+          "padding_sha256": "db81e2a306b3674ab67c08abfc010bf01f2f6eadb82b7218b04fcddc990fdcda"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4263,
+          "sha256": "c79284ef83c6ac972403cd1e5c3086d05d4864e7dd814b0d47fa7a1578949f63",
+          "padding_length": 4096,
+          "padding_sha256": "2b8ebab5d4c5dc2b4abbbd822f44e88c46d6e2980e9d443918f783ef74afc0b1"
+        }
+      ]
+    }
+  ],
+  "edge_cases": [
+    {
+      "name": "edge-seq-0-min-device",
+      "seq": 0,
+      "device_id": "d",
+      "scheduled_send_ms": 0,
+      "timestamp_token": "0",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":0,\"device_id\":\"d\",\"scheduled_send_ms\":0,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "87af987aea2bcc34f089e9c9921b8850978430b416c28cb8abf422a209890884",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 148,
+          "sha256": "87af987aea2bcc34f089e9c9921b8850978430b416c28cb8abf422a209890884",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1172,
+          "sha256": "c0057189162c5012c09e9065b08ecb3f7f9c432147f515f159c8374e3b3b67c2",
+          "padding_length": 1024,
+          "padding_sha256": "eee8b4e76fe5ae40fb239a91c9114214cac00b70524ea8281354ccaf1de2ad61"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4244,
+          "sha256": "826091ab4796b63faa956a9e59a43f07b4ddeac49ee065d203fb53dba3b031b5",
+          "padding_length": 4096,
+          "padding_sha256": "880d22fb9b4f02f02e7e37255c05de6c236a3ab0ae934c4e49bf2f8a7282ef99"
+        }
+      ]
+    },
+    {
+      "name": "edge-seq-9-single-width",
+      "seq": 9,
+      "device_id": "device-9",
+      "scheduled_send_ms": 0.001,
+      "timestamp_token": "0.001",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":9,\"device_id\":\"device-9\",\"scheduled_send_ms\":0.001,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "6ca46e05c7798344fe64894beb9d4b8cab540d5639f446871dd9ac686da9c74d",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 159,
+          "sha256": "6ca46e05c7798344fe64894beb9d4b8cab540d5639f446871dd9ac686da9c74d",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1183,
+          "sha256": "11f81f5008f423e0a30474880a5a3b1c663d2829e0c86d598e1dd34b6198ac39",
+          "padding_length": 1024,
+          "padding_sha256": "8095ac1f4b55c35809a375858b8a7892537007abb567a67c32994afdf9103265"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4255,
+          "sha256": "9c6d8d3db2303d44715a103cd1a4d44dd8298d458cb3b50983c32008ee34e18f",
+          "padding_length": 4096,
+          "padding_sha256": "65c33b339fd3845519a626d22c8a6befd1026623056750ae8265a48502c03398"
+        }
+      ]
+    },
+    {
+      "name": "edge-seq-10-double-width",
+      "seq": 10,
+      "device_id": "device-10",
+      "scheduled_send_ms": 1,
+      "timestamp_token": "1",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":10,\"device_id\":\"device-10\",\"scheduled_send_ms\":1,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "aa4581fb54b49e0e47b75f33d1588fbe8ed896fdfd34994ec34f7ee8a2c03d35",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 157,
+          "sha256": "aa4581fb54b49e0e47b75f33d1588fbe8ed896fdfd34994ec34f7ee8a2c03d35",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1181,
+          "sha256": "952bebf4918ca7ed6d8c4f60e2121891182b86ec43f633c145bba6b94c1e4f5f",
+          "padding_length": 1024,
+          "padding_sha256": "1dd62a4826a2c935f377db90e28fb3053bae46f7d850b767fd5655fb1bd0d1d3"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4253,
+          "sha256": "888d5f1bb8e55aae613a48fd18d94b6847de7ea2c9946b4bf26d9ea2963793eb",
+          "padding_length": 4096,
+          "padding_sha256": "c452fc000eb2fa959dafbdc6908e87d30717e25a2c2a3bae49f1e23ccbcfe519"
+        }
+      ]
+    },
+    {
+      "name": "edge-seq-9999-four-width",
+      "seq": 9999,
+      "device_id": "device-9999",
+      "scheduled_send_ms": 1048576.001,
+      "timestamp_token": "1048576.001",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":9999,\"device_id\":\"device-9999\",\"scheduled_send_ms\":1048576.001,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "0eec7d492f3c789374720f163c3bd771fa33609ae6ff6901d9b3f277ecb93932",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 171,
+          "sha256": "0eec7d492f3c789374720f163c3bd771fa33609ae6ff6901d9b3f277ecb93932",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1195,
+          "sha256": "d9c8092dfbf505dedd61c19cf89225dd29d54aade8f5969db4e21f5516ff04c5",
+          "padding_length": 1024,
+          "padding_sha256": "12f601096b339fecc0ddf535b3e2583e309bfa481e547971dde40c5bebbb60e8"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4267,
+          "sha256": "cabcf226fe76ece42d8b8d9e8aefe0404df33cebe59f25f9484d58498c64c8db",
+          "padding_length": 4096,
+          "padding_sha256": "28175215c6abb272d620c12037cbd6103ca97c977cd459603d9ac5540f44fcb5"
+        }
+      ]
+    },
+    {
+      "name": "edge-seq-10000-five-width",
+      "seq": 10000,
+      "device_id": "device-10000",
+      "scheduled_send_ms": 1700000000000.001,
+      "timestamp_token": "1700000000000.001",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":10000,\"device_id\":\"device-10000\",\"scheduled_send_ms\":1700000000000.001,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "71663422f35539ef090642cda2e3e7ae2b7b6722c4a962cd3411b4b817973944",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 179,
+          "sha256": "71663422f35539ef090642cda2e3e7ae2b7b6722c4a962cd3411b4b817973944",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1203,
+          "sha256": "51b966c43c0b0073bb30094b87ad8701477b2ed1e21574c1b0f41754def920b1",
+          "padding_length": 1024,
+          "padding_sha256": "fce397ac6b9283121dd5b3677fa84ee5b42140b70d68ceb0abba875fc4bf41b4"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4275,
+          "sha256": "c3e9e7ea08a9c9439457cee186ec488bb41fa92da5d515231ec0554e7da8dab9",
+          "padding_length": 4096,
+          "padding_sha256": "5fe2231d41bcf0154d2181c92828b661efb629a3ec16738d0e1eb8ebc4addd32"
+        }
+      ]
+    },
+    {
+      "name": "edge-seq-uint32-max",
+      "seq": 4294967295,
+      "device_id": "device-4294967295",
+      "scheduled_send_ms": 9007199254740991,
+      "timestamp_token": "9007199254740991",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":4294967295,\"device_id\":\"device-4294967295\",\"scheduled_send_ms\":9007199254740991,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "85df80fb0263a53abd68661695dfdf307afd56532d21fb6ec034dadc7eee5df1",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 188,
+          "sha256": "85df80fb0263a53abd68661695dfdf307afd56532d21fb6ec034dadc7eee5df1",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1212,
+          "sha256": "ee5e6cb4f8ab1f2f9d39fc25c8bbc5b904f3cd660bf69154235579f2af6b0e14",
+          "padding_length": 1024,
+          "padding_sha256": "a9bc12ce4feec07c60ddb93b23e7605ac2947dd2ca9dd71ac877eaf8a14f01e2"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4284,
+          "sha256": "180028f4a28c57f72a28b5439af296ae7eb8b1b4b5ac30d3c67fe48fc68fe67a",
+          "padding_length": 4096,
+          "padding_sha256": "405762410ccb5059918549e1549a7d9d9b792beb684e535ce5f519a1ee84f348"
+        }
+      ]
+    },
+    {
+      "name": "edge-device-128-max",
+      "seq": 42,
+      "device_id": "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "scheduled_send_ms": 1700000000000,
+      "timestamp_token": "1700000000000",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":42,\"device_id\":\"deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"scheduled_send_ms\":1700000000000,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "773d79f17a18a77537d194f33827e9c34eff88c4ddaf5712efda46b5bfe97c37",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 288,
+          "sha256": "773d79f17a18a77537d194f33827e9c34eff88c4ddaf5712efda46b5bfe97c37",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1312,
+          "sha256": "c780d57ba6ccabf6927e9fe147cad2f05d3da3ebccc17b62c7f9396b1da27f1c",
+          "padding_length": 1024,
+          "padding_sha256": "4f5aa42bb4beb358889e2711e22a4b38f29761df7df1273c5e161f2921e246ca"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4384,
+          "sha256": "03ced49562d06a805619efa5211514785bf7a3926e0aeee8ea8a6563e4db0347",
+          "padding_length": 4096,
+          "padding_sha256": "29502b3dde4a2781999f00a35b2469acedf74fecc0a6dd5954b592481bef95de"
+        }
+      ]
+    },
+    {
+      "name": "edge-device-punctuation",
+      "seq": 7,
+      "device_id": "device_7.edge:case-1",
+      "scheduled_send_ms": 2.003,
+      "timestamp_token": "2.003",
+      "expected_baseline": "{\"run_id\":\"SYNTHETIC-m1c-offline-payload\",\"seq\":7,\"device_id\":\"device_7.edge:case-1\",\"scheduled_send_ms\":2.003,\"temperature\":20,\"humidity\":40,\"pressure\":1000,\"padding\":\"\"}",
+      "expected_baseline_sha256": "1ea0f1c6589bc0d8112eb24d31191ffabbbc55f2b2a2ed855ec5659919c58663",
+      "sizes": [
+        {
+          "offset_bytes": 0,
+          "target_bytes": 171,
+          "sha256": "1ea0f1c6589bc0d8112eb24d31191ffabbbc55f2b2a2ed855ec5659919c58663",
+          "padding_length": 0,
+          "padding_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "offset_bytes": 1024,
+          "target_bytes": 1195,
+          "sha256": "79a00d18b08f6b6479a95d6e362f17d9fe815fe2f6d7b13366aaf9a652dc3dd6",
+          "padding_length": 1024,
+          "padding_sha256": "052c4cb9d62c0a4b2ef64316397d1724e8bf0dd3f32d03eae7c577af1022d396"
+        },
+        {
+          "offset_bytes": 4096,
+          "target_bytes": 4267,
+          "sha256": "79416384f3c20e0feafb176b2eec1bcd8f475b3bd45a2967430ef68eaf1aa71d",
+          "padding_length": 4096,
+          "padding_sha256": "c0dede4512d2299afdf2a1cc2820a3adda335ae5a57f569f74b11b90edea4b98"
+        }
+      ]
+    }
+  ]
+}

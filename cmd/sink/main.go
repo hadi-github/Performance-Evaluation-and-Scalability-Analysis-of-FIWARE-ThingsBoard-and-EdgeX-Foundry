@@ -44,7 +44,7 @@ func main() {
 	_ = srv.Shutdown(ctx)
 	s.Close()
 	_ = f.Close()
-	log.Printf("observed %d messages, overflow %d", s.Received(), s.Overflow())
+	log.Printf("observed %d messages, overflow %d, incomplete bodies %d", s.Received(), s.Overflow(), s.IncompleteBody())
 	if s.Overflow() > 0 {
 		os.Exit(3)
 	}

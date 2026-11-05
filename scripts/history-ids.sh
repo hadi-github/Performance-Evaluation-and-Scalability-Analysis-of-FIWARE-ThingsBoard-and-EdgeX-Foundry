@@ -65,6 +65,10 @@ SQL
     ;;
   fiware)
     unrecoverable=0
+    # A process substitution hides fw_tables' exit status from set -e. Discover
+    # synchronously so a failed query cannot look like a successful empty export.
+    tables=$(fw_tables)
+    [[ -n "$tables" ]] || { echo "history-ids fiware: no identity-bearing history tables; capture unavailable" >&2; exit 1; }
     while IFS= read -r tbl; do
       [[ -n "$tbl" ]] || continue
       # typed rows first
@@ -110,7 +114,7 @@ SELECT row_to_json(r)::text FROM (
     AND j.run_id = '$run'
     AND j.seq_raw IS NOT NULL
     AND j.seq_raw !~ '^-?[0-9]+\$'
-) r;" || marks="")
+) r;")
       if [[ -n "${marks:-}" ]]; then
         while IFS= read -r m; do
           [[ -n "$m" ]] || continue
@@ -118,7 +122,7 @@ SELECT row_to_json(r)::text FROM (
           unrecoverable=$((unrecoverable+1))
         done <<< "$marks"
       fi
-    done < <(fw_tables)
+    done <<< "$tables"
     echo "history-ids fiware: unrecoverable=$unrecoverable (container $FWHC_CONTAINER, run $run)" >&2
     ;;
   *)

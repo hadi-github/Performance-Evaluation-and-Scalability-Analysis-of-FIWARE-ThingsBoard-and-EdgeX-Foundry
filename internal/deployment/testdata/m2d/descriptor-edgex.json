@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "platform": "edgex",
+  "project": "edgex",
+  "allocation": {
+    "application_cpusets": [
+      "4"
+    ],
+    "supporting_cpusets": [
+      "1",
+      "2-3"
+    ]
+  },
+  "protocol": {
+    "binding_sha256": "7176b1faed9f5d1b08720f8c2e38256418c4cef65b1182e6157c9b276d0d24ee",
+    "profile_sha256": "1b6aa76d5156eeb1561b0d02641b6f01d3ca6a3447904182a3c219b5930ed1f8",
+    "profile_path": "research/protocols/offline-profiles-20261101.json"
+  },
+  "provenance": {
+    "source": "SYNTHETIC M2d caller-supplied fixture; not a live deployment and not an observation; values follow the unchanged EdgeX compose defaults"
+  },
+  "services": [
+    {
+      "service": "core-common-config-bootstrapper",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 134217728,
+      "image": "edgexfoundry/core-common-config-bootstrapper:4.0.2"
+    },
+    {
+      "service": "core-data",
+      "class": "application",
+      "replicas": 1,
+      "cpuset": "4",
+      "memory_bytes": 536870912,
+      "image": "edgex-nats/core-data:4.0.2"
+    },
+    {
+      "service": "core-keeper",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 268435456,
+      "image": "edgex-nats/core-keeper:4.0.2"
+    },
+    {
+      "service": "core-metadata",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 268435456,
+      "image": "edgex-nats/core-metadata:4.0.2"
+    },
+    {
+      "service": "database",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 1610612736,
+      "image": "postgres:16.3-alpine"
+    },
+    {
+      "service": "device-rest",
+      "class": "application",
+      "replicas": 1,
+      "cpuset": "4",
+      "memory_bytes": 536870912,
+      "image": "edgex-nats/device-rest:4.0.2"
+    },
+    {
+      "service": "haproxy",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "1",
+      "memory_bytes": 268435456,
+      "image": "haproxy:3.2-alpine"
+    },
+    {
+      "service": "nats",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 268435456,
+      "image": "nats:2.12.9-alpine"
+    }
+  ]
+}

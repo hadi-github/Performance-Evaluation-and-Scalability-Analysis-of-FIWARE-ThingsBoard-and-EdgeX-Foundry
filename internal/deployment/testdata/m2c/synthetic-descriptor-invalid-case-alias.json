@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "PLATFORM": "thingsboard",
+  "project": "tb",
+  "allocation": {
+    "application_cpusets": [
+      "4",
+      "4-5"
+    ],
+    "supporting_cpusets": [
+      "1",
+      "2-3"
+    ]
+  },
+  "protocol": {
+    "binding_sha256": "7176b1faed9f5d1b08720f8c2e38256418c4cef65b1182e6157c9b276d0d24ee",
+    "profile_sha256": "1b6aa76d5156eeb1561b0d02641b6f01d3ca6a3447904182a3c219b5930ed1f8",
+    "profile_path": "research/protocols/offline-profiles-20261101.json"
+  },
+  "provenance": {
+    "source": "SYNTHETIC M2c caller-supplied fixture; not a live deployment and not an observation"
+  },
+  "services": [
+    {
+      "service": "tb-core",
+      "class": "application",
+      "replicas": 1,
+      "cpuset": "4",
+      "memory_bytes": 1073741824,
+      "image": "thingsboard/tb-node:4.3.1.6"
+    },
+    {
+      "service": "tb-rule-engine",
+      "class": "application",
+      "replicas": 1,
+      "cpuset": "4",
+      "memory_bytes": 1073741824,
+      "image": "thingsboard/tb-node:4.3.1.6"
+    },
+    {
+      "service": "tb-http-transport",
+      "class": "application",
+      "replicas": 2,
+      "cpuset": "4-5",
+      "memory_bytes": 536870912,
+      "image": "thingsboard/tb-http-transport:4.3.1.6"
+    },
+    {
+      "service": "zookeeper",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 536870912,
+      "image": "zookeeper:3.8.1"
+    },
+    {
+      "service": "kafka",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 1342177280,
+      "image": "apache/kafka:4.0.0"
+    },
+    {
+      "service": "postgres",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 1610612736,
+      "image": "postgres:16"
+    },
+    {
+      "service": "valkey",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "memory_bytes": 268435456,
+      "image": "valkey/valkey:8.0-alpine"
+    },
+    {
+      "service": "haproxy",
+      "class": "supporting",
+      "replicas": 1,
+      "cpuset": "1",
+      "memory_bytes": 268435456,
+      "image": "haproxy:3.2-alpine"
+    }
+  ]
+}

@@ -51,17 +51,20 @@ type Config struct {
 
 // Record is one received request. Times are epoch milliseconds (float, sub-ms resolution) and monotonic ns.
 type Record struct {
-	RecvMs     float64           `json:"recv_ms"`
-	RecvWallNs string            `json:"recv_wall_ns"` // lossless epoch ns (string)
-	RecvMonoNs int64             `json:"recv_mono_ns"`
-	RunID      string            `json:"run_id,omitempty"`
-	Seq        int64             `json:"seq"`
-	Device     string            `json:"device_id,omitempty"`
-	SchedMs    float64           `json:"scheduled_send_ms,omitempty"`
-	Status     int               `json:"status"`
-	Stored     bool              `json:"stored"`
-	DelayMs    float64           `json:"delay_ms"`
-	Headers    map[string]string `json:"h,omitempty"`
+	RecvMs     float64 `json:"recv_ms"`
+	RecvWallNs string  `json:"recv_wall_ns"` // lossless epoch ns (string)
+	RecvMonoNs int64   `json:"recv_mono_ns"`
+	RunID      string  `json:"run_id,omitempty"`
+	Seq        int64   `json:"seq"`
+	Device     string  `json:"device_id,omitempty"`
+	SchedMs    float64 `json:"scheduled_send_ms,omitempty"`
+	// Padding is the actual adapter-supplied padding text, captured when present. It is omitted for
+	// legacy bodies, so existing records remain unchanged and are never relabelled as padded.
+	Padding string            `json:"padding,omitempty"`
+	Status  int               `json:"status"`
+	Stored  bool              `json:"stored"`
+	DelayMs float64           `json:"delay_ms"`
+	Headers map[string]string `json:"h,omitempty"`
 }
 
 type body struct {
@@ -69,6 +72,7 @@ type body struct {
 	Seq     *int64   `json:"seq"`
 	Device  string   `json:"device_id"`
 	SchedMs *float64 `json:"scheduled_send_ms"`
+	Padding string   `json:"padding"`
 }
 
 type Server struct {
@@ -142,10 +146,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	rec := Record{RecvMs: float64(recv.UnixNano()) / 1e6, RecvWallNs: strconv.FormatInt(recv.UnixNano(), 10),
 		RecvMonoNs: mono, Seq: -1}
-	raw, _ := io.ReadAll(io.LimitReader(r.Body, 1<<16))
+	// Bound the capture at 2 MiB: the canonical payload maximum is 1 MiB, so a valid logical body
+	// plus JSON framing fits. The fixture never parses a silently truncated valid payload.
+	raw, _ := io.ReadAll(io.LimitReader(r.Body, 2<<20))
 	var b body
 	if len(raw) > 0 && raw[0] == '{' && json.Unmarshal(raw, &b) == nil {
-		rec.RunID, rec.Device = b.RunID, b.Device
+		rec.RunID, rec.Device, rec.Padding = b.RunID, b.Device, b.Padding
 		if b.Seq != nil {
 			rec.Seq = *b.Seq
 		}

@@ -1,0 +1,1 @@
+SYNTHETIC M2c preserved-prior placeholder bytes; not a live artifact and not copied from any prior run.

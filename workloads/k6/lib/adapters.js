@@ -10,6 +10,8 @@
 import http from 'k6/http';
 import exec from 'k6/execution';
 import { sleep } from 'k6';
+import { nativePayload, payloadSelected } from './adapter_payload.js';
+import { classifyStatus, classify207 } from './response_semantics.js';
 
 const JSON_HDR = { 'Content-Type': 'application/json' };
 
@@ -24,22 +26,10 @@ function deviceName(runId, i) {
   return 'bench-' + runId + '-' + String(i).padStart(5, '0');
 }
 
-function classifyStatus(res, okStatus) {
-  if (res.status === 0) return { outcome: 'unknown', detail: 'transport' };
-  return res.status === okStatus ? { outcome: 'ack_success' } : { outcome: 'explicit_failure' };
-}
-
-// A 207 answer is a batch: success only if every item reports a 2xx statusCode.
-function classify207(res) {
-  let items;
-  try {
-    items = JSON.parse(res.body);
-  } catch (e) {
-    return { outcome: 'explicit_failure', detail: 'unparseable_207_body' };
-  }
-  if (!Array.isArray(items) || items.length === 0) return { outcome: 'explicit_failure', detail: 'empty_207_body' };
-  const bad = items.find((x) => !(x.statusCode >= 200 && x.statusCode < 300));
-  return bad ? { outcome: 'explicit_failure', detail: 'item_status_' + bad.statusCode } : { outcome: 'ack_success' };
+// Attach the native payload metadata so gen.js can report logical/adapter/HTTP bytes separately.
+function requestPayload(adapter, cfg, m, deviceID, url) {
+  const p = nativePayload(adapter, cfg, m, deviceID);
+  return { url, body: p.body, headers: p.headers, payload: p };
 }
 
 // ------------------------------------------------------------------ fixture / reference ingester
@@ -52,14 +42,7 @@ const fixture = {
     return { devices };
   },
   request(cfg, st, m) {
-    return {
-      url: cfg.target.base_url + '/ingest',
-      body: JSON.stringify({
-        run_id: m.run_id, seq: m.seq, device_id: st.devices[m.device], scheduled_send_ms: m.scheduled_send_ms,
-        temperature: m.temperature, humidity: m.humidity, pressure: m.pressure,
-      }),
-      headers: JSON_HDR,
-    };
+    return requestPayload('fixture', cfg, m, st.devices[m.device], cfg.target.base_url + '/ingest');
   },
   classify(res) {
     if (res.status === 207) return classify207(res);
@@ -91,16 +74,12 @@ const thingsboard = {
     }
     return { devices };
   },
-  // Stored as one ts_kv row per key (6 rows per logical reading, all with the same arrival ts).
+  // Stored as one ts_kv row per key (6 legacy / 8 canonical keys per reading, same arrival ts).
+  // In explicit payload mode the body is the canonical object itself, so the padding key is a real
+  // platform-stored field rather than a locally reconstructed value.
   request(cfg, st, m) {
-    return {
-      url: cfg.target.base_url + '/api/v1/' + st.devices[m.device].token + '/telemetry',
-      body: JSON.stringify({
-        run_id: m.run_id, seq: m.seq, scheduled_send_ms: m.scheduled_send_ms,
-        temperature: m.temperature, humidity: m.humidity, pressure: m.pressure,
-      }),
-      headers: JSON_HDR,
-    };
+    return requestPayload('thingsboard', cfg, m, deviceName(cfg.run_id, m.device),
+      cfg.target.base_url + '/api/v1/' + st.devices[m.device].token + '/telemetry');
   },
   classify(res) {
     return classifyStatus(res, 200);
@@ -126,17 +105,21 @@ const fiware = {
     }), { headers: hdr, tags: { name: 'setup' }, responseType: 'text' }), [201], 'create service group');
     const devices = [];
     for (let i = 0; i < cfg.devices; i++) devices.push(deviceName(cfg.run_id, i));
+    // The padding alias is provisioned only for explicit payload plans. Legacy plans keep exactly
+    // the six original attributes, so a padded field is never accepted without an explicit mapping.
+    const attrs = [
+      { object_id: 't', name: 'temperature', type: 'Integer' },
+      { object_id: 'h', name: 'humidity', type: 'Integer' },
+      { object_id: 'p', name: 'pressure', type: 'Integer' },
+      { object_id: 'q', name: 'seq', type: 'Number' },
+      { object_id: 'r', name: 'run_id', type: 'Text' },
+      { object_id: 's', name: 'scheduled_send_ms', type: 'Number' },
+    ];
+    if (payloadSelected(cfg)) attrs.push({ object_id: 'd', name: 'padding', type: 'Text' });
     for (let off = 0; off < devices.length; off += 100) {
       const batch = devices.slice(off, off + 100).map((id) => ({
         device_id: id, apikey, entity_name: 'urn:ngsi-ld:' + FW_TYPE + ':' + id, entity_type: FW_TYPE,
-        attributes: [
-          { object_id: 't', name: 'temperature', type: 'Integer' },
-          { object_id: 'h', name: 'humidity', type: 'Integer' },
-          { object_id: 'p', name: 'pressure', type: 'Integer' },
-          { object_id: 'q', name: 'seq', type: 'Number' },
-          { object_id: 'r', name: 'run_id', type: 'Text' },
-          { object_id: 's', name: 'scheduled_send_ms', type: 'Number' },
-        ],
+        attributes: attrs,
       }));
       must(http.post(cfg.target.north_url + '/iot/devices', JSON.stringify({ devices: batch }),
         { headers: hdr, tags: { name: 'setup' }, responseType: 'text', timeout: '60s' }), [201], 'provision devices');
@@ -144,12 +127,8 @@ const fiware = {
     return { apikey, devices };
   },
   request(cfg, st, m) {
-    return {
-      url: cfg.target.south_url + '/iot/d?k=' + st.apikey + '&i=' + st.devices[m.device],
-      body: 't|' + m.temperature + '|h|' + m.humidity + '|p|' + m.pressure
-        + '|q|' + m.seq + '|r|' + m.run_id + '|s|' + m.scheduled_send_ms,
-      headers: { 'Content-Type': 'text/plain' },
-    };
+    return requestPayload('fiware', cfg, m, st.devices[m.device],
+      cfg.target.south_url + '/iot/d?k=' + st.apikey + '&i=' + st.devices[m.device]);
   },
   classify(res) {
     return classifyStatus(res, 200);
@@ -215,14 +194,10 @@ const edgex = {
     return { devices };
   },
   request(cfg, st, m) {
-    return {
-      url: cfg.target.ingress_url + '/api/v3/resource/' + st.devices[m.device] + '/reading',
-      body: JSON.stringify({
-        run_id: m.run_id, seq: m.seq, scheduled_send_ms: m.scheduled_send_ms,
-        temperature: m.temperature, humidity: m.humidity, pressure: m.pressure,
-      }),
-      headers: JSON_HDR,
-    };
+    // The existing profile stores one Object reading; explicit payload mode stores the canonical
+    // object (including its padding field) as that object's value.
+    return requestPayload('edgex', cfg, m, st.devices[m.device],
+      cfg.target.ingress_url + '/api/v3/resource/' + st.devices[m.device] + '/reading');
   },
   classify(res) {
     if (res.status === 207) return classify207(res);

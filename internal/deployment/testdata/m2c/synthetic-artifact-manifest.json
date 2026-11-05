@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "interpretation": "runtime-artifact-manifest-v1",
+  "run_id": "m2c-synthetic-20261105-fixture",
+  "run_date": "2026-11-05",
+  "run_tag": "m2c-synthetic",
+  "platform": "all",
+  "artifacts": [
+    {
+      "role": "descriptor",
+      "path": "results/m2c-synthetic-20261105-fixture/descriptor.json",
+      "sha256": "91e0dd8ebd79cf980a6d86a6a03459881805de27b5913b12a2838c8f88438681",
+      "bytes": 2144,
+      "origin": "this_run",
+      "required": true
+    },
+    {
+      "role": "inventory",
+      "path": "results/m2c-synthetic-20261105-fixture/inventory.json",
+      "sha256": "f751636685bfb2563d4b6b95c44f6c1e7bdd2bb6663fa91bdf599f36ecb9cdae",
+      "bytes": 4063,
+      "origin": "this_run",
+      "required": true
+    },
+    {
+      "role": "orchestration_plan",
+      "path": "results/m2c-synthetic-20261105-fixture/orchestration-plan.json",
+      "sha256": "9a5ff516b0274afb21f32fd238eb9cf779c8beb6b5b6323ec78041bf3cceec8e",
+      "bytes": 12781,
+      "origin": "this_run",
+      "required": true
+    },
+    {
+      "role": "other",
+      "path": "results/m2c-synthetic-prior-20261105-preserved/prior-note.txt",
+      "sha256": "ff2c98c032aded08c3a4bd678f76b5a92926c3fb169b798a1cb211f964fceb09",
+      "bytes": 104,
+      "origin": "preserved_prior",
+      "required": false
+    }
+  ]
+}

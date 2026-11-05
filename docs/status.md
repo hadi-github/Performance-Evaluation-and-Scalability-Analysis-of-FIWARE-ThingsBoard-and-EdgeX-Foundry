@@ -205,3 +205,139 @@ then resume the gates. Main campaign remains **NO-GO**; no rate or SLO decision 
 scrape targets down. No tests, restoration or network changes were attempted. SUT identity/state,
 ledger recovery and reconciliation remain unavailable. Evidence: `results/recovery-20261101/`;
 handoff: `docs/archive/sessions/recovery-check-20261101.md`.
+
+## 10. Owner profile mappings approved — 2026-11-01 (offline only)
+
+[D44](architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01) records the
+owner's approval of Quick delivery (500 ms scheduled→first-sink p99 primary, with separate
+250/1000/5000 ms sensitivities), Reliability of saved data (zero acknowledged identities
+missing from independent history and zero duplicate stored events in the stated scope/window),
+and High number of devices (W2 100-vs-10,000 at matched ~50%/~75% reference rates, N=1;
+not a device-capacity cutoff). This supersedes §8's pending numerical mapping status only.
+The dated [policy](../research/protocols/offline-profiles-20261101.json) is the analyzer default.
+
+Missing C_SLO(500,1) reference evidence, observation windows/capture completeness, effective
+configuration and population qualification remain unavailable rather than guessed. See
+[current offline configuration](development/offline-analysis.md#owner-approved-configuration-2026-11-01).
+This update authorizes no runtime action. **Campaign remains NO-GO.**
+
+## 11. M0a baseline preservation and receiver recovery — 2026-11-03
+
+Scoped recovery and review packet: [`docs/archive/sessions/m0a-baseline-recovery-20261103.md`](archive/sessions/m0a-baseline-recovery-20261103.md);
+raw evidence: [`results/m0a-20261103-020828+0330/`](../results/m0a-20261103-020828%2B0330/).
+Before recovery, the dirty baseline on `chore/ci-and-release` at `36f8348e5f6a8cf286cbe93b7e2a8358bcb20d51`
+was snapshotted (tracked diff SHA-256 `f0da0d534b343c0db6e8f1d8389becdc828b69de136f78935338f5464e2680c2`,
+plus hashes/copies of all untracked source/doc/test files); no pre-existing work was reset or overwritten.
+The requested route was `openai/gpt-6-luna#high`; the running harness identified GPT-6 Luna but did not
+expose a separate `#high` routing confirmation.
+
+Both hosts were reachable at the recorded host-local UTC time 2026-11-02 22:38:39. The SUT reported
+`ramona-vm-2`, 16,375,816 kB MemTotal, and exactly the two expected receiver command lines/listeners.
+Pre-flush copies matched the existing ledger hashes. After argv verification, only PIDs 3830274 and
+3830275 received SIGTERM; both exited within the bounded wait. Final ledgers and logs were copied and
+hash-checked. Immediate reconciles to 49,500 unique expected receipts / 1,000 devices, zero missing,
+unexpected, duplicate, or wrong-device identities (including warm-up); this supports the existing
+generator-VALID label, not platform qualification. Delayed remains generator-INVALID: 45,222 receipts,
+1,000 devices, 3,278 dropped iterations, and no unexpected/duplicate/wrong-device rows. Missing count
+is intentionally null because dropped iterations prevent exact planned-sequence inference; retain the
+unknown-outcome relationship. Four setup-aborted FIWARE/EdgeX cases remain INVALID. The verifier's
+raw “missing=49,500” for these zero-send cases is a plan-range artifact, not measured loss.
+
+Offline baseline commands passed: `go test ./internal/... ./cmd/...`,
+`python3 tests/adapter_receiver_test.py`, `python3 tests/resume_safe_provision_test.py`, and
+`python3 -m unittest discover -s tests/offline -v`; reconciliation command/output and exact evidence
+hashes are in the packet. `git diff --check` passed. No platform stack was started/restored, no load
+campaign or protocol change was made, and no commit/push/release occurred.
+
+Current decision: prior owner scope N1/N2/N3, P/D/rate, scheduled-cohort p99, and a manual single
+application-replica fault remain **not qualified**. The immediate receiver recovery resolves ledger
+availability only; all numerical/profile, population, clock/capture, platform, and fault evidence gates
+remain open. Preserve the delayed INVALID run. Next: independent review of this M0a packet and baseline;
+only then scope the next milestone. Main campaign remains **NO-GO**.
+
+### Independent M0a review and current task ledger — 2026-11-03
+
+M0a is **APPROVED for recovery scope only** by the separate Astra review session
+`ses_e6193170affeUiLBF5ROkzdEfP` (requested `openai/gpt-6-astra#high`; harness identified
+GPT-6 Astra, effort routing not independently exposed). Review record:
+[`m0a-independent-review-20261103.md`](archive/sessions/m0a-independent-review-20261103.md).
+The preceding recovery narrative is retained as originally reported. Its 22:38:39 timestamp,
+memory observation, failed guard, bounded wait and original test results are session-reported;
+not every underlying transcript was retained. The retained pre-stop transcript begins at
+22:39:04 UTC. No-restoration was session-reported, not independently established by a post-stop
+container inventory. These provenance limitations do not invalidate the corroborated receiver
+closure, hashes or identity reconciliation. Do not regenerate historical transcripts.
+
+| Task | Dependency | Owner / requested model | State | Evidence / last check | Next action |
+|---|---|---|---|---|---|
+| M0a recovery | Current-state inventory | Luna `openai/gpt-6-luna#high`; independent Astra `openai/gpt-6-astra#high` | APPROVED, scoped | Recovery bundle above; independent review 2026-11-03 | Preserve evidence; no repeat recovery needed |
+| M0b preliminary contract | Initial Astra design review; preserved baseline | Luna `openai/gpt-6-luna#high`; independent Astra `openai/gpt-6-astra#high` | APPROVED, offline foundation only | [Final independent review](archive/sessions/m0b-independent-review-20261103.md#final-r4-re-review--2026-11-03); all R1–R7 closed, 2026-11-03 | Preserve approved foundation; integrate explicit consumers next |
+| M1a protocol-bound cohort analysis | Approved M0b | Implementation: Luna sessions, requested `openai/gpt-6-luna#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1a-approval-20261104.md); fix packet `results/m1a-fix-packet-20261104-005644+0330/`; review `ses_e5ca28f17ffezpYAWTi38I5QWO`, 2026-11-04 | Preserve; runtime receipt/clock qualification remain outstanding |
+| M1b offline end-to-end path | Approved M1a | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1b-approval-20261104.md); packet `results/m1b-pipeline-20261104-013816+0330/`; review `ses_e5c831c28ffeZ2P8S8xUfbkZkA`, 2026-11-04 | Preserve; live qualification remains outstanding |
+| M1c payload golden fixture | Approved M1b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1c-approval-20261104.md); packet `results/m1c-payload-fixture-20261104-020102+0330/`; review `ses_e5c73aa2fffeCZJFCdsIesIv8s`, 2026-11-04 | Preserve; live payload-storage qualification remains outstanding |
+| M1d complete-body receiver | Approved M1c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1d-approval-20261104.md); packet `results/m1d-complete-body-20261104-024117+0330/`; review `ses_e5c40004cffeqr4BbZeigwIZ1w`, 2026-11-04 | Preserve; no deployment or clock qualification |
+| M1e adapter payload controls | Approved M1d | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1e-approval-20261104.md); packets `results/m1e-*`; review sessions `ses_e5bf776acffewIermuL5GrjYPw`, `ses_e5bda0110ffezYcVouts5ruYrK`, `ses_e5bc73feaffes8ZYvVRg1HmbVl`, 2026-11-04 | Preserve; no deployment or runtime evidence |
+| M1f manual fault/capacity reducers | Approved M1e | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](archive/sessions/m1f-approval-20261105.md); packets and review under `docs/archive/sessions/` and `results/m1f-*`, 2026-11-05 | Preserve; live fault/deployment qualification outstanding |
+| M2 deployment/instrumentation foundation | Approved M1f | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](archive/sessions/m2-approval-20261105.md); fix packet `docs/archive/sessions/m2-fix-20261105.md`; review sessions under [`m2-independent-review-20261105.md`](archive/sessions/m2-independent-review-20261105.md), 2026-11-05 | Preserve; live/deployment qualification outstanding |
+| M2b deployment orchestration blueprint | Approved M2 | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2b-approval-20261105.md); packets `docs/archive/sessions/m2b-*`; review `ses_e55da6cd4ffeV6C6UiZxuwBTLJ`, 2026-11-05 | Preserve; no lifecycle/live claim |
+| M2c offline render/verify validation | Approved M2b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2c-approval-20261105.md); packet `docs/archive/sessions/m2c-render-verify-20261105.md`; review `ses_e557e06aefferRFlsPQc9HpYVD`, 2026-11-05 | Preserve; nonblocking F1/F2/F3 noted; no live claim |
+| M2d offline execution-plan render | Approved M2c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2d-approval-20261105.md); packet `docs/archive/sessions/m2d-execution-plan-20261105.md`; review `ses_e55615fd5ffeRiVCyh2iO9Qs1i`, 2026-11-05 | Preserve; no lifecycle/live claim |
+| M2e health/evidence dry-run | Plan by Kimi; implementation by DeepSeek Flash | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review intentionally waived by owner | COMPLETE, SELF-TESTED, NO INDEPENDENT REVIEW | Packet `docs/archive/sessions/m2e-health-evidence-20261105.md`; evidence `results/m2e-health-evidence-20261105-113210+0330/`; 2026-11-05 | Synthetic offline only; independently unverified by owner choice; no live claim |
+| M3 live preflight | M2e self-test; approved offline foundations | Orchestrator session | COMPLETE READ-ONLY; deployment not started | `results/live-preflight-20261105T080836Z/` with Gate A/B/C captures and SHA256SUMS, 2026-11-05 | Clock offset unmeasured; no platform workload running; image/effect-config/digest and resource mapping not frozen; Gate D not entered |
+| M3–M7 live qualification/campaign | Approved offline foundations; deployed producers; calibrated clock/drain/recovery policies | Not started | BLOCKED at session checkpoint | No live revised-scope evidence; both hosts were reachable in a bounded read-only check at 2026-11-05 07:37 UTC, with only exporters/monitoring running; no deployment or load was performed | Resume live preflight and deployment preparation; campaign remains NO-GO |
+| Protocol freeze | M0b, producer/analyzer integration, policy calibration | Astra review | BLOCKED on evidence | Initial review CHANGES_REQUIRED for campaign freeze | Qualify policies; keep campaign eligibility fail-closed |
+| M1–M7 remaining scope | Approved contract and preceding milestone gates | Luna implementation / Astra independent review | NOT_COMPLETE | No revised-scope acceptance evidence | Follow dependency-ordered handoff; manual fault cells require operator |
+
+Revised-scope status: **SOFTWARE_VERIFIED=false**, **LIVE_QUALIFICATION_COMPLETE=false**,
+**CAMPAIGN_COMPLETE=false**, **ARTIFACT_REPRODUCIBLE=false**. Campaign remains **NO-GO**.
+
+### Session checkpoint — 2026-11-04
+
+Offline milestones M0a–M1e completed with independent review (approval records under
+`docs/archive/sessions/`). No live qualification or campaign run was performed. Resumable handoff:
+[`session-checkpoint-20261104.md`](archive/sessions/session-checkpoint-20261104.md). The next
+bounded work is M1f (offline fault/capacity reducers), then deployment and calibration before
+qualification. Host state noted at session start must be re-verified; do not assume it persists.
+
+### Updated checkpoint — 2026-11-05
+
+Offline foundations are now approved through **M2d** (fault/capacity reducer, deployment
+descriptors/validator, orchestration blueprint/packaging, synthetic render/verify validation, and
+render-only execution planning). All approvals explicitly exclude live deployment, lifecycle,
+fault execution, load and campaign evidence. M2e (synthetic health/evidence dry-run) is proposed
+but not started.
+
+Read-only host check at 2026-11-05 07:37 UTC:
+
+| Host | Observed |
+|---|---|
+| SUT `ramonavm2` / ramona-vm-2 | reachable; 8 vCPU; MemTotal 16,375,816 kB; only four exporters running; no benchmark platform containers and no receiver processes |
+| Load host via `root@87.107.191.32` / ramona-vm-q | reachable; monitoring Prometheus/cAdvisor/Grafana/node-exporter and yaade running |
+
+No service changes, deployment, load or fault action were performed by this check. The earlier
+session checkpoint remains historical and should not be assumed current.
+
+**Exact next action:** implement M2e only if continuing offline, or prepare a separately reviewed
+live preflight/deployment milestone. Before any live action, re-verify hosts, preserve current
+ledgers, and use new output paths. The campaign remains **NO-GO**.
+
+### Live preflight result — 2026-11-05 08:08 UTC
+
+Read-only captures: [`sut-gates.txt`](../results/live-preflight-20261105T080836Z/sut-gates.txt),
+[`load-gates.txt`](../results/live-preflight-20261105T080836Z/load-gates.txt), checksums and
+[summary](../results/live-preflight-20261105T080836Z/README.md). No remote state was changed.
+
+- Both hosts reachable. SUT is `ramona-vm-2`, Ubuntu 24.04, kernel 6.8.0-31, 8 vCPU,
+  15,638,421,504 B available memory, 23 GB root-disk headroom. Load host is `ramona-vm-q`,
+  4 vCPU, 6,689,443,840 B available memory, 25 GB headroom.
+- SUT benchmark platform containers are exited; four exporters are running; no receiver process
+  remains. The legacy load-host `sink` process still listens on 18090 and must be preserved or
+  replaced only through a new reviewed output path.
+- Both hosts have active swap (1.9 GB file, swappiness 60). No `chronyc`/`ntpq` is present, so
+  clock offset could not be measured; the SUT also reports a pending reboot.
+- Cached image tags exist, but effective image digests, resource mapping and compose
+  configuration were not frozen. No Gate D action, deployment, provisioning, load or data reset
+  occurred.
+
+**Live deployment remains blocked** pending explicit authorization and freeze of platform, N/K,
+resource budgets, artifact digests, clock/capture procedure, output paths and rollback plan.

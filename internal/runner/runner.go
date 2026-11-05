@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
@@ -23,6 +24,7 @@ import (
 	"time"
 
 	"iotbench/internal/plan"
+	"iotbench/internal/protocol"
 	"iotbench/internal/report"
 )
 
@@ -43,32 +45,39 @@ type Options struct {
 }
 
 type Manifest struct {
-	CPUSnapshotCommand string            `json:"cpu_snapshot_command,omitempty"`
-	SchemaVersion      int               `json:"schema_version"`
-	RunID              string            `json:"run_id"`
-	PlanID             string            `json:"plan_id"`
-	PilotOnly          bool              `json:"pilot_only"`
-	PlanSHA256         string            `json:"plan_sha256"`
-	Deviations         []string          `json:"deviations,omitempty"` // from the plan
-	Resolved           *plan.Resolved    `json:"resolved_plan"`
-	K6                 map[string]string `json:"k6"`
-	Git                map[string]string `json:"git"`
-	ScriptsSHA256      string            `json:"k6_scripts_sha256"` // content of workloads/k6 as executed (independent of git)
-	Host               map[string]string `json:"generator_host"`
-	Cpuset             string            `json:"generator_cpuset"`
-	CPUsLimit          string            `json:"generator_cpus_limit,omitempty"`
-	PromRW             string            `json:"prometheus_remote_write,omitempty"`
-	Annotation         string            `json:"grafana_annotation,omitempty"`
-	FullJSON           bool              `json:"full_k6_json_output"`
-	EnvKeys            []string          `json:"env_keys_passed"` // names only, values redacted
-	Connection         map[string]any    `json:"connection_model"`
-	Payload            *report.Sample    `json:"sample_payload"`
-	StartUTC           string            `json:"start_utc"`
-	EndUTC             string            `json:"end_utc"`
-	K6ExitCode         int               `json:"k6_exit_code"`
-	Health             *report.Health    `json:"health"`
-	Verdict            string            `json:"verdict"`
+	CPUSnapshotCommand          string                    `json:"cpu_snapshot_command,omitempty"`
+	SchemaVersion               int                       `json:"schema_version"`
+	RunID                       string                    `json:"run_id"`
+	PlanID                      string                    `json:"plan_id"`
+	PilotOnly                   bool                      `json:"pilot_only"`
+	PlanSHA256                  string                    `json:"plan_sha256"`
+	Deviations                  []string                  `json:"deviations,omitempty"` // from the plan
+	Resolved                    *plan.Resolved            `json:"resolved_plan"`
+	K6                          map[string]string         `json:"k6"`
+	Git                         map[string]string         `json:"git"`
+	ScriptsSHA256               string                    `json:"k6_scripts_sha256"` // content of workloads/k6 as executed (independent of git)
+	Host                        map[string]string         `json:"generator_host"`
+	Cpuset                      string                    `json:"generator_cpuset"`
+	CPUsLimit                   string                    `json:"generator_cpus_limit,omitempty"`
+	PromRW                      string                    `json:"prometheus_remote_write,omitempty"`
+	Annotation                  string                    `json:"grafana_annotation,omitempty"`
+	FullJSON                    bool                      `json:"full_k6_json_output"`
+	Synthetic                   bool                      `json:"synthetic,omitempty"`
+	OfflineFixture              bool                      `json:"offline_engineering_fixture,omitempty"`
+	EnvKeys                     []string                  `json:"env_keys_passed"` // names only, values redacted
+	Connection                  map[string]any            `json:"connection_model"`
+	Payload                     *report.Sample            `json:"sample_payload"`
+	StartUTC                    string                    `json:"start_utc"`
+	EndUTC                      string                    `json:"end_utc"`
+	K6ExitCode                  int                       `json:"k6_exit_code"`
+	Health                      *report.Health            `json:"health"`
+	Verdict                     string                    `json:"verdict"`
+	ProtocolBinding             *protocol.Binding         `json:"protocol_binding,omitempty"`
+	ProtocolPilot               *protocol.PilotParameters `json:"protocol_pilot_parameters,omitempty"`
+	RuntimeMetricInterpretation string                    `json:"runtime_metric_interpretation"`
 }
+
+const LegacyMetricInterpretation = "legacy-acknowledgement-only-v1"
 
 func run(name string, args ...string) string {
 	out, err := exec.Command(name, args...).Output()
@@ -275,15 +284,25 @@ func writeJSON(path string, v any) error {
 	return os.WriteFile(path, append(b, '\n'), 0o644)
 }
 
-// Run executes one run and returns its directory and manifest.
-func Run(o Options) (string, *Manifest, error) {
+type preparedRun struct {
+	dir        string
+	plan       *plan.Plan
+	resolved   *plan.Resolved
+	planSHA256 string
+}
+
+// prepareRun performs the non-Docker part of a run: strict plan decode, resolution, protocol
+// binding verification/eligibility, and creation of a new run directory containing plan.json
+// and resolved.json. Run and PrepareOfflineFixture share it so offline fixtures exercise the
+// same plan identity and protocol metadata flow.
+func prepareRun(o Options) (*preparedRun, error) {
 	raw, err := os.ReadFile(o.PlanPath)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	p, err := plan.Decode(raw)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	runID := o.RunID
 	if runID == "" {
@@ -293,43 +312,112 @@ func Run(o Options) (string, *Manifest, error) {
 	}
 	r, err := p.Resolve(runID)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	if r.TotalTicks >= 1<<32 {
-		return "", nil, fmt.Errorf("plan has %d ticks; seq must stay below 2^32", r.TotalTicks)
+		return nil, fmt.Errorf("plan has %d ticks; seq must stay below 2^32", r.TotalTicks)
+	}
+	if r.ProtocolBinding != nil {
+		definitionPath := filepath.Join(o.RepoRoot, "research", "protocols", "iotbench-telemetry-v0.1.0-pilot.1.json")
+		loaded, loadErr := protocol.LoadVerified(definitionPath, o.RepoRoot)
+		if loadErr != nil {
+			return nil, fmt.Errorf("protocol binding verification: %w", loadErr)
+		}
+		if err = protocol.CheckEligibility(loaded, *r.ProtocolBinding, r.ProtocolPilot, protocol.EvidenceReferences{}); err != nil {
+			return nil, fmt.Errorf("protocol binding eligibility: %w", err)
+		}
 	}
 	dir := filepath.Join(o.ResultsDir, runID)
 	if err := os.MkdirAll(o.ResultsDir, 0o755); err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	if err := os.Mkdir(dir, 0o755); err != nil {
-		return "", nil, fmt.Errorf("run directory: %w (a run directory is never reused)", err)
+		return nil, fmt.Errorf("run directory: %w (a run directory is never reused)", err)
 	}
 	sum := sha256.Sum256(raw)
 	if err := os.WriteFile(filepath.Join(dir, "plan.json"), raw, 0o644); err != nil {
-		return dir, nil, err
+		return nil, err
 	}
 	if err := writeJSON(filepath.Join(dir, "resolved.json"), r); err != nil {
-		return dir, nil, err
+		return nil, err
 	}
-	k6, err := k6Info(o.Image)
-	if err != nil {
-		return dir, nil, err
-	}
-	m := &Manifest{SchemaVersion: 1, RunID: runID, PlanID: p.PlanID, PilotOnly: p.PilotOnly, Deviations: p.Deviations,
-		PlanSHA256: hex.EncodeToString(sum[:]), Resolved: r, K6: k6, Git: gitInfo(o.RepoRoot), Host: hostInfo(),
+	return &preparedRun{dir: dir, plan: p, resolved: r, planSHA256: hex.EncodeToString(sum[:])}, nil
+}
+
+func newManifest(o Options, prep *preparedRun, k6, host map[string]string, scripts string) *Manifest {
+	m := &Manifest{SchemaVersion: 1, RunID: prep.resolved.RunID, PlanID: prep.plan.PlanID, PilotOnly: prep.plan.PilotOnly, Deviations: prep.plan.Deviations,
+		PlanSHA256: prep.planSHA256, Resolved: prep.resolved, K6: k6, Git: gitInfo(o.RepoRoot), Host: host,
 		Cpuset: o.Cpuset, CPUsLimit: o.CPUs, FullJSON: o.FullJSON, PromRW: o.PromRW,
-		ScriptsSHA256: scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")),
-		Connection: map[string]any{"keep_alive": p.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
-			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": p.RequestTimeMs}}
+		ScriptsSHA256:   scripts,
+		ProtocolBinding: prep.plan.ProtocolBinding, ProtocolPilot: prep.plan.ProtocolPilot, RuntimeMetricInterpretation: LegacyMetricInterpretation,
+		Connection: map[string]any{"keep_alive": prep.plan.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
+			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": prep.plan.RequestTimeMs}}
 	m.CPUSnapshotCommand = o.CPUSnapshotCommand
 	for _, kv := range o.Env {
 		m.EnvKeys = append(m.EnvKeys, strings.SplitN(kv, "=", 2)[0])
 	}
+	return m
+}
+
+// OfflineFixture is a non-live run directory built for offline pipeline tests. It contains
+// plan/resolved/manifest metadata produced by the same preparation code as Run. k6 identity
+// fields are explicitly synthetic: no generator, Docker or service was invoked.
+type OfflineFixture struct {
+	Dir        string
+	Manifest   *Manifest
+	Plan       *plan.Plan
+	Resolved   *plan.Resolved
+	PlanSHA256 string
+}
+
+// PrepareOfflineFixture performs plan decode, resolution, protocol-binding verification and
+// runner manifest construction without contacting Docker, k6 or any service. It writes only
+// plan.json, resolved.json and manifest.json into a new run directory. The manifest is marked
+// synthetic and offline; callers must treat the result as an engineering fixture, never live
+// evidence, and must supply any additional fixture artifacts they intend to analyze.
+func PrepareOfflineFixture(o Options) (*OfflineFixture, error) {
+	prep, err := prepareRun(o)
+	if err != nil {
+		return nil, err
+	}
+	k6 := map[string]string{
+		"mode":     "offline-engineering-fixture",
+		"executed": "false",
+		"image":    "synthetic/no-k6",
+		"digest":   "",
+		"image_id": "",
+		"version":  "",
+	}
+	host := map[string]string{
+		"mode":       "offline-engineering-fixture",
+		"go_os_arch": runtime.GOOS + "/" + runtime.GOARCH,
+	}
+	m := newManifest(o, prep, k6, host, scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")))
+	m.Synthetic = true
+	m.OfflineFixture = true
+	m.Verdict = "SYNTHETIC_FIXTURE"
+	if err := writeJSON(filepath.Join(prep.dir, "manifest.json"), m); err != nil {
+		return nil, err
+	}
+	return &OfflineFixture{Dir: prep.dir, Manifest: m, Plan: prep.plan, Resolved: prep.resolved, PlanSHA256: prep.planSHA256}, nil
+}
+
+// Run executes one run and returns its directory and manifest.
+func Run(o Options) (string, *Manifest, error) {
+	prep, err := prepareRun(o)
+	if err != nil {
+		return "", nil, err
+	}
+	dir := prep.dir
+	k6, err := k6Info(o.Image)
+	if err != nil {
+		return dir, nil, err
+	}
+	m := newManifest(o, prep, k6, hostInfo(), scriptsHash(filepath.Join(o.RepoRoot, "workloads", "k6")))
 
 	abs, _ := filepath.Abs(dir)
 	k6dir, _ := filepath.Abs(filepath.Join(o.RepoRoot, "workloads", "k6"))
-	container := "k6-" + runID
+	container := "k6-" + prep.resolved.RunID
 	args := []string{"run", "--rm", "--name", container, "--network", "host", "--cpuset-cpus", o.Cpuset,
 		"-u", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
 		"-v", k6dir + ":/k6:ro", "-v", abs + ":/out", "-w", "/k6",
@@ -446,6 +534,9 @@ func annotate(url string, m *Manifest) string {
 
 // Finish (re)computes the health verdict from the run directory and writes health.json and manifest.json.
 func Finish(dir string, m *Manifest) error {
+	if err := validateProtocolManifest(m); err != nil {
+		return err
+	}
 	_, s, h, err := report.Evaluate(dir)
 	if err != nil {
 		return err
@@ -458,12 +549,36 @@ func Finish(dir string, m *Manifest) error {
 		m.Payload = s.SampleRequest
 	}
 	m.Health = h
-	m.Verdict = "VALID"
-	if !h.Valid {
+	switch {
+	case !h.Valid:
 		m.Verdict = "INVALID"
+	case m.OfflineFixture:
+		// A health-valid synthetic fixture is still not a live run.
+		m.Verdict = "SYNTHETIC_FIXTURE"
+	default:
+		m.Verdict = "VALID"
 	}
 	if err := writeJSON(filepath.Join(dir, "health.json"), h); err != nil {
 		return err
 	}
 	return writeJSON(filepath.Join(dir, "manifest.json"), m)
+}
+
+func validateProtocolManifest(m *Manifest) error {
+	if m == nil {
+		return fmt.Errorf("manifest missing")
+	}
+	if m.Resolved == nil {
+		return nil
+	}
+	if !reflect.DeepEqual(m.ProtocolBinding, m.Resolved.ProtocolBinding) || !reflect.DeepEqual(m.ProtocolPilot, m.Resolved.ProtocolPilot) {
+		return fmt.Errorf("manifest protocol binding/pilot metadata contradicts resolved plan")
+	}
+	if m.RuntimeMetricInterpretation != "" && m.RuntimeMetricInterpretation != LegacyMetricInterpretation {
+		return fmt.Errorf("runner cannot claim protocol receipt instrumentation; runtime interpretation must remain %q", LegacyMetricInterpretation)
+	}
+	if m.Resolved.ProtocolBinding != nil && m.RuntimeMetricInterpretation != LegacyMetricInterpretation {
+		return fmt.Errorf("protocol-bound runtime must be explicitly labeled legacy acknowledgement-only")
+	}
+	return nil
 }

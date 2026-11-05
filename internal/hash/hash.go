@@ -11,6 +11,17 @@ const (
 	SaltPressure    uint32 = 0x50524553
 )
 
+// Declared numeric contract shared by the generator, payload validation and the plan's
+// worst-case payload bound. Keep workloads/k6/lib/hash.js's modulo ranges aligned with these.
+const (
+	TemperatureMin = 15
+	TemperatureMax = 45
+	HumidityMin    = 30
+	HumidityMax    = 80
+	PressureMin    = 950
+	PressureMax    = 1150
+)
+
 // Mix returns a 32-bit hash of (seed, seq, salt). For fixed seed and salt it is a bijection on seq (< 2^32):
 // a multiply-xor of the key followed by the murmur3 32-bit finalizer.
 func Mix(seed, seq, salt uint32) uint32 {
@@ -38,7 +49,7 @@ func Selected(seed, seq uint32, t uint64) bool {
 
 // Values are the logical payload's three numeric fields for seq (same ranges as the reference JMeter plans).
 func Values(seed, seq uint32) (temperature, humidity, pressure int) {
-	return 15 + int(Mix(seed, seq, SaltTemperature)%31),
-		30 + int(Mix(seed, seq, SaltHumidity)%51),
-		950 + int(Mix(seed, seq, SaltPressure)%201)
+	return TemperatureMin + int(Mix(seed, seq, SaltTemperature)%uint32(TemperatureMax-TemperatureMin+1)),
+		HumidityMin + int(Mix(seed, seq, SaltHumidity)%uint32(HumidityMax-HumidityMin+1)),
+		PressureMin + int(Mix(seed, seq, SaltPressure)%uint32(PressureMax-PressureMin+1))
 }

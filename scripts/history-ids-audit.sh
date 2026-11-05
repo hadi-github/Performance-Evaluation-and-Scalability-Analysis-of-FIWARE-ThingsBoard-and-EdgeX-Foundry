@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# UNVERIFIED (2026-10-26): not yet run on the SUT. Column names for EdgeX must be checked against the pinned schema
-# (`describe`) before any export is used. Until then the script fails loudly on a mismatch rather than guessing.
+# Schema-specific exporter: EdgeX's join was live-verified 2026-10-28 (see below).
+# Recheck the pinned schema after image/schema changes; query errors must remain failures.
 #
 # Companion to scripts/history-ids.sh. It additionally emits the device and the store timestamp, which
 # `benchctl audit -history` needs for ThingsBoard-style same-millisecond collision analysis (D33 item 4):
@@ -9,7 +9,7 @@
 #   scripts/history-ids-audit.sh thingsboard <run_id> > history.ndjson   ts_kv "seq" joined to "run_id"; device name; ts (ms)
 #   scripts/history-ids-audit.sh edgex <run_id> > history.ndjson         core-data readings; device name; origin (ns -> ms)
 #   scripts/history-ids-audit.sh edgex describe                          print core_data.reading columns (read-only)
-#   scripts/history-ids-audit.sh fiware <run_id>                         no history store: exits 3
+#   scripts/history-ids-audit.sh fiware <run_id>                         QL/TimescaleDB, device and store ts
 #
 # The export is read-only: no statement modifies the database. Run it on the SUT only under a separately authorized
 # run; the offline check is `benchctl audit` on an existing export.

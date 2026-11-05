@@ -1,8 +1,11 @@
 package plan
 
 import (
+	"fmt"
 	"strings"
 	"testing"
+
+	"iotbench/internal/protocol"
 )
 
 const base = `{"schema_version":1,"plan_id":"t","purpose":"x","seed":1,"adapter":"fixture",
@@ -64,6 +67,114 @@ func TestSweepRefineOverload(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestAdapterPayloadSelectionIsExplicitAndStrict(t *testing.T) {
+	schedule := `"schedule":{"type":"steady","rate":1,"duration_s":1}`
+	for _, offset := range []int{0, 1024, 4096} {
+		p, err := load(t, schedule+`,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":`+itoa(offset)+`}`)
+		if err != nil {
+			t.Fatalf("offset %d: %v", offset, err)
+		}
+		r, err := p.Resolve("run-1")
+		if err != nil {
+			t.Fatalf("offset %d: %v", offset, err)
+		}
+		if r.Payload == nil || r.Payload.SizeOffsetBytes == nil || *r.Payload.SizeOffsetBytes != offset {
+			t.Fatalf("resolved payload control lost for offset %d: %+v", offset, r.Payload)
+		}
+	}
+	// Absence is the legacy path: no implicit payload and no implicit size point.
+	p, err := load(t, schedule)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r, err := p.Resolve("run-1"); err != nil || r.Payload != nil {
+		t.Fatalf("legacy plan gained payload: %+v %v", r, err)
+	}
+	for name, extra := range map[string]string{
+		"wrong encoding":  `,"payload":{"encoding_id":"other","size_offset_bytes":0}`,
+		"missing offset":  `,"payload":{"encoding_id":"logical-json-ascii-v1"}`,
+		"negative offset": `,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":-2}`,
+		"odd offset":      `,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":1}`,
+		"huge offset":     `,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":1048577}`,
+		"fractional":      `,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":1.5}`,
+		"unknown field":   `,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":0,"target":1}`,
+	} {
+		p, err := load(t, schedule+extra)
+		if err == nil {
+			_, err = p.Resolve("run-1")
+		}
+		if err == nil {
+			t.Fatalf("%s accepted", name)
+		}
+	}
+}
+
+func TestPayloadOffsetUsesActualEncoderBound(t *testing.T) {
+	schedule := `"schedule":{"type":"steady","rate":1,"duration_s":1}`
+	runID := "run-payload-bound"
+	deviceID := payloadDeviceID(runID, 10)
+	baseline, err := protocol.PayloadBaselineUpperBound(runID, deviceID, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	worst := protocol.LogicalPayload{
+		RunID: runID, Seq: 0, DeviceID: deviceID, ScheduledSendMS: 1000000000000000.6,
+		Temperature: 45, Humidity: 80, Pressure: 1150,
+	}
+	worstBytes, err := protocol.CanonicalBytes(worst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if baseline < len(worstBytes) {
+		t.Fatalf("plan baseline bound=%d undercounts actual worst-case payload=%d", baseline, len(worstBytes))
+	}
+	maxOffset, err := protocol.MaximumPayloadOffset(baseline)
+	if err != nil {
+		t.Fatal(err)
+	}
+	withOffset := func(offset int) (*Plan, error) {
+		return load(t, schedule+`,"payload":{"encoding_id":"logical-json-ascii-v1","size_offset_bytes":`+itoa(offset)+`}`)
+	}
+	for _, offset := range []int{0, maxOffset - 2, maxOffset} {
+		p, err := withOffset(offset)
+		if err != nil {
+			t.Fatalf("offset %d: %v", offset, err)
+		}
+		if _, err := p.Resolve(runID); err != nil {
+			t.Fatalf("offset %d at/under encoder bound rejected: %v", offset, err)
+		}
+	}
+	for _, offset := range []int{maxOffset + 1, maxOffset + 2, protocol.PayloadMaximumBytes} {
+		p, err := withOffset(offset)
+		if err == nil {
+			_, err = p.Resolve(runID)
+		}
+		if err == nil || !strings.Contains(err.Error(), "size_offset_bytes") {
+			t.Fatalf("offset %d accepted or not actionable: %v", offset, err)
+		}
+	}
+	// The accepted maximum must resolve and actually encode the pressure-1150 worst case for the
+	// plan's longest device identity.
+	p, err := withOffset(maxOffset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.Resolve(runID); err != nil {
+		t.Fatalf("accepted maximum %d rejected: %v", maxOffset, err)
+	}
+	out, err := protocol.BuildPayloadOffset(worst, 17, maxOffset)
+	if err != nil {
+		t.Fatalf("accepted maximum does not encode pressure 1150: %v", err)
+	}
+	if len(out) != len(worstBytes)+maxOffset {
+		t.Fatalf("accepted maximum encoded length=%d want %d", len(out), len(worstBytes)+maxOffset)
+	}
+}
+
+func itoa(v int) string {
+	return fmt.Sprintf("%d", v)
 }
 
 func TestRejects(t *testing.T) {

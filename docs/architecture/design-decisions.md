@@ -53,3 +53,38 @@ Entries after D26 were appended on 2026-10-26 under the delegation recorded in D
 | D41 | 2026-10-26 | Decision provenance (governance) | The selections recorded in D27–D40 were made by **ChatGPT under the project owner's explicit delegation dated 2026-10-26**. They are not a manual owner signature; no initials, signatures or manually ticked boxes are implied. `docs/qualification/step5-owner-signoff.md` §0 is the operative record and §8.1–§8.2 remain revision 1's blank proposal. | recorded |
 | D42 | 2026-10-26 | Deferred Step 5 candidates (delegated, D41) | **D29b** (extra EdgeX replicas) deferred; **D29d** (`commit_delay`) deferred separately; Orion `-reqPoolSize` deferred; ThingsBoard queue poll intervals deferred. **D29c** remains DIAG-only: asynchronous commit is not a qualification setting. **D1-a**: no change; no addendum. No authorization is granted by this row. | recorded (no authorization) |
 | D43 | 2026-10-26 | Local implementation record (D9, D11, D27, D32, D33; delegated, D41) | **Implementation record, no authorization granted.** Implemented and tested locally: `benchctl audit` per-step correctness-qualified accounting (`by_step`), with a mixed-rate limitation; the D27 duplicate gate `fiware/scripts/device-index.sh` with 10 offline checks; `scripts/history-ids-audit.sh` for device and timestamp exports, **UNVERIFIED** on the SUT. Documented: `docs/fiware-history-design.md` (D31), `docs/methodology/thingsboard-feasibility-plan.md` (D32), `docs/methodology/measurement-integrity.md` (D33), `docs/qualification/qualification-blockers.md`. **Not implemented:** D28 official configuration and writable log volume (blocker B7); D29a per-run EdgeX disk fields in the benchctl result (blocker B9). **Finding:** the pinned Orion 4.5.0 is outside the Orion range QuantumLeap documents as tested (2.4.2–3.3.1); recorded as blocker B3 for the owner. The QuantumLeap data-model and upsert behaviour could not be verified from upstream on 2026-10-26 and stays open (B2). No SUT access, deployment, index creation or run occurred. | recorded (no authorization) |
+| D44 | 2026-11-01 | Owner-approved application profile mappings | Preserve **Quick delivery**, **Reliability of saved data**, **High number of devices**. Adopt 500 ms scheduled→first-sink p99 primary with 250/1000/5000 ms sensitivities; zero acknowledged identities missing from independent history and zero duplicate stored events within the documented scope/window; W2 100-vs-10,000-device comparison at matched ~50%/~75% reference-capacity rates, N=1, not a device-capacity cutoff. Details and source links below. Missing evidence/reference/window leaves affected results unavailable. | explicitly approved by owner in conversation; offline configuration/tests only; campaign NO-GO |
+
+## D44 — Owner profile mappings (2026-11-01)
+
+Source of authorization: the project owner's explicit message dated **2026-11-01**,
+not delegated selection or an inferred signature. This supersedes only the pending
+**mapping** of these three names and the selected primary delivery deadline; it does
+not adopt every component of a campaign C_SLO or authorize operations.
+
+1. **Quick delivery:** primary `p99(sink_first_receipt_ms - scheduled_send_ms) <= 500 ms`.
+   Report **250, 1,000 and 5,000 ms separately as sensitivity thresholds**; their results
+   cannot change the primary verdict. Sources: [SLO §2 TERMS, §4 VARIANTS and §5 ACCEPTANCE
+   RULE](../../research/preregistration/preregistration-archive/original/slo_notes.txt).
+   This is neither HTTP acknowledgement nor durable-commit latency. External 3GPP
+   attribution remains unverified; owner adoption does not verify that attribution.
+2. **Reliability of saved data:** zero acknowledged `(run_id, seq)` identities missing
+   from independently verified history, and zero duplicate stored events, **within the
+   documented reconciliation scope and observation window**. No durable-commit timing
+   claim. Sources: [SLO §1 SCOPE, §2 TERMS, §5 ACCEPTANCE RULE](../../research/preregistration/preregistration-archive/original/slo_notes.txt)
+   and [SLO COMPONENTS, missing/duplicate storage rows and final acknowledged-cohort note](../../research/preregistration/preregistration-archive/original/slo_components.txt).
+   No drain duration, history collection time or completeness attestation is invented.
+3. **High number of devices:** preserve [W2, WORKLOADS §2 and DEVICE-POPULATION SENSITIVITY
+   §4](../../research/preregistration/preregistration-archive/original/workloads.txt):
+   **100 versus 10,000 devices**, matched aggregate offered rates at approximately
+   **50% and 75% of defined C_SLO(500,1)**, N=1. Hold payload, semantics and CPU budget
+   constant; retain [D35](#design-decision-log)'s distinction between CPU budget and replicas.
+   This measures device-count effects, not a device-capacity cutoff; there is no new
+   performance PASS threshold. Reference capacity and its evidence must be supplied;
+   approximate rate points must be explicitly sourced rather than selected by a guessed tolerance.
+
+Executable policy: [`research/protocols/offline-profiles-20261101.json`](../../research/protocols/offline-profiles-20261101.json),
+also the analyzer's default policy. The [2026-10-29 reconciliation](../../research/protocols/slo-profile-reconciliation-20261029.md)
+remains the historical pending-adoption record; this dated entry resolves the three mappings
+without editing the archive. Other campaign search/CI/calibration/qualification requirements
+remain separate blockers. **Campaign remains NO-GO.**

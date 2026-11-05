@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "synthetic": false,
+  "interpretation": "claim-gates-v1",
+  "profiles": [
+    {
+      "id": "quick_delivery",
+      "name": "Quick delivery",
+      "source": "docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01",
+      "requirements": [
+        {"metric":"latency.delivery.p99_ms","operator":"<=","threshold":500,"unit":"ms","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"}
+      ],
+      "sensitivities": [
+        {"metric":"latency.delivery.p99_ms","operator":"<=","threshold":250,"unit":"ms","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"},
+        {"metric":"latency.delivery.p99_ms","operator":"<=","threshold":1000,"unit":"ms","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"},
+        {"metric":"latency.delivery.p99_ms","operator":"<=","threshold":5000,"unit":"ms","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"}
+      ]
+    },
+    {
+      "id": "saved_data_reliability",
+      "name": "Reliability of saved data",
+      "source": "docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01",
+      "requirements": [
+        {"metric":"history.missing_acknowledged","operator":"==","threshold":0,"unit":"messages","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"},
+        {"metric":"history.duplicate_extra_copies","operator":"==","threshold":0,"unit":"messages","source":"docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01"}
+      ]
+    },
+    {
+      "id": "high_device_count",
+      "name": "High number of devices",
+      "source": "docs/architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01",
+      "requirements": [],
+      "device_comparison": {
+        "populations": [100,10000],
+        "reference_fractions": [0.5,0.75],
+        "application_cpu_budget_k": 1,
+        "replicas_per_service": 1
+      }
+    }
+  ]
+}

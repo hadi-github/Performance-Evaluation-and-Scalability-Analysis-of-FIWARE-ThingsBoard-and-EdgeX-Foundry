@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "interpretation": "synthetic-service-observations-v1",
+  "source": "SYNTHETIC M2e — caller-supplied EdgeX service observations for an offline dry run; not collected from Docker or a SUT",
+  "run_id": "m2e-synthetic-pass-edgex-20261105-01",
+  "run_date": "2026-11-05",
+  "run_tag": "m2e-synthetic-pass-edgex",
+  "observations": [
+    {
+      "service": "app-http-export",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "core-common-config-bootstrapper",
+      "present": true,
+      "replicas": 1,
+      "running": false,
+      "health": "none",
+      "exit_code": 0,
+      "functional_evidence": false
+    },
+    {
+      "service": "core-data",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "core-keeper",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "core-metadata",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "database",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "healthy",
+      "functional_evidence": false
+    },
+    {
+      "service": "device-rest",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "haproxy",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    },
+    {
+      "service": "nats",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "healthy",
+      "functional_evidence": false
+    },
+    {
+      "service": "ui",
+      "present": true,
+      "replicas": 1,
+      "running": true,
+      "health": "none",
+      "functional_evidence": true
+    }
+  ]
+}

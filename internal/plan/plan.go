@@ -13,29 +13,43 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"iotbench/internal/protocol"
 )
 
 const SchemaVersion = 1
 
 type Plan struct {
-	SchemaVersion int        `json:"schema_version"`
-	PlanID        string     `json:"plan_id"`
-	Purpose       string     `json:"purpose"`
-	PilotOnly     bool       `json:"pilot_only"`
-	Seed          uint32     `json:"seed"`
-	Adapter       string     `json:"adapter"` // fixture | thingsboard | fiware | edgex
-	Target        Target     `json:"target"`
-	Devices       int        `json:"devices"`
-	RequestTimeMs int        `json:"request_timeout_ms"`
-	Connection    Connection `json:"connection"`
-	Arrivals      Arrivals   `json:"arrivals"`
-	VUs           VUs        `json:"vus"`
-	Schedule      Schedule   `json:"schedule"`
-	Health        Health     `json:"health"`
-	HistogramMs   []float64  `json:"histogram_ms,omitempty"` // obsolete (latency is now exact k6 Trends); accepted and ignored
-	Cleanup       bool       `json:"cleanup"`
-	TestFaults    TestFaults `json:"test_faults"`
-	Deviations    []string   `json:"deviations,omitempty"` // procedure deviations, copied into the run manifest
+	SchemaVersion   int                       `json:"schema_version"`
+	PlanID          string                    `json:"plan_id"`
+	Purpose         string                    `json:"purpose"`
+	PilotOnly       bool                      `json:"pilot_only"`
+	Seed            uint32                    `json:"seed"`
+	Adapter         string                    `json:"adapter"` // fixture | thingsboard | fiware | edgex
+	Target          Target                    `json:"target"`
+	Devices         int                       `json:"devices"`
+	RequestTimeMs   int                       `json:"request_timeout_ms"`
+	Connection      Connection                `json:"connection"`
+	Arrivals        Arrivals                  `json:"arrivals"`
+	VUs             VUs                       `json:"vus"`
+	Schedule        Schedule                  `json:"schedule"`
+	Health          Health                    `json:"health"`
+	HistogramMs     []float64                 `json:"histogram_ms,omitempty"` // obsolete (latency is now exact k6 Trends); accepted and ignored
+	Cleanup         bool                      `json:"cleanup"`
+	TestFaults      TestFaults                `json:"test_faults"`
+	Deviations      []string                  `json:"deviations,omitempty"` // procedure deviations, copied into the run manifest
+	ProtocolBinding *protocol.Binding         `json:"protocol_binding,omitempty"`
+	ProtocolPilot   *protocol.PilotParameters `json:"protocol_pilot_parameters,omitempty"`
+	// Payload is an explicit opt-in adapter-payload control. Its absence preserves the historical
+	// adapter wire format exactly; it is never silently defaulted to a size point or encoding.
+	Payload *PayloadPlan `json:"payload,omitempty"`
+}
+
+// PayloadPlan selects the canonical logical payload for the adapter. Size is always expressed as an
+// explicit offset from that message's own unpadded canonical baseline, not as a frozen rate/device grid.
+type PayloadPlan struct {
+	EncodingID      string `json:"encoding_id"`
+	SizeOffsetBytes *int   `json:"size_offset_bytes"`
 }
 
 // Target: base URL(s) of the system under test. Credentials never live here; adapters read them from env.
@@ -191,6 +205,30 @@ func (p *Plan) validate() error {
 	if p.RequestTimeMs < 1 {
 		bad("request_timeout_ms must be set explicitly (k6's default is never used)")
 	}
+	if p.Payload != nil {
+		if p.Payload.EncodingID != protocol.PayloadEncodingID {
+			bad("payload.encoding_id must be %q", protocol.PayloadEncodingID)
+		}
+		if p.Payload.SizeOffsetBytes == nil {
+			bad("payload.size_offset_bytes is required when payload is selected; there is no implicit size point")
+		} else if *p.Payload.SizeOffsetBytes < 0 || *p.Payload.SizeOffsetBytes > protocol.PayloadMaximumBytes {
+			bad("payload.size_offset_bytes must be in [0,%d]", protocol.PayloadMaximumBytes)
+		} else if *p.Payload.SizeOffsetBytes%2 != 0 {
+			bad("payload.size_offset_bytes must be even: one ASCII-hex padding byte is two body bytes")
+		}
+	}
+	if (p.ProtocolBinding == nil) != (p.ProtocolPilot == nil) {
+		bad("protocol_binding and protocol_pilot_parameters must be supplied together")
+	}
+	if p.ProtocolBinding != nil {
+		b, pilot := p.ProtocolBinding, p.ProtocolPilot
+		if b.ProtocolID == "" || len(b.ProtocolSHA256) != 64 || !isLowerHex(b.ProtocolSHA256) || b.ExecutionClass == "" {
+			bad("protocol binding requires protocol_id, lowercase protocol_sha256, and execution_class")
+		}
+		if pilot == nil || pilot.RatePerSecond == nil || math.IsNaN(*pilot.RatePerSecond) || math.IsInf(*pilot.RatePerSecond, 0) || *pilot.RatePerSecond <= 0 || pilot.MeasurementSeconds == nil || *pilot.MeasurementSeconds <= 0 || pilot.WarmupSeconds == nil || *pilot.WarmupSeconds < 0 || pilot.DrainCutoffUnixMS == nil || *pilot.DrainCutoffUnixMS <= 0 {
+			bad("protocol pilot parameters must be explicit finite positive rate, measurement, warmup, and drain cutoff")
+		}
+	}
 	switch p.Arrivals.Model {
 	case "constant":
 		if p.Arrivals.TickFactor != 0 {
@@ -262,7 +300,87 @@ func (p *Plan) Resolve(runID string) (*Resolved, error) {
 	}
 	r.TotalTicks = seq
 	r.DurationS = start
+	if err := validatePayloadSize(r, runID); err != nil {
+		return nil, err
+	}
+	if err := validateProtocolSchedule(r); err != nil {
+		return nil, err
+	}
 	return r, nil
+}
+
+// payloadDeviceID is the longest device identity the adapters can generate for this plan
+// (workloads/k6/lib/adapters.js deviceName: bench-<run_id>-<zero-padded index>).
+func payloadDeviceID(runID string, devices int) string {
+	index := devices - 1
+	width := len(fmt.Sprintf("%d", index))
+	if width < 5 {
+		width = 5
+	}
+	return "bench-" + runID + "-" + fmt.Sprintf("%0*d", width, index)
+}
+
+// validatePayloadSize applies the encoder's actual baseline+offset bound, not just the offset
+// ceiling. Without this, a near-maximum offset resolves and then fails on the first encode.
+func validatePayloadSize(r *Resolved, runID string) error {
+	if r.Payload == nil || r.Payload.SizeOffsetBytes == nil {
+		return nil
+	}
+	maxSeq := uint32(0)
+	if r.TotalTicks > 0 {
+		if r.TotalTicks-1 > int64(^uint32(0)) {
+			return fmt.Errorf("payload plan has seq beyond uint32")
+		}
+		maxSeq = uint32(r.TotalTicks - 1)
+	}
+	baseline, err := protocol.PayloadBaselineUpperBound(runID, payloadDeviceID(runID, r.Devices), maxSeq)
+	if err != nil {
+		return fmt.Errorf("payload.size_offset_bytes cannot be validated: %w", err)
+	}
+	maxOffset, err := protocol.MaximumPayloadOffset(baseline)
+	if err != nil {
+		return fmt.Errorf("payload.size_offset_bytes cannot be validated: %w", err)
+	}
+	if offset := *r.Payload.SizeOffsetBytes; offset > maxOffset {
+		return fmt.Errorf("payload.size_offset_bytes %d exceeds %d for this plan: unpadded canonical baseline up to %d bytes + offset must stay <= %d bytes",
+			offset, maxOffset, baseline, protocol.PayloadMaximumBytes)
+	}
+	return nil
+}
+
+func validateProtocolSchedule(r *Resolved) error {
+	if r.ProtocolBinding == nil {
+		return nil
+	}
+	measurement, warmup := 0, 0
+	hasMeasurement := false
+	for _, step := range r.Steps {
+		switch step.Phase {
+		case "measurement":
+			hasMeasurement = true
+			measurement += step.DurationS
+			if step.Rate != *r.ProtocolPilot.RatePerSecond {
+				return fmt.Errorf("protocol pilot rate %.6g contradicts measurement step %q rate %.6g", *r.ProtocolPilot.RatePerSecond, step.Name, step.Rate)
+			}
+		case "warmup":
+			warmup += step.DurationS
+		default:
+			return fmt.Errorf("protocol-bound pilot supports only warmup and measurement phases; got %q", step.Phase)
+		}
+	}
+	if !hasMeasurement || measurement != *r.ProtocolPilot.MeasurementSeconds || warmup != *r.ProtocolPilot.WarmupSeconds {
+		return fmt.Errorf("protocol pilot duration metadata contradicts resolved warmup/measurement phases")
+	}
+	return nil
+}
+
+func isLowerHex(s string) bool {
+	for _, c := range s {
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
 }
 
 func trimFloat(f float64) string {

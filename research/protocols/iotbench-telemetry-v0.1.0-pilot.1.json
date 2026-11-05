@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "protocol_id": "iotbench-telemetry-v0.1.0-pilot.1",
+  "lifecycle": "preliminary_pilot",
+  "freeze_status": "pending_calibration",
+  "profiles": {
+    "policy_id": "offline-profiles-20261101",
+    "path": "research/protocols/offline-profiles-20261101.json",
+    "sha256": "1b6aa76d5156eeb1561b0d02641b6f01d3ca6a3447904182a3c219b5930ed1f8",
+    "compatibility": "D44 meanings and thresholds are unchanged; reference is explicit and immutable"
+  },
+  "design": {
+    "device_populations": [100, 1000, 10000],
+    "baseline_devices": 1000,
+    "application_cpu_budget_k": [1, 2, 3],
+    "replica_counts_n": [1, 2, 3],
+    "replica_mapping_qualification": "proposal_not_qualified",
+    "replica_maps": {
+      "thingsboard": {"tb-core": "N", "tb-rule-engine": "N", "tb-http-transport": "N"},
+      "fiware": {"orion": "N", "iot-agent": "N"},
+      "edgex": {"core-data": "N", "device-rest": "N", "app-http-export": 1}
+    }
+  },
+  "delivery_metric": {
+    "primary_population": "unique_first_observed_receipts_for_scheduled_half_open_measurement_cohort",
+    "percentile_method": "nearest_rank",
+    "percentiles": [50, 95, 99],
+    "includes_outcomes": ["OK", "ERROR", "UNKNOWN"],
+    "includes_drain_arrivals_until": "explicit_observation_cutoff",
+    "conditional_on_observed_delivery": true,
+    "scheduled_attainment_thresholds_ms": [250, 500, 1000, 5000],
+    "primary_threshold_ms": 500,
+    "missing_latency": "not_finite_and_excluded_from_delivery_percentile; report scheduled_observed_missing_separately",
+    "zero_observed_percentile": null,
+    "ack_only_sink_latency": "separate_metric",
+    "scheduled_to_response_latency": "separate_metric",
+    "capture_invalidity_is_not_platform_missing": true,
+    "identifiable_payload_corruption_remains_observed": true
+  },
+  "outcomes": {
+    "normalized_states": ["OK", "ERROR", "UNKNOWN", "NOT_SENT"],
+    "coverage_is_separate": true,
+    "not_sent_rule": "positive_identified_non_submission_evidence_only",
+    "dropped_iterations_are_distinct": true,
+    "iteration_identity": "D15 CAR iterationInTest",
+    "zero_drop_required_for_validity": true,
+    "exact_per_slot_ledger_under_dropped_invalid_runs": "unsatisfied_capability"
+  },
+  "payload": {
+    "encoding_id": "logical-json-ascii-v1",
+    "content_type": "application/json; charset=utf-8",
+    "field_order": ["run_id", "seq", "device_id", "scheduled_send_ms", "temperature", "humidity", "pressure", "padding"],
+    "serialization": "compact UTF-8 JSON; ASCII keys/values; no insignificant whitespace; field order normative",
+    "numeric_rules": "seq is uint32; scheduled_send_ms is finite nonnegative decimal <= 9007199254740991 with at most 3 effective fractional decimal digits and is never rounded by the encoder; stored timestamp token must equal shortest canonical numeric serialization except exact numeric-zero spellings; decimal exponent magnitude above 10000 is rejected; stored seq, temperature, humidity, pressure use canonical integer JSON tokens only; negative zero normalizes to zero; temperature 15..45, humidity 30..80, pressure 950..1150; preserve supplied values",
+    "padding": "lowercase ASCII hex from versioned deterministic Mix(seed,seq,salt,block); one ASCII byte per hex character; body size grows in even-byte increments from its unpadded baseline and must match baseline parity",
+    "padding_salt": "0x50414431",
+    "maximum_bytes": 1048576,
+    "proposed_size_offsets_bytes": [0, 1024, 4096],
+    "size_points_status": "proposed_not_qualified",
+    "stored_validation": "compare supplied stored bytes and decoded stored fields to expected values; a locally reconstructed payload alone is not storage evidence"
+  },
+  "receipt_capture": {
+    "response_complete_body_read_before_parse": "proposed_amendment_not_implemented",
+    "sink_change": "out_of_scope"
+  },
+  "policies": {
+    "strict_two_x_headroom": {"status": "source_requirement_retained", "multiplier": 2, "source": "docs/architecture/design-decisions.md#d34--generator-qualification"},
+    "warmup_seconds": {"status": "source_requirement_retained", "value": 300, "source": "docs/architecture/design-decisions.md#d39--s5-experimental-protocol"},
+    "confirmation_seconds": {"status": "source_requirement_retained", "value": 600, "source": "docs/architecture/design-decisions.md#d39--s5-experimental-protocol"},
+    "minimum_independent_repetitions": {"status": "source_requirement_retained", "value": 5, "source": "docs/architecture/design-decisions.md#d39--s5-experimental-protocol"},
+    "pending_calibration": ["clock_error_budget", "drain_deadline", "recovery_window", "sample_counts", "backlog_epsilon", "capacity_full_predicate", "capacity_search_rule", "scientific_device_rate_grid"],
+    "separately_labeled_search_proposals": {
+      "status": "proposal_only_not_frozen",
+      "coarse_multiplier": 1.5,
+      "coarse_duration_seconds": 180,
+      "bisection_max_fraction": 0.05,
+      "endpoint_repetitions": 5,
+      "optional_favorable_stopping": false,
+      "hybrid_search": "not_adopted"
+    }
+  }
+}

@@ -28,17 +28,19 @@ class ReceiverTest(unittest.TestCase):
         try:
             _, d = post('/api/device', {'name': 'tb-dev'}, {'X-Authorization': 'Bearer controlled-auth-token'})
             ident = d['id']['id']
-            message = dict(run_id='run', seq=0, scheduled_send_ms=100, temperature=20, humidity=40, pressure=1000)
+            message = dict(run_id='run', seq=0, scheduled_send_ms=100, temperature=20, humidity=40, pressure=1000, padding='aa')
             self.assertEqual(post('/api/v1/'+ident+'/telemetry', message)[0], 200)
             post('/iot/services', {'services': [{'apikey': 'key'}]})
             post('/iot/devices', {'devices': [{'device_id': 'fw-dev'}]})
-            self.assertEqual(post('/iot/d?k=key&i=fw-dev', 't|20|h|40|p|1000|q|1|r|run|s|101')[0], 200)
+            self.assertEqual(post('/iot/d?k=key&i=fw-dev', 't|20|h|40|p|1000|q|1|r|run|s|101|d|bb')[0], 200)
             post('/api/v3/device', [{'device': {'name': 'edge-dev'}}])
             message['seq'] = 2
+            message['padding'] = 'cc'
             self.assertEqual(post('/api/v3/resource/edge-dev/reading', message)[0], 200)
             rows = [json.loads(line) for line in out.getvalue().splitlines()]
             self.assertEqual([r['seq'] for r in rows], [0, 1, 2])
             self.assertEqual([r['adapter'] for r in rows], ['thingsboard', 'fiware', 'edgex'])
+            self.assertEqual([r['padding'] for r in rows], ['aa', 'bb', 'cc'])
             self.assertEqual(len({r['device_id'] for r in rows}), 3)
             self.assertEqual(state.errors, 0)
         finally:

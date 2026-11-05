@@ -7,6 +7,7 @@ package reconcile
 
 import (
 	"fmt"
+	"os"
 	"sort"
 
 	"iotbench/internal/hash"
@@ -27,10 +28,11 @@ type Result struct {
 	ExplicitFailure         int64   `json:"explicit_failure"`
 	Unknown                 int64   `json:"unknown"`
 	StoredUnique            int64   `json:"stored_unique"`
-	AckLost                 []int64 `json:"ack_lost"`                  // acknowledged, absent from the store
-	PersistedDespiteUnknown []int64 `json:"persisted_despite_unknown"` // timeout / transport error, but stored
-	PersistedDespiteFailure []int64 `json:"persisted_despite_failure"` // explicit failure, but stored
-	Duplicates              []int64 `json:"duplicates"`                // stored more than once
+	AckLost                 []int64 `json:"ack_lost"`                    // legacy field name: acknowledged identity absent from this export, NOT demonstrated permanent loss
+	PersistedDespiteUnknown []int64 `json:"persisted_despite_unknown"`   // timeout / transport error, but stored
+	PersistedDespiteFailure []int64 `json:"persisted_despite_failure"`   // explicit failure, but stored
+	BoundaryNotStored       []int64 `json:"boundary_failure_not_stored"` // adapter-boundary failure absent from this export: not clean
+	Duplicates              []int64 `json:"duplicates"`                  // stored more than once
 	DuplicateCopies         int64   `json:"duplicate_extra_copies"`
 	Orphans                 []int64 `json:"orphans"` // stored seqs that were never planned
 	OtherRunIDs             int64   `json:"stored_with_other_run_id"`
@@ -53,7 +55,7 @@ func planned(r *plan.Resolved) map[int64]bool {
 
 // Run reconciles run directory dir against the stored identities.
 func Run(dir string, stored []Stored) (*Result, error) {
-	r, sum, _, err := report.Evaluate(dir)
+	r, sum, health, err := report.Evaluate(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -63,25 +65,39 @@ func Run(dir string, stored []Stored) (*Result, error) {
 	if sum.DroppedTotal > 0 {
 		return nil, fmt.Errorf("run has %.0f dropped iterations: identities are not exact, reconciliation refused", sum.DroppedTotal)
 	}
+	if health == nil || !health.Valid {
+		return nil, fmt.Errorf("offered-load health is invalid; reconciliation cannot establish a capacity claim")
+	}
+	if _, err := os.Stat(dir + "/records.ndjson"); err != nil {
+		return nil, fmt.Errorf("required outcome ledger unavailable: %w", err)
+	}
 	recs, err := report.ReadNDJSON[report.Record](dir + "/records.ndjson")
 	if err != nil {
 		return nil, err
 	}
 	exp := planned(r)
 	outcome := map[int64]string{}
+	boundary := map[int64]bool{}
 	for _, rc := range recs {
-		if rc.Outcome != "ack_success" {
-			outcome[rc.Seq] = rc.Outcome
+		if rc.Outcome == "ack_success" {
+			continue
+		}
+		switch rc.Outcome {
+		case "explicit_failure", "unknown":
+		default:
+			return nil, fmt.Errorf("outcome ledger has unknown outcome category %q at seq %d", rc.Outcome, rc.Seq)
+		}
+		outcome[rc.Seq] = rc.Outcome
+		if _, ok := report.BoundarySubtype(rc.Detail); ok {
+			boundary[rc.Seq] = true
 		}
 	}
 	res := &Result{RunID: r.RunID, Planned: int64(len(exp))}
 	count := map[int64]int64{}
-	unidentifiable := map[int64]bool{}
 	for _, s := range stored {
 		if s.RunID == "" && s.Seq >= 0 {
 			// A row with a valid seq but no run_id identity: it cannot join the plan nor prove storage.
 			res.MalformedIdentities = append(res.MalformedIdentities, s.Seq)
-			unidentifiable[s.Seq] = true
 			continue
 		}
 		if s.RunID != r.RunID {
@@ -100,13 +116,17 @@ func Run(dir string, stored []Stored) (*Result, error) {
 		switch o {
 		case "ack_success":
 			res.AckSuccess++
-			if n == 0 && !unidentifiable[seq] {
+			if n == 0 {
 				res.AckLost = append(res.AckLost, seq)
 			}
 		case "explicit_failure":
 			res.ExplicitFailure++
 			if n > 0 {
 				res.PersistedDespiteFailure = append(res.PersistedDespiteFailure, seq)
+			} else if boundary[seq] {
+				// A boundary failure is not an endpoint rejection: if the identity is also absent
+				// from the store, the export cannot establish that the message was retained.
+				res.BoundaryNotStored = append(res.BoundaryNotStored, seq)
 			}
 		case "unknown":
 			res.Unknown++
@@ -124,10 +144,10 @@ func Run(dir string, stored []Stored) (*Result, error) {
 			res.DuplicateCopies += n - 1
 		}
 	}
-	for _, v := range []*[]int64{&res.AckLost, &res.PersistedDespiteUnknown, &res.PersistedDespiteFailure, &res.Duplicates, &res.Orphans, &res.MalformedIdentities} {
+	for _, v := range []*[]int64{&res.AckLost, &res.PersistedDespiteUnknown, &res.PersistedDespiteFailure, &res.BoundaryNotStored, &res.Duplicates, &res.Orphans, &res.MalformedIdentities} {
 		sort.Slice(*v, func(i, j int) bool { return (*v)[i] < (*v)[j] })
 	}
-	res.Clean = len(res.AckLost) == 0 && len(res.Duplicates) == 0 && len(res.Orphans) == 0 &&
+	res.Clean = len(res.AckLost) == 0 && len(res.BoundaryNotStored) == 0 && len(res.Duplicates) == 0 && len(res.Orphans) == 0 &&
 		len(res.MalformedIdentities) == 0
 	return res, nil
 }

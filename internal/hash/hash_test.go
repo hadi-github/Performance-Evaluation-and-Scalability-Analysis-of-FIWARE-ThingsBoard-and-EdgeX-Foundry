@@ -37,7 +37,8 @@ func TestThinningRate(t *testing.T) {
 func TestValueRanges(t *testing.T) {
 	for seq := uint32(0); seq < 10000; seq++ {
 		tt, h, p := Values(3, seq)
-		if tt < 15 || tt > 45 || h < 30 || h > 80 || p < 950 || p > 1150 {
+		if tt < TemperatureMin || tt > TemperatureMax || h < HumidityMin || h > HumidityMax ||
+			p < PressureMin || p > PressureMax {
 			t.Fatalf("seq %d out of range: %d %d %d", seq, tt, h, p)
 		}
 	}

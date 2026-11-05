@@ -23,6 +23,8 @@ import exec from 'k6/execution';
 import { Counter, Gauge, Trend } from 'k6/metrics';
 import { ADAPTERS } from './lib/adapters.js';
 import { selected, threshold, values } from './lib/hash.js';
+import { wireAccounting } from './lib/adapter_payload.js';
+import { BOUNDARY_OUTCOMES, ledgerOutcome } from './lib/response_semantics.js';
 
 const cfg = JSON.parse(open(__ENV.RESOLVED));
 const OUT_DIR = __ENV.OUT_DIR || '.';
@@ -41,7 +43,8 @@ const FULL_JSON = __ENV.FULL_JSON === '1';
 
 // ---- metrics, declared in the init context of every VU. Keep the number of metric objects small: k6 creates them
 // per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/methodology/calibration.md).
-const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown'];
+// Boundary outcomes are diagnostic subsets of explicit_failure, not acknowledgements and not retries.
+const OUTCOMES = ['ack_success', 'explicit_failure', 'unknown', ...BOUNDARY_OUTCOMES];
 const M = cfg.steps.map((s) => {
   const c = (n) => new Counter('g_' + n + '_s' + s.index);
   const o = {};
@@ -105,6 +108,17 @@ export function setup() {
   const sample = adapter.request(cfg, st, Object.assign({ run_id: cfg.run_id, seq: 0, device: 0, scheduled_send_ms: Date.now() + 0.125 },
     values(cfg.seed, 0)));
   st.sample = { url_bytes: sample.url.length, body_bytes: sample.body.length, body: sample.body };
+  if (sample.payload && sample.payload.payloadSelected) {
+    const accounting = wireAccounting(sample.url, sample.headers, sample.payload);
+    st.sample = Object.assign(st.sample, {
+      logical_bytes: accounting.logical_bytes,
+      adapter_body_bytes: accounting.adapter_body_bytes,
+      http_overhead_bytes: accounting.http_overhead_bytes,
+      payload_encoding: 'logical-json-ascii-v1',
+      payload_size_offset_bytes: sample.payload.offset,
+      native_mapping: sample.payload.mapping,
+    });
+  }
   st.setup_end_ms = Date.now();
   return st;
 }
@@ -124,9 +138,17 @@ function send(st, step, m, i) {
   const res = http.post(req.url, req.body, { headers: req.headers, timeout: TIMEOUT, tags: { name: 'send' } });
   const response = Date.now();
   const c = adapter.classify(res);
+  const boundary = BOUNDARY_OUTCOMES.includes(c.outcome);
   const mm = M[step.index];
   mm.attempted.add(1);
-  mm.outcome[c.outcome].add(1);
+  if (boundary) {
+    // Surface the boundary outcome distinctly, while keeping explicit_failure the full accounting
+    // bucket so attempted = ack_success + explicit_failure + unknown remains unchanged.
+    mm.outcome[c.outcome].add(1);
+    mm.outcome.explicit_failure.add(1);
+  } else {
+    mm.outcome[c.outcome].add(1);
+  }
   LAG.add(lag, { s: String(step.index) });
   if (c.outcome === 'ack_success') {
     ACK.add(response - m.scheduled_send_ms, { s: String(step.index), m: String(Math.floor(i / (step.tick_rate * 60))) });
@@ -134,10 +156,11 @@ function send(st, step, m, i) {
   const early = lag < -EARLY_TOL;
   if (early) mm.early.add(1);
   if (c.outcome !== 'ack_success' || early) {
+    const ledger = ledgerOutcome(c);
     record({
       rec: 'msg', run_id: m.run_id, seq: m.seq, device_id: m.device, rate_step: step.index, phase: step.phase,
-      tick: i, scheduled_send_ms: m.scheduled_send_ms, actual_send_ms: actual, outcome: c.outcome,
-      http_status: res.status, error_code: res.error_code || 0, response_ms: response, detail: c.detail || '',
+      tick: i, scheduled_send_ms: m.scheduled_send_ms, actual_send_ms: actual, outcome: ledger.outcome,
+      http_status: res.status, error_code: res.error_code || 0, response_ms: response, detail: ledger.detail,
       early,
     });
   }
@@ -175,6 +198,8 @@ export function handleSummary(data) {
     ack_success: v('g_ack_success_s' + s.index, 'count'),
     explicit_failure: v('g_explicit_failure_s' + s.index, 'count'),
     unknown: v('g_unknown_s' + s.index, 'count'),
+    incomplete_response: v('g_incomplete_response_s' + s.index, 'count'),
+    oversized_response: v('g_oversized_response_s' + s.index, 'count'),
     early: v('g_early_s' + s.index, 'count'),
     beyond_plan: v('g_beyond_s' + s.index, 'count'),
     thinned: v('g_thinned_s' + s.index, 'count'),

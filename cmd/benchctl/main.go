@@ -14,6 +14,8 @@
 //	                   acknowledged -> sink -> history identity reconciliation and collision audit (internal/audit)
 //	benchctl resources -run DIR [-prom-query URL -node HOST:9100] [-pg-counters FILE] [-out FILE]
 //	                   EdgeX per-run host disk and PostgreSQL WAL report, informational only (internal/diskmetrics, D29a)
+//	benchctl deployment-validate -descriptor FILE -inventory FILE [-observer-fake FILE] [-evidence-manifest FILE] -out NEWDIR
+//	                   offline versioned dry-run deployment attestation; no Docker/SUT/lifecycle (internal/deployment)
 //
 // Exit status: 0 = VALID / clean, 1 = INVALID / not clean, 2 = usage or I/O error.
 package main
@@ -85,9 +87,17 @@ func summarize(m *runner.Manifest) {
 
 func main() {
 	if len(os.Args) < 2 {
-		die(2, "usage: benchctl resolve|run|check|reconcile|expected [flags]")
+		die(2, "usage: benchctl resolve|run|check|reconcile|expected|audit|cpu|analyze|compare|analyze-demo|fault-capacity|deployment-validate [flags]")
 	}
 	cmd, args := os.Args[1], os.Args[2:]
+	if cmd == "deployment-validate" {
+		deploymentCommand(args)
+		return
+	}
+	if cmd == "analyze" || cmd == "compare" || cmd == "analyze-demo" || cmd == "fault-capacity" {
+		offlineCommand(cmd, args)
+		return
+	}
 	fs := flag.NewFlagSet(cmd, flag.ExitOnError)
 	planPath := fs.String("plan", "", "plan JSON")
 	runID := fs.String("run-id", "", "run id (default: <plan_id>-<utc>-<random>)")
@@ -344,9 +354,22 @@ func runAudit(dir, sinkPath, historyPath, outPath string, deadlineMs float64, ma
 	if sinkPath == "" {
 		die(2, "audit: -sink is required")
 	}
-	r, sum, _, err := report.Evaluate(dir)
+	r, sum, health, err := report.Evaluate(dir)
 	if err != nil {
 		die(2, "run %s: %v", dir, err)
+	}
+	if sum == nil || health == nil || !health.Valid {
+		die(1, "audit: offered-load validity not established; use analyze for claim-level diagnostic output")
+	}
+	for _, path := range []string{filepath.Join(dir, "records.ndjson"), sinkPath} {
+		if _, err := os.Stat(path); err != nil {
+			die(2, "audit: required input unavailable: %v", err)
+		}
+	}
+	if historyPath != "" {
+		if _, err := os.Stat(historyPath); err != nil {
+			die(2, "audit: history unavailable, not an empty export: %v", err)
+		}
 	}
 	recs, err := report.ReadNDJSON[report.Record](filepath.Join(dir, "records.ndjson"))
 	if err != nil {

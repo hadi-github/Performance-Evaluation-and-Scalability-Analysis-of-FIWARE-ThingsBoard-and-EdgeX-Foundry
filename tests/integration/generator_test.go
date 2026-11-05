@@ -291,7 +291,7 @@ func TestMissingDeliveryOffsetByDuplicateKeepsCountsEqualButNotClean(t *testing.
 }
 
 // Every n-th stored row loses its run_id: the row exists, the identity does not. It must stay in its own
-// unaccountable category and must not be reported as a lost message.
+// unaccountable category; it cannot satisfy a full (run_id, seq) join or prove permanent loss.
 func TestMalformedIdentityIsStoredButUnaccountable(t *testing.T) {
 	needDocker(t)
 	tg := startFixture(t, fixture.Config{MalformedEvery: 50})
@@ -307,8 +307,8 @@ func TestMalformedIdentityIsStoredButUnaccountable(t *testing.T) {
 	if len(res.MalformedIdentities) != 8 { // seqs 0,50,...,350 of 400
 		t.Fatalf("want 8 malformed-identity rows, got %+v", res.MalformedIdentities)
 	}
-	if len(res.AckLost) != 0 || res.Clean {
-		t.Fatalf("malformed rows must be reattributed, not counted as ack-lost: %+v", res)
+	if len(res.AckLost) != 8 || res.Clean {
+		t.Fatalf("rows without run_id cannot satisfy the full identity join; missing is not proof of permanent loss: %+v", res)
 	}
 	if res.StoredUnique != 392 { // 400 minus the 8 unidentifiable rows
 		t.Fatalf("stored unique %d", res.StoredUnique)

@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "project": "tb",
+  "source": "SYNTHETIC M2c caller-supplied inventory; not a live observation; no Docker, SUT or observer was contacted",
+  "services": [
+    {
+      "project": "tb",
+      "service": "tb-core",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "tb-core",
+          "container_id": "synthetic-tb-core-0",
+          "replica": 0,
+          "image": "thingsboard/tb-node:4.3.1.6",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "tb-rule-engine",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "tb-rule-engine",
+          "container_id": "synthetic-tb-rule-engine-0",
+          "replica": 0,
+          "image": "thingsboard/tb-node:4.3.1.6",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "tb-http-transport",
+      "replicas": 2,
+      "cpuset": "4-5",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "tb-http-transport",
+          "container_id": "synthetic-tb-http-transport-0",
+          "replica": 0,
+          "image": "thingsboard/tb-http-transport:4.3.1.6",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        },
+        {
+          "project": "tb",
+          "service": "tb-http-transport",
+          "container_id": "synthetic-tb-http-transport-1",
+          "replica": 1,
+          "image": "thingsboard/tb-http-transport:4.3.1.6",
+          "started_at_ms": 1700000000001,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "zookeeper",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "zookeeper",
+          "container_id": "synthetic-zookeeper-0",
+          "replica": 0,
+          "image": "zookeeper:3.8.1",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "kafka",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "kafka",
+          "container_id": "synthetic-kafka-0",
+          "replica": 0,
+          "image": "apache/kafka:4.0.0",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "postgres",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "postgres",
+          "container_id": "synthetic-postgres-0",
+          "replica": 0,
+          "image": "postgres:16",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "valkey",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "valkey",
+          "container_id": "synthetic-valkey-0",
+          "replica": 0,
+          "image": "valkey/valkey:8.0-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "tb",
+      "service": "haproxy",
+      "replicas": 1,
+      "cpuset": "1",
+      "containers": [
+        {
+          "project": "tb",
+          "service": "haproxy",
+          "container_id": "synthetic-haproxy-0",
+          "replica": 0,
+          "image": "haproxy:3.2-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    }
+  ]
+}

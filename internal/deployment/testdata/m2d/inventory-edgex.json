@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "project": "edgex",
+  "source": "SYNTHETIC M2d caller-supplied inventory; not a live observation; no Docker, SUT or observer was contacted",
+  "services": [
+    {
+      "project": "edgex",
+      "service": "core-data",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "core-data",
+          "container_id": "synthetic-m2d-core-data-0",
+          "replica": 0,
+          "image": "edgex-nats/core-data:4.0.2",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "device-rest",
+      "replicas": 1,
+      "cpuset": "4",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "device-rest",
+          "container_id": "synthetic-m2d-device-rest-0",
+          "replica": 0,
+          "image": "edgex-nats/device-rest:4.0.2",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "database",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "database",
+          "container_id": "synthetic-m2d-database-0",
+          "replica": 0,
+          "image": "postgres:16.3-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "nats",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "nats",
+          "container_id": "synthetic-m2d-nats-0",
+          "replica": 0,
+          "image": "nats:2.12.9-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "healthy",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "core-keeper",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "core-keeper",
+          "container_id": "synthetic-m2d-core-keeper-0",
+          "replica": 0,
+          "image": "edgex-nats/core-keeper:4.0.2",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "core-common-config-bootstrapper",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "core-common-config-bootstrapper",
+          "container_id": "synthetic-m2d-core-common-config-bootstrapper-0",
+          "replica": 0,
+          "image": "edgexfoundry/core-common-config-bootstrapper:4.0.2",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "exited",
+          "state_reason": "synthetic one-shot completion fixture; inventory schema does not carry an exit code"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "core-metadata",
+      "replicas": 1,
+      "cpuset": "2-3",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "core-metadata",
+          "container_id": "synthetic-m2d-core-metadata-0",
+          "replica": 0,
+          "image": "edgex-nats/core-metadata:4.0.2",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    },
+    {
+      "project": "edgex",
+      "service": "haproxy",
+      "replicas": 1,
+      "cpuset": "1",
+      "containers": [
+        {
+          "project": "edgex",
+          "service": "haproxy",
+          "container_id": "synthetic-m2d-haproxy-0",
+          "replica": 0,
+          "image": "haproxy:3.2-alpine",
+          "started_at_ms": 1700000000000,
+          "health": "none",
+          "health_reason": "no Compose healthcheck is declared; health:none is a property, not a failed check",
+          "state": "running"
+        }
+      ]
+    }
+  ]
+}
