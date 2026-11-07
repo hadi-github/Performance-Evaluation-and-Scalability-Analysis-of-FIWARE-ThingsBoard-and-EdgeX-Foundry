@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo=$(cd "$(dirname "$0")/.." && pwd)
-tmp=$(mktemp -d /tmp/opencode/tb-log-capture-test.XXXXXX)
+tmp_parent=${TMPDIR:-/tmp/opencode}
+mkdir -p "$tmp_parent"
+tmp=$(mktemp -d "$tmp_parent/tb-log-capture-test.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/bin"
 cat >"$tmp/bin/docker" <<'MOCK'

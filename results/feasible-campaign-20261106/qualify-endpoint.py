@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Stage exact reviewed bytes and execute the one bounded TB endpoint qualification."""
+"""Historical one-off TB qualification executor, not a supported clone entry point.
+
+Requires the ignored original benchctl-calibrated.sh companion in HERE and the
+retained remote pilot source tree. The current scripts/ wrapper has a different
+layout and must not be substituted. Preserve for provenance; use the reviewed
+ordinary launcher/runbook for future work, not a repeat qualification.
+"""
 import hashlib
 import json
 import pathlib
@@ -39,8 +45,10 @@ def scp(path, host, dest):
     subprocess.run(['scp', str(path), host + ':' + dest], check=True, timeout=60)
 
 if '--execute-reviewed' not in sys.argv:
-    print('No load launched. Requires --execute-reviewed following integrated Sol approval.')
+    print('No load launched. Historical unsupported executor; requires original external companions and fresh explicit review. See docs/operations/ordinary-campaign.md.')
     sys.exit(0)
+if not (HERE / 'benchctl-calibrated.sh').is_file():
+    raise SystemExit('Historical executor unavailable: original benchctl-calibrated.sh companion is external to Git. Do not substitute scripts/ wrapper or rerun qualification to repair packaging.')
 OUT.mkdir(exist_ok=False)
 try:
     # Build once from the reviewed working tree; never reuse an obsolete executable.

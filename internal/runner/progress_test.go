@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -139,5 +140,34 @@ func TestProgressSetupAbortNeverInventsSends(t *testing.T) {
 	after, _ := os.ReadFile(filepath.Join(d, "generator-progress.log"))
 	if !bytes.Equal(before, after) {
 		t.Fatal("existing progress log overwritten")
+	}
+}
+
+func TestProgressMissingOrNullIdentityCannotBecomeFirstTick(t *testing.T) {
+	for _, key := range []string{"run_id", "seq", "rate_step", "phase", "tick", "outcome"} {
+		for _, null := range []bool{false, true} {
+			t.Run(key+fmt.Sprint(null), func(t *testing.T) {
+				var envelope map[string]string
+				if err := json.Unmarshal(progressLine(0, "ack_success"), &envelope); err != nil {
+					t.Fatal(err)
+				}
+				var fields map[string]any
+				if err := json.Unmarshal([]byte(envelope["msg"]), &fields); err != nil {
+					t.Fatal(err)
+				}
+				delete(fields, key)
+				if null {
+					fields[key] = nil
+				}
+				msg, _ := json.Marshal(fields)
+				envelope["msg"] = string(msg)
+				line, _ := json.Marshal(envelope)
+				p := newProgressObserver(progressPlan())
+				p.consume(line)
+				if p.snapshot.Completed != 0 || p.snapshot.ACK != 0 || p.snapshot.Invalid != 1 {
+					t.Fatalf("missing/null identity counted: %+v", p.snapshot)
+				}
+			})
+		}
 	}
 }

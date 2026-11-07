@@ -5,6 +5,13 @@ local evidence**. Only the launcher/source, frozen scope/matrix/plans, plan
 generator and operational documentation belong in the public Git repository.
 The allowlist is in the root `.gitignore`.
 
+`qualify-endpoint.py` is retained **historical one-off source, not a supported
+fresh-clone executor**. It requires the original ignored root-level
+`benchctl-calibrated.sh` companion and an existing remote pilot source tree.
+The versioned `scripts/benchctl-calibrated.sh` uses a different directory layout
+and is not a drop-in substitute. Missing companions fail before remote access.
+Do not repeat qualification just to repair this historical packaging dependency.
+
 - [Current project status](../../docs/status.md) is the public handoff.
 - [Frozen scope](frozen-scope.json), [matrix](run-matrix.json), and `plans/` define
   the 15 original attempts. Do not regenerate or change them to replace failures.

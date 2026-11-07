@@ -84,6 +84,20 @@ func (p *progressObserver) consume(line []byte) {
 	if json.Unmarshal([]byte(envelope.Msg), &r) != nil || r.Rec != "msg" {
 		return
 	}
+	// Zero-valued decoded fields must not turn a missing/null identity into
+	// the first planned tick (seq=0, step=0, tick=0).
+	var fields map[string]json.RawMessage
+	if json.Unmarshal([]byte(envelope.Msg), &fields) != nil {
+		p.snapshot.Invalid++
+		return
+	}
+	for _, key := range []string{"run_id", "seq", "rate_step", "phase", "tick", "outcome"} {
+		value, exists := fields[key]
+		if !exists || string(value) == "null" {
+			p.snapshot.Invalid++
+			return
+		}
+	}
 	for i, s := range p.resolved.Steps {
 		if r.RunID != p.resolved.RunID || r.Step != s.Index {
 			continue
