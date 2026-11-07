@@ -35,5 +35,8 @@ for phase in reports:
     assert math.isclose(sum(totals.values())/1e6, report['total_cpu_seconds'], rel_tol=1e-12)
     for tier, value in totals.items():
         assert math.isclose(value/1e6, report['cpu_seconds_by_tier'][tier], rel_tol=1e-12)
-    print(json.dumps(dict(step=index, status='VERIFIED_CAPTURE_INTERVAL', cpu_seconds_by_tier={k:v/1e6 for k,v in totals.items()}, total_cpu_seconds=sum(totals.values())/1e6,
-                         phase_specific_cost='UNAVAILABLE: enclosing capture interval is not an exact phase interval', before_skew_seconds=phase['before_skew_seconds'], after_skew_seconds=phase['after_skew_seconds'])))
+    print(json.dumps(dict(step=index, phase=phase.get('phase'), status='VERIFIED_CAPTURE_INTERVAL', cpu_seconds_by_tier={k:v/1e6 for k,v in totals.items()}, total_cpu_seconds=sum(totals.values())/1e6,
+                         phase_specific_cost='UNAVAILABLE: counter snapshots bracket rather than exactly equal the nominal phase',
+                         before_boundary_skew_bounds_seconds=phase['before_boundary_skew_bounds_seconds'],
+                         after_boundary_skew_bounds_seconds=phase['after_boundary_skew_bounds_seconds'],
+                         capture_interval_duration_bounds_seconds=phase['counter_interval_duration_bounds_seconds'])))

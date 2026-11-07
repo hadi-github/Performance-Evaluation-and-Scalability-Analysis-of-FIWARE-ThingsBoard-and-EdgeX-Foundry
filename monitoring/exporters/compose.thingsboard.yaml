@@ -26,4 +26,6 @@ services:
 networks:
   platform:
     external: true
-    name: tb_default
+    # Set TB_PROJECT when the platform uses a non-default Compose project name.
+    # The exporter project is separate, so Compose cannot infer the target stack's network.
+    name: ${TB_PROJECT:-tb}_default

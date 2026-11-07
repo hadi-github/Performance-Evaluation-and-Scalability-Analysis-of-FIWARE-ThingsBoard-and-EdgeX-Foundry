@@ -14,7 +14,7 @@ import (
 )
 
 func putProtocolMetric(s *Step, name string, value *float64, unit, basis string) {
-	s.Metrics[name] = Metric{Value: value, Unit: unit, Claim: "protocol_delivery", Endpoint: "scheduled_measurement_to_first_complete_body_receipt", ClockDomain: "declared synthetic capture epoch milliseconds", Basis: basis}
+	s.Metrics[name] = Metric{Value: value, Unit: unit, Claim: "protocol_delivery", Endpoint: "scheduled_measurement_to_first_complete_body_receipt", ClockDomain: "capture-declared epoch milliseconds", Basis: basis}
 }
 func protocolValue(v float64) *float64 {
 	if math.IsNaN(v) || math.IsInf(v, 0) {
@@ -52,7 +52,7 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 		return
 	}
 	switch capture.SchemaVersion {
-	case receipt.SchemaVersion:
+	case receipt.SchemaVersion, receipt.DispatchSchemaVersion:
 		if capture.ReceiptCaptureSemantics != receipt.CaptureSemantics {
 			s.Claims["protocol_delivery"] = claim(NotAssessed, "complete-body receipt capture semantics marker is missing or unsupported")
 			return
@@ -64,20 +64,29 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 		s.Claims["protocol_delivery"] = claim(Invalid, "unsupported receipt capture schema version")
 		return
 	}
-	if capture.MetricInterpretation != ProtocolMetricInterpretation || capture.Binding != provenance.Binding {
+	interpretation := ProtocolMetricInterpretation
+	if capture.SchemaVersion == receipt.DispatchSchemaVersion {
+		interpretation = DispatchMetricInterpretation
+	}
+	if capture.MetricInterpretation != interpretation || capture.Binding != provenance.Binding {
 		s.Claims["protocol_delivery"] = claim(Invalid, "receipt capture interpretation or protocol binding mismatch")
 		return
 	}
-	if !capture.Synthetic || !synthetic || !manifestSynthetic(manifest) {
-		s.Claims["protocol_delivery"] = claim(NotAssessed, "M1a accepts explicitly synthetic capture fixtures only; no live receipt producer is integrated")
+	manifestIsSynthetic := manifestSynthetic(manifest)
+	if capture.Synthetic != synthetic || capture.Synthetic != manifestIsSynthetic {
+		s.Claims["protocol_delivery"] = claim(Invalid, "receipt capture, analyzer evidence specification, and manifest disagree on synthetic/live provenance")
 		return
 	}
-	if !capture.Complete || !capture.BodyReadComplete || capture.Endpoint != receipt.Endpoint || capture.Source == "" || capture.ClockDomain == "" || capture.ClockSource == "" {
+	endpoint := receipt.Endpoint
+	if capture.SchemaVersion == receipt.DispatchSchemaVersion {
+		endpoint = "application_dispatch_to_response_complete_body_read"
+	}
+	if !capture.Complete || !capture.BodyReadComplete || capture.Endpoint != endpoint || capture.Source == "" || capture.ClockDomain == "" || capture.ClockSource == "" {
 		s.Claims["protocol_delivery"] = claim(NotAssessed, "complete-body receipt capture endpoint, completeness, source, or clock metadata missing")
 		return
 	}
-	if capture.ObservationCutoffMS != float64(*pilot.DrainCutoffUnixMS) || !finiteTime(capture.CoverageStartMS) || !finiteTime(capture.CoverageEndMS) || capture.CoverageStartMS <= 0 || capture.CoverageEndMS < capture.ObservationCutoffMS {
-		s.Claims["protocol_delivery"] = claim(Invalid, "receipt capture coverage/cutoff contradicts explicit pilot drain cutoff")
+	if !finiteTime(capture.CoverageStartMS) || !finiteTime(capture.CoverageEndMS) || capture.CoverageStartMS <= 0 {
+		s.Claims["protocol_delivery"] = claim(Invalid, "receipt capture coverage bounds are invalid")
 		return
 	}
 	var phaseStart, phaseEnd float64
@@ -100,12 +109,27 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 		}
 		phaseSet = true
 	}
+	expectedCutoff := float64(0)
+	if pilot.DrainCutoffUnixMS != nil && pilot.DrainSecondsAfterMeasurement == nil {
+		expectedCutoff = float64(*pilot.DrainCutoffUnixMS)
+	} else if pilot.DrainCutoffUnixMS == nil && pilot.DrainSecondsAfterMeasurement != nil {
+		expectedCutoff = phaseEnd + float64(*pilot.DrainSecondsAfterMeasurement)*1000
+	}
+	if !phaseSet || capture.ObservationCutoffMS != expectedCutoff || capture.CoverageEndMS < capture.ObservationCutoffMS {
+		s.Claims["protocol_delivery"] = claim(Invalid, "receipt capture coverage/cutoff contradicts the declared pilot drain policy")
+		return
+	}
 	if !phaseSet || capture.CoverageStartMS > phaseStart || capture.ObservationCutoffMS < phaseEnd {
 		s.Claims["protocol_delivery"] = claim(NotAssessed, "capture does not cover the full half-open measurement phase and drain cutoff")
 		return
 	}
-	if !strings.HasPrefix(capture.Source, "synthetic:") || !strings.HasPrefix(capture.ClockSource, "synthetic:") || !strings.HasPrefix(capture.ClockDomain, "synthetic:") {
-		s.Claims["protocol_delivery"] = claim(Invalid, "synthetic capture/clock metadata is not explicitly labeled synthetic")
+	if capture.Synthetic {
+		if !strings.HasPrefix(capture.Source, "synthetic:") || !strings.HasPrefix(capture.ClockSource, "synthetic:") || !strings.HasPrefix(capture.ClockDomain, "synthetic:") {
+			s.Claims["protocol_delivery"] = claim(Invalid, "synthetic capture/clock metadata is not explicitly labeled synthetic")
+			return
+		}
+	} else if strings.HasPrefix(capture.Source, "synthetic:") || strings.HasPrefix(capture.ClockSource, "synthetic:") || strings.HasPrefix(capture.ClockDomain, "synthetic:") {
+		s.Claims["protocol_delivery"] = claim(Invalid, "live capture contains synthetic source or clock metadata")
 		return
 	}
 	stepBySeq := map[int64]audit.Planned{}
@@ -117,7 +141,11 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 	late := 0
 	for _, receipt := range capture.Receipts {
 		p, ok := allBySeq[receipt.Seq]
-		if !ok || receipt.RunID != r.RunID || receipt.DeviceID != fmt.Sprintf("device-%d", p.Device) || receipt.Phase != phaseByName[p.Step] || !finiteTime(receipt.ScheduledSendMS) || !finiteTime(receipt.ObservedMS) || math.Abs(receipt.ScheduledSendMS-p.SchedMs) > .0011 || receipt.ObservedMS < p.SchedMs || !protocol.ValidateOutcome(receipt.Outcome, false) || receipt.Outcome == protocol.OutcomeNotSent {
+		expectedDevice := fmt.Sprintf("device-%d", p.Device)
+		if !capture.Synthetic {
+			expectedDevice = fmt.Sprintf("bench-%s-%05d", r.RunID, p.Device)
+		}
+		if !ok || receipt.RunID != r.RunID || receipt.DeviceID != expectedDevice || receipt.Phase != phaseByName[p.Step] || !finiteTime(receipt.ScheduledSendMS) || !finiteTime(receipt.ObservedMS) || math.Abs(receipt.ScheduledSendMS-p.SchedMs) > .0011 || receipt.ObservedMS < p.SchedMs || !protocol.ValidateOutcome(receipt.Outcome, false) || receipt.Outcome == protocol.OutcomeNotSent {
 			s.Claims["protocol_delivery"] = claim(Invalid, fmt.Sprintf("invalid receipt identity, phase, schedule, clock, or outcome at seq %d", receipt.Seq))
 			return
 		}
@@ -163,6 +191,13 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 			}
 		}
 		latency := first.ObservedMS - p.SchedMs
+		if capture.SchemaVersion == receipt.DispatchSchemaVersion {
+			if !finiteTime(first.ActualDispatchMS) || first.ActualDispatchMS < p.SchedMs-float64(r.Health.EarlyToleranceMs) || first.ActualDispatchMS > first.ObservedMS {
+				s.Claims["protocol_delivery"] = claim(Invalid, fmt.Sprintf("invalid dispatch timestamp/clock step at seq %d", seq))
+				return
+			}
+			latency = first.ObservedMS - first.ActualDispatchMS
+		}
 		if !finiteTime(latency) || latency < 0 {
 			s.Claims["protocol_delivery"] = claim(Invalid, fmt.Sprintf("invalid first receipt latency at seq %d", seq))
 			return
@@ -186,7 +221,7 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 		p    int
 		name string
 	}{{50, "p50"}, {95, "p95"}, {99, "p99"}} {
-		putProtocolMetric(s, "protocol.delivery."+pc.name+"_ms", protocol.NearestRank(latencies, pc.p), "ms", "conditional nearest-rank percentile of unique first observed receipt latencies, including OK/ERROR/UNKNOWN; not full-cohort latency")
+		putProtocolMetric(s, "protocol.delivery."+pc.name+"_ms", protocol.NearestRank(latencies, pc.p), "ms", "conditional nearest-rank percentile of unique first observed receipt latencies from application dispatch, including OK/ERROR/UNKNOWN; not full-cohort latency")
 	}
 	for _, threshold := range []float64{250, 500, 1000, 5000} {
 		count, ratio := protocol.Attainment(counts.Scheduled, latencies, threshold)
@@ -194,7 +229,20 @@ func analyseProtocolCohort(s *Step, capture *ProtocolReceiptCapture, captureErr 
 		putProtocolMetric(s, "protocol.delivery.attainment_"+suffix+"_count", protocolValue(float64(count)), "messages", fmt.Sprintf("unique first receipts at or below %g ms; denominator is all scheduled measurement identities", threshold))
 		putProtocolMetric(s, "protocol.delivery.attainment_"+suffix+"_ratio", protocolValue(ratio), "ratio", fmt.Sprintf("scheduled denominator; %d/%d at or below %g ms", count, counts.Scheduled, threshold))
 	}
-	s.Claims["protocol_delivery"] = claim(Pass, "complete synthetic response-body capture and declared synthetic clock metadata validated; conditional nearest-rank latency includes ERROR/UNKNOWN receipts; missing delivery is reported separately and does not invalidate observed p99")
+	for name, metric := range s.Metrics {
+		if strings.HasPrefix(name, "protocol.") {
+			metric.ClockDomain = capture.ClockDomain
+			if capture.SchemaVersion == receipt.DispatchSchemaVersion {
+				metric.Endpoint = "application_dispatch_to_response_complete_body_read"
+			}
+			s.Metrics[name] = metric
+		}
+	}
+	if capture.Synthetic {
+		s.Claims["protocol_delivery"] = claim(Pass, "complete synthetic response-body capture and declared synthetic clock metadata validated; conditional nearest-rank latency includes ERROR/UNKNOWN receipts; missing delivery is reported separately and does not invalidate observed p99")
+	} else {
+		s.Claims["protocol_delivery"] = claim(Pass, "complete live response-body capture and declared live clock metadata validated; conditional nearest-rank latency includes ERROR/UNKNOWN receipts; missing delivery is reported separately and does not invalidate observed p99")
+	}
 }
 
 func manifestSynthetic(m map[string]json.RawMessage) bool {

@@ -47,13 +47,13 @@ func guardProtocolIntent(run string) error {
 		}
 		if raw, ok := fields["receipt_capture_interpretation"]; ok {
 			var value string
-			if json.Unmarshal(raw, &value) != nil || (value != "" && value != ProtocolMetricInterpretation) {
+			if json.Unmarshal(raw, &value) != nil || (value != "" && value != ProtocolMetricInterpretation && value != DispatchMetricInterpretation) {
 				return errors.New("unsupported receipt capture interpretation")
 			}
 		}
 		if raw, ok := fields["metric_interpretation"]; ok {
 			var value string
-			if json.Unmarshal(raw, &value) != nil || (value != LegacyMetricInterpretation && value != ProtocolMetricInterpretation) {
+			if json.Unmarshal(raw, &value) != nil || (value != LegacyMetricInterpretation && value != ProtocolMetricInterpretation && value != DispatchMetricInterpretation) {
 				return errors.New("unsupported metric interpretation")
 			}
 		}
@@ -97,6 +97,8 @@ func validateProtocolCaptureRaw(b []byte) error {
 	switch schemaVersion {
 	case receipt.SchemaVersion:
 		required = append(required, "receipt_capture_semantics")
+	case receipt.DispatchSchemaVersion:
+		required = append(required, "receipt_capture_semantics")
 	case receipt.LegacySchemaVersion:
 		// Schema 1 remains readable as a legacy capture. It cannot claim the new primary metrics.
 	default:
@@ -139,14 +141,18 @@ func validateProtocolCaptureRaw(b []byte) error {
 		if err := json.Unmarshal(raw, &row); err != nil {
 			return fmt.Errorf("receipt %d: %w", i, err)
 		}
-		for _, key := range []string{"run_id", "seq", "device_id", "phase", "scheduled_send_ms", "observed_ms", "outcome"} {
+		requiredReceipt := []string{"run_id", "seq", "device_id", "phase", "scheduled_send_ms", "observed_ms", "outcome"}
+		if schemaVersion == receipt.DispatchSchemaVersion {
+			requiredReceipt = append(requiredReceipt, "actual_dispatch_ms")
+		}
+		for _, key := range requiredReceipt {
 			value, ok := row[key]
 			if !ok || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
 				return fmt.Errorf("receipt %d missing/null required field %q", i, key)
 			}
 		}
 		for key := range row {
-			if key != "run_id" && key != "seq" && key != "device_id" && key != "phase" && key != "scheduled_send_ms" && key != "observed_ms" && key != "outcome" {
+			if key != "run_id" && key != "seq" && key != "device_id" && key != "phase" && key != "scheduled_send_ms" && key != "actual_dispatch_ms" && key != "observed_ms" && key != "outcome" {
 				return fmt.Errorf("receipt %d has unsupported or incorrectly cased field %q", i, key)
 			}
 		}
@@ -239,12 +245,12 @@ func prepareProtocolBinding(o Options, rd reader, resolved *plan.Resolved) (*Pro
 		}
 	}
 	if resolved.ProtocolBinding == nil {
-		if marker == ProtocolMetricInterpretation || manifestHasBinding || captureErr == nil {
+		if marker == ProtocolMetricInterpretation || marker == DispatchMetricInterpretation || manifestHasBinding || captureErr == nil {
 			return nil, nil, nil, errors.New("artifact claims protocol interpretation/capture but resolved plan has no protocol binding")
 		}
 		return nil, nil, nil, nil
 	}
-	if marker != "" && marker != ProtocolMetricInterpretation {
+	if marker != "" && marker != ProtocolMetricInterpretation && marker != DispatchMetricInterpretation {
 		return nil, nil, nil, fmt.Errorf("unsupported receipt capture interpretation %q", marker)
 	}
 	if manifestErr != nil {

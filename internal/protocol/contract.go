@@ -543,10 +543,13 @@ type Binding struct {
 	ExecutionClass ExecutionClass `json:"execution_class"`
 }
 type PilotParameters struct {
-	RatePerSecond      *float64 `json:"rate_per_second"`
-	MeasurementSeconds *int     `json:"measurement_seconds"`
-	WarmupSeconds      *int     `json:"warmup_seconds"`
-	DrainCutoffUnixMS  *int64   `json:"drain_cutoff_unix_ms"`
+	RatePerSecond                *float64 `json:"rate_per_second"`
+	MeasurementSeconds           *int     `json:"measurement_seconds"`
+	WarmupSeconds                *int     `json:"warmup_seconds"`
+	DrainCutoffUnixMS            *int64   `json:"drain_cutoff_unix_ms"`
+	DrainSecondsAfterMeasurement *int     `json:"drain_seconds_after_measurement"`
+	QuietIntervalSeconds         *int     `json:"quiet_interval_seconds,omitempty"`
+	LateObservationSeconds       *int     `json:"late_observation_seconds,omitempty"`
 }
 type EvidenceReferences struct {
 	Qualification []string `json:"qualification"`
@@ -574,8 +577,17 @@ func CheckEligibility(p Loaded, b Binding, pilot *PilotParameters, refs Evidence
 	}
 	switch b.ExecutionClass {
 	case EngineeringPilot:
-		if pilot == nil || pilot.RatePerSecond == nil || math.IsNaN(*pilot.RatePerSecond) || math.IsInf(*pilot.RatePerSecond, 0) || *pilot.RatePerSecond <= 0 || pilot.MeasurementSeconds == nil || *pilot.MeasurementSeconds <= 0 || pilot.WarmupSeconds == nil || *pilot.WarmupSeconds < 0 || pilot.DrainCutoffUnixMS == nil || *pilot.DrainCutoffUnixMS <= 0 {
-			return errors.New("engineering pilot requires explicit numerical settings and drain cutoff")
+		if pilot == nil || pilot.RatePerSecond == nil || math.IsNaN(*pilot.RatePerSecond) || math.IsInf(*pilot.RatePerSecond, 0) || *pilot.RatePerSecond <= 0 || pilot.MeasurementSeconds == nil || *pilot.MeasurementSeconds <= 0 || pilot.WarmupSeconds == nil || *pilot.WarmupSeconds < 0 {
+			return errors.New("engineering pilot requires explicit numerical settings")
+		}
+		if (pilot.DrainCutoffUnixMS == nil) == (pilot.DrainSecondsAfterMeasurement == nil) {
+			return errors.New("engineering pilot requires exactly one positive absolute or measurement-relative drain cutoff")
+		}
+		if pilot.DrainCutoffUnixMS != nil && *pilot.DrainCutoffUnixMS <= 0 || pilot.DrainSecondsAfterMeasurement != nil && *pilot.DrainSecondsAfterMeasurement <= 0 {
+			return errors.New("engineering pilot drain cutoff must be positive")
+		}
+		if pilot.DrainSecondsAfterMeasurement != nil && (pilot.QuietIntervalSeconds == nil || *pilot.QuietIntervalSeconds <= 0 || pilot.LateObservationSeconds == nil || *pilot.LateObservationSeconds <= 0 || *pilot.QuietIntervalSeconds > *pilot.DrainSecondsAfterMeasurement) {
+			return errors.New("measurement-relative drain requires explicit positive quiet-interval and late-observation durations")
 		}
 		return nil
 	case Campaign:

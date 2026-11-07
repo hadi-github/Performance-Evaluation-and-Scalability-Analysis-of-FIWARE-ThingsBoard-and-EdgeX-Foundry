@@ -112,10 +112,11 @@ type PhaseSpec struct {
 }
 
 type Health struct {
-	MinAchievedRatio float64 `json:"min_achieved_ratio"` // per step, attempted / planned sends (>= 0.99)
-	SendLagP99Ms     float64 `json:"send_lag_p99_ms"`    // per step, p99 send lag limit (10)
-	EarlyToleranceMs float64 `json:"early_tolerance_ms"` // a send this much before its scheduled time is a violation
-	MaxCoreBusy      float64 `json:"max_core_busy"`      // per generator core, 0 = report only
+	WorkloadPolicy   string  `json:"workload_policy,omitempty"` // empty = historical gates; dispatch-integrity-v1 makes lag diagnostic only
+	MinAchievedRatio float64 `json:"min_achieved_ratio"`        // per step, attempted / planned sends (>= 0.99)
+	SendLagP99Ms     float64 `json:"send_lag_p99_ms"`           // per step, p99 send lag limit (10)
+	EarlyToleranceMs float64 `json:"early_tolerance_ms"`        // a send this much before its scheduled time is a violation
+	MaxCoreBusy      float64 `json:"max_core_busy"`             // per generator core, 0 = report only
 }
 
 // TestFaults inject generator-side faults for the automated tests. Never set in experiment plans.
@@ -217,16 +218,21 @@ func (p *Plan) validate() error {
 			bad("payload.size_offset_bytes must be even: one ASCII-hex padding byte is two body bytes")
 		}
 	}
-	if (p.ProtocolBinding == nil) != (p.ProtocolPilot == nil) {
-		bad("protocol_binding and protocol_pilot_parameters must be supplied together")
+	if p.ProtocolBinding != nil && p.ProtocolPilot == nil || p.ProtocolPilot != nil && p.ProtocolBinding == nil && p.Health.WorkloadPolicy != "dispatch-integrity-v1" {
+		bad("protocol pilot parameters require protocol_binding, except for explicit dispatch-integrity-v1 capture/drain metadata")
 	}
 	if p.ProtocolBinding != nil {
-		b, pilot := p.ProtocolBinding, p.ProtocolPilot
+		b := p.ProtocolBinding
 		if b.ProtocolID == "" || len(b.ProtocolSHA256) != 64 || !isLowerHex(b.ProtocolSHA256) || b.ExecutionClass == "" {
 			bad("protocol binding requires protocol_id, lowercase protocol_sha256, and execution_class")
 		}
-		if pilot == nil || pilot.RatePerSecond == nil || math.IsNaN(*pilot.RatePerSecond) || math.IsInf(*pilot.RatePerSecond, 0) || *pilot.RatePerSecond <= 0 || pilot.MeasurementSeconds == nil || *pilot.MeasurementSeconds <= 0 || pilot.WarmupSeconds == nil || *pilot.WarmupSeconds < 0 || pilot.DrainCutoffUnixMS == nil || *pilot.DrainCutoffUnixMS <= 0 {
-			bad("protocol pilot parameters must be explicit finite positive rate, measurement, warmup, and drain cutoff")
+	}
+	if pilot := p.ProtocolPilot; pilot != nil {
+		cutoffDeclaredExactlyOnce := (pilot.DrainCutoffUnixMS == nil) != (pilot.DrainSecondsAfterMeasurement == nil)
+		cutoffPositive := (pilot.DrainCutoffUnixMS == nil || *pilot.DrainCutoffUnixMS > 0) && (pilot.DrainSecondsAfterMeasurement == nil || *pilot.DrainSecondsAfterMeasurement > 0)
+		relativeDurationsValid := pilot.DrainSecondsAfterMeasurement == nil || pilot.QuietIntervalSeconds != nil && *pilot.QuietIntervalSeconds > 0 && *pilot.QuietIntervalSeconds <= *pilot.DrainSecondsAfterMeasurement && pilot.LateObservationSeconds != nil && *pilot.LateObservationSeconds > 0
+		if pilot == nil || pilot.RatePerSecond == nil || math.IsNaN(*pilot.RatePerSecond) || math.IsInf(*pilot.RatePerSecond, 0) || *pilot.RatePerSecond <= 0 || pilot.MeasurementSeconds == nil || *pilot.MeasurementSeconds <= 0 || pilot.WarmupSeconds == nil || *pilot.WarmupSeconds < 0 || !cutoffDeclaredExactlyOnce || !cutoffPositive || !relativeDurationsValid {
+			bad("protocol pilot parameters require finite positive rate, measurement, warmup, and exactly one positive absolute or relative drain cutoff")
 		}
 	}
 	switch p.Arrivals.Model {
@@ -245,7 +251,7 @@ func (p *Plan) validate() error {
 		bad("vus: need 1 <= pre_allocated <= max")
 	}
 	h := p.Health
-	if h.MinAchievedRatio <= 0 || h.MinAchievedRatio > 1 || h.SendLagP99Ms <= 0 || h.EarlyToleranceMs < 0 {
+	if h.MinAchievedRatio <= 0 || h.MinAchievedRatio > 1 || h.SendLagP99Ms < 0 || (h.WorkloadPolicy != "dispatch-integrity-v1" && h.SendLagP99Ms == 0) || (h.WorkloadPolicy != "" && h.WorkloadPolicy != "dispatch-integrity-v1") || h.EarlyToleranceMs < 0 {
 		bad("health: min_achieved_ratio in (0,1], send_lag_p99_ms > 0 and early_tolerance_ms >= 0 are required")
 	}
 	if len(errs) > 0 {
@@ -349,7 +355,7 @@ func validatePayloadSize(r *Resolved, runID string) error {
 }
 
 func validateProtocolSchedule(r *Resolved) error {
-	if r.ProtocolBinding == nil {
+	if r.ProtocolBinding == nil && (r.ProtocolPilot == nil || r.Health.WorkloadPolicy != "dispatch-integrity-v1") {
 		return nil
 	}
 	measurement, warmup := 0, 0
@@ -360,16 +366,16 @@ func validateProtocolSchedule(r *Resolved) error {
 			hasMeasurement = true
 			measurement += step.DurationS
 			if step.Rate != *r.ProtocolPilot.RatePerSecond {
-				return fmt.Errorf("protocol pilot rate %.6g contradicts measurement step %q rate %.6g", *r.ProtocolPilot.RatePerSecond, step.Name, step.Rate)
+				return fmt.Errorf("declared capture-policy rate %.6g contradicts measurement step %q rate %.6g", *r.ProtocolPilot.RatePerSecond, step.Name, step.Rate)
 			}
 		case "warmup":
 			warmup += step.DurationS
 		default:
-			return fmt.Errorf("protocol-bound pilot supports only warmup and measurement phases; got %q", step.Phase)
+			return fmt.Errorf("capture policy supports only warmup and measurement phases; got %q", step.Phase)
 		}
 	}
 	if !hasMeasurement || measurement != *r.ProtocolPilot.MeasurementSeconds || warmup != *r.ProtocolPilot.WarmupSeconds {
-		return fmt.Errorf("protocol pilot duration metadata contradicts resolved warmup/measurement phases")
+		return fmt.Errorf("capture-policy duration metadata contradicts resolved warmup/measurement phases")
 	}
 	return nil
 }

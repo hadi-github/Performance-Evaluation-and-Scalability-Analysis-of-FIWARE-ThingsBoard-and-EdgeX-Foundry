@@ -89,6 +89,9 @@ func TestProtocolScheduledCohortSyntheticHandCalculatedVerticalSlice(t *testing.
 	if s.Claims["protocol_delivery"].Status != Pass {
 		t.Fatalf("protocol claim: %+v; offered load: %+v", s.Claims["protocol_delivery"], s.Claims["offered_load"])
 	}
+	if got := s.Metrics["protocol.delivery.p99_ms"].ClockDomain; got != "synthetic:epoch-ms" {
+		t.Fatalf("metric clock domain=%q", got)
+	}
 	for name, want := range map[string]float64{"protocol.scheduled_cohort.scheduled": 5, "protocol.scheduled_cohort.observed": 3, "protocol.scheduled_cohort.missing": 2, "protocol.scheduled_cohort.duplicate_extra_receipts": 1, "protocol.delivery.p50_ms": 100, "protocol.delivery.p95_ms": 600, "protocol.delivery.p99_ms": 600, "protocol.delivery.attainment_250_count": 2, "protocol.delivery.attainment_250_ratio": .4, "protocol.delivery.attainment_500_count": 2, "protocol.delivery.attainment_500_ratio": .4, "protocol.delivery.attainment_1000_count": 3, "protocol.delivery.attainment_5000_count": 3, "protocol.receipts.error": 1, "protocol.receipts.unknown": 1} {
 		if got := metricValue(t, s, name); got != want {
 			t.Fatalf("%s=%g want %g", name, got, want)
@@ -108,6 +111,71 @@ func TestProtocolScheduledCohortSyntheticHandCalculatedVerticalSlice(t *testing.
 	if !strings.Contains(string(reportBytes), "protocol.delivery.p99_ms") || !strings.Contains(string(reportBytes), "scheduled minus unique first receipts") {
 		t.Fatal("report omitted protocol metric basis/denominator")
 	}
+}
+
+func TestDispatchSchemaUsesApplicationDispatchAsPrimaryLatency(t *testing.T) {
+	d, o := protocolFixture(t)
+	c := readCapture(t, d)
+	c.SchemaVersion = receipt.DispatchSchemaVersion
+	c.MetricInterpretation = DispatchMetricInterpretation
+	c.Endpoint = "application_dispatch_to_response_complete_body_read"
+	for i := range c.Receipts {
+		c.Receipts[i].ActualDispatchMS = c.Receipts[i].ScheduledSendMS + 5
+	}
+	saveCapture(t, d, c)
+	b, err := os.ReadFile(filepath.Join(d, "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err = json.Unmarshal(b, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	manifest["receipt_capture_interpretation"] = DispatchMetricInterpretation
+	if err = writeJSON(filepath.Join(d, "manifest.json"), manifest); err != nil {
+		t.Fatal(err)
+	}
+	r := analyzeProtocolFixture(t, o)
+	s := measurementStep(t, r)
+	if s.Claims["protocol_delivery"].Status != Pass {
+		t.Fatalf("dispatch claim: %+v", s.Claims["protocol_delivery"])
+	}
+	if got := metricValue(t, s, "protocol.delivery.p99_ms"); got != 595 {
+		t.Fatalf("dispatch p99=%g, want 595", got)
+	}
+	if s.Metrics["protocol.delivery.p99_ms"].Endpoint != "application_dispatch_to_response_complete_body_read" {
+		t.Fatal("dispatch endpoint not labeled")
+	}
+}
+
+func TestProtocolManifestSyntheticProvenanceCannotRewriteEvidenceSpec(t *testing.T) {
+	d, o := protocolFixture(t)
+	b, err := os.ReadFile(o.Evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var evidence Evidence
+	if err = json.Unmarshal(b, &evidence); err != nil {
+		t.Fatal(err)
+	}
+	evidence.Synthetic = false
+	if err = writeJSON(o.Evidence, evidence); err != nil {
+		t.Fatal(err)
+	}
+	var policy Policy
+	readJSONTest(t, o.Policy, &policy)
+	policy.Synthetic = false
+	if err = writeJSON(o.Policy, policy); err != nil {
+		t.Fatal(err)
+	}
+	r := analyzeProtocolFixture(t, o)
+	if got := r.Claims["offered_load"].Status; got != Invalid {
+		t.Fatalf("manifest/evidence synthetic disagreement status=%s", got)
+	}
+	if got := measurementStep(t, r).Claims["protocol_delivery"].Status; got != Invalid {
+		t.Fatalf("protocol provenance mismatch status=%s", got)
+	}
+	_ = d
 }
 
 func TestProtocolCohortCutoffWarmupZeroAndOutcomeSemantics(t *testing.T) {

@@ -312,6 +312,67 @@ func TestLegacySinkRecordStaysLegacy(t *testing.T) {
 	}
 }
 
+func TestProtocolPayloadFieldsRetainedInReceipt(t *testing.T) {
+	payload := []byte(`{"run_id":"pilot-a","seq":7,"device_id":"bench-pilot-a-00002","scheduled_send_ms":1700000000000.125}`)
+	if got := extractDeviceID(payload); got != "bench-pilot-a-00002" {
+		t.Fatalf("device_id=%q", got)
+	}
+	if got := extractScheduledSendMS(payload); got != 1700000000000.125 {
+		t.Fatalf("scheduled_send_ms=%.3f", got)
+	}
+	if got := extractScheduledSendMS([]byte(`{"scheduled_send_ms":"not-a-number"}`)); got != 0 {
+		t.Fatalf("invalid schedule unexpectedly parsed: %v", got)
+	}
+}
+
+func TestExtractMessagesKeepsNativeEnvelopeMetadataPerIdentity(t *testing.T) {
+	cases := []struct {
+		name, body, device string
+		seq                string
+		scheduled          float64
+	}{
+		{"edgeX event", `{"deviceName":"bench-r-00002","readings":[{"objectValue":{"run_id":"r","seq":2,"scheduled_send_ms":1234.5}}]}`, "bench-r-00002", "2", 1234.5},
+		{"orion entity", `{"data":[{"id":"urn:ngsi-ld:Sensor:bench-r-00003","seq":{"value":3},"run_id":{"value":"r"},"scheduled_send_ms":{"value":2345.5}}]}`, "bench-r-00003", "3", 2345.5},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := ExtractMessages([]byte(tc.body))
+			if err != nil || len(got) != 1 {
+				t.Fatalf("messages=%+v err=%v", got, err)
+			}
+			if got[0].RunID != "r" || got[0].Seq != tc.seq || got[0].DeviceID != tc.device || got[0].ScheduledSendMS != tc.scheduled {
+				t.Fatalf("metadata=%+v", got[0])
+			}
+		})
+	}
+}
+
+func TestServerWritesPerMessageMetadataFromNativeEnvelopes(t *testing.T) {
+	cases := []struct {
+		path, body, wantDevice string
+		wantSchedule           float64
+	}{
+		{"/edgex", `{"deviceName":"bench-r-00002","readings":[{"objectValue":{"run_id":"r","seq":2,"scheduled_send_ms":1234.5}}]}`, "bench-r-00002", 1234.5},
+		{"/fiware", `{"data":[{"id":"urn:ngsi-ld:Sensor:bench-r-00003","seq":{"value":3},"run_id":{"value":"r"},"scheduled_send_ms":{"value":2345.5}}]}`, "bench-r-00003", 2345.5},
+	}
+	for _, tc := range cases {
+		t.Run(tc.path, func(t *testing.T) {
+			var out bytes.Buffer
+			s := New(&out, 10)
+			rec := httptest.NewRecorder()
+			s.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "http://sink.invalid"+tc.path, strings.NewReader(tc.body)))
+			s.Close()
+			var got Record
+			if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &got); err != nil {
+				t.Fatal(err)
+			}
+			if got.DeviceID != tc.wantDevice || got.ScheduledSendMS != tc.wantSchedule {
+				t.Fatalf("record metadata: %+v", got)
+			}
+		})
+	}
+}
+
 func TestServerConcurrentRequestsRecordConsistently(t *testing.T) {
 	var out bytes.Buffer
 	s := New(&out, 1000)

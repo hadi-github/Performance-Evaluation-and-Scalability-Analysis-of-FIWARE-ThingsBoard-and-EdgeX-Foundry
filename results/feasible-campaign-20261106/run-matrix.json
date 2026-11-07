@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "scope_id": "feasible-ordinary-dispatch-20261106-v1",
+  "frozen_scope_sha256": "cee82c997f5911cb0619fe6f792689ff4a802d7cb107616a1213157aea08e00a",
+  "ordinary_runs": [
+    {
+      "ordinal": 1,
+      "repetition": 1,
+      "platform": "thingsboard",
+      "run_id": "disp-tb-r01-20261106",
+      "seed": 202611061,
+      "plan": "plans/disp-tb-r01-20261106.json"
+    },
+    {
+      "ordinal": 2,
+      "repetition": 1,
+      "platform": "fiware",
+      "run_id": "disp-fw-r01-20261106",
+      "seed": 202611061,
+      "plan": "plans/disp-fw-r01-20261106.json"
+    },
+    {
+      "ordinal": 3,
+      "repetition": 1,
+      "platform": "edgex",
+      "run_id": "disp-ex-r01-20261106",
+      "seed": 202611061,
+      "plan": "plans/disp-ex-r01-20261106.json"
+    },
+    {
+      "ordinal": 4,
+      "repetition": 2,
+      "platform": "fiware",
+      "run_id": "disp-fw-r02-20261106",
+      "seed": 202611062,
+      "plan": "plans/disp-fw-r02-20261106.json"
+    },
+    {
+      "ordinal": 5,
+      "repetition": 2,
+      "platform": "edgex",
+      "run_id": "disp-ex-r02-20261106",
+      "seed": 202611062,
+      "plan": "plans/disp-ex-r02-20261106.json"
+    },
+    {
+      "ordinal": 6,
+      "repetition": 2,
+      "platform": "thingsboard",
+      "run_id": "disp-tb-r02-20261106",
+      "seed": 202611062,
+      "plan": "plans/disp-tb-r02-20261106.json"
+    },
+    {
+      "ordinal": 7,
+      "repetition": 3,
+      "platform": "edgex",
+      "run_id": "disp-ex-r03-20261106",
+      "seed": 202611063,
+      "plan": "plans/disp-ex-r03-20261106.json"
+    },
+    {
+      "ordinal": 8,
+      "repetition": 3,
+      "platform": "thingsboard",
+      "run_id": "disp-tb-r03-20261106",
+      "seed": 202611063,
+      "plan": "plans/disp-tb-r03-20261106.json"
+    },
+    {
+      "ordinal": 9,
+      "repetition": 3,
+      "platform": "fiware",
+      "run_id": "disp-fw-r03-20261106",
+      "seed": 202611063,
+      "plan": "plans/disp-fw-r03-20261106.json"
+    },
+    {
+      "ordinal": 10,
+      "repetition": 4,
+      "platform": "thingsboard",
+      "run_id": "disp-tb-r04-20261106",
+      "seed": 202611064,
+      "plan": "plans/disp-tb-r04-20261106.json"
+    },
+    {
+      "ordinal": 11,
+      "repetition": 4,
+      "platform": "edgex",
+      "run_id": "disp-ex-r04-20261106",
+      "seed": 202611064,
+      "plan": "plans/disp-ex-r04-20261106.json"
+    },
+    {
+      "ordinal": 12,
+      "repetition": 4,
+      "platform": "fiware",
+      "run_id": "disp-fw-r04-20261106",
+      "seed": 202611064,
+      "plan": "plans/disp-fw-r04-20261106.json"
+    },
+    {
+      "ordinal": 13,
+      "repetition": 5,
+      "platform": "fiware",
+      "run_id": "disp-fw-r05-20261106",
+      "seed": 202611065,
+      "plan": "plans/disp-fw-r05-20261106.json"
+    },
+    {
+      "ordinal": 14,
+      "repetition": 5,
+      "platform": "thingsboard",
+      "run_id": "disp-tb-r05-20261106",
+      "seed": 202611065,
+      "plan": "plans/disp-tb-r05-20261106.json"
+    },
+    {
+      "ordinal": 15,
+      "repetition": 5,
+      "platform": "edgex",
+      "run_id": "disp-ex-r05-20261106",
+      "seed": 202611065,
+      "plan": "plans/disp-ex-r05-20261106.json"
+    }
+  ]
+}

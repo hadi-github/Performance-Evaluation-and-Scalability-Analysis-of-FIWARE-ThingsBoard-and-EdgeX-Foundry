@@ -31,10 +31,12 @@ scrape_configs:
       - targets: ['127.0.0.1:3000']
         labels: { host: ramonavm1, role: monitoring }
 
-  # ---- the outbound-observation sink (bin/sink on ramonavm1, core 2), when running
+  # ---- the outbound-observation sink (bin/sink on ramonavm1, core 2), when running.
+  # 18090 is the historical manual sink; campaign runs use 18091. Only the port
+  # belonging to the active run is expected to be up at any time.
   - job_name: sink
     static_configs:
-      - targets: ['127.0.0.1:18090']
+      - targets: ['127.0.0.1:18090', '127.0.0.1:18091']
         labels: { host: ramonavm1, role: loadgen }
 
   # ---- load generator host

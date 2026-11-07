@@ -28,6 +28,26 @@ func TestStrictDecoding(t *testing.T) {
 	}
 }
 
+func TestDispatchIntegrityPolicyMakesLagThresholdDiagnosticOnly(t *testing.T) {
+	text := strings.Replace(base, "%SCHED%", `"schedule":{"type":"steady","rate":25,"duration_s":10}`, 1)
+	text = strings.Replace(text, `"health":{"min_achieved_ratio":0.99,"send_lag_p99_ms":10,"early_tolerance_ms":2}`, `"health":{"workload_policy":"dispatch-integrity-v1","min_achieved_ratio":0.99,"send_lag_p99_ms":0,"early_tolerance_ms":2}`, 1)
+	p, err := Decode([]byte(text))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.Resolve("test-run"); err != nil {
+		t.Fatalf("explicit dispatch policy: %v", err)
+	}
+	text = strings.Replace(text, `"workload_policy":"dispatch-integrity-v1"`, `"workload_policy":"unknown-v1"`, 1)
+	p, err = Decode([]byte(text))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.Resolve("test-run"); err == nil {
+		t.Fatal("unsupported workload policy accepted")
+	}
+}
+
 func TestStepsAndSeqOffsets(t *testing.T) {
 	p, err := load(t, `"schedule":{"type":"steps","steps":[{"phase":"warmup","rate":50,"duration_s":4},{"phase":"a","rate":7,"duration_s":3}]}`)
 	if err != nil {
@@ -40,6 +60,35 @@ func TestStepsAndSeqOffsets(t *testing.T) {
 	if len(r.Steps) != 2 || r.Steps[0].Ticks != 200 || r.Steps[1].Ticks != 21 || r.Steps[1].SeqOffset != 200 ||
 		r.Steps[1].StartS != 4 || r.TotalTicks != 221 || r.DurationS != 7 {
 		t.Fatalf("unexpected resolution: %+v", r.Steps)
+	}
+}
+
+func TestProtocolPilotMeasurementRelativeDrainParameters(t *testing.T) {
+	p, err := load(t, `"schedule":{"type":"steps","steps":[{"phase":"warmup","rate":10,"duration_s":300},{"phase":"measurement","rate":25,"duration_s":600}]}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.PilotOnly = true
+	p.ProtocolBinding = &protocol.Binding{ProtocolID: "iotbench-telemetry-v0.1.0-pilot.1", ProtocolSHA256: strings.Repeat("a", 64), ExecutionClass: protocol.EngineeringPilot}
+	rate, measurement, warmup, drain := 25.0, 600, 300, 900
+	quiet, late := 30, 30
+	p.ProtocolPilot = &protocol.PilotParameters{RatePerSecond: &rate, MeasurementSeconds: &measurement, WarmupSeconds: &warmup, DrainSecondsAfterMeasurement: &drain, QuietIntervalSeconds: &quiet, LateObservationSeconds: &late}
+	r, err := p.Resolve("relative-drain")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.ProtocolPilot.DrainSecondsAfterMeasurement == nil || *r.ProtocolPilot.DrainSecondsAfterMeasurement != 900 || r.ProtocolPilot.DrainCutoffUnixMS != nil {
+		t.Fatalf("relative cutoff metadata was not preserved exactly: %+v", r.ProtocolPilot)
+	}
+	absolute := int64(1700000000000)
+	p.ProtocolPilot.DrainCutoffUnixMS = &absolute
+	if _, err = p.Resolve("both-drains"); err == nil {
+		t.Fatal("accepted both absolute and relative drain cutoffs")
+	}
+	zeroAbsolute := int64(0)
+	p.ProtocolPilot.DrainCutoffUnixMS = &zeroAbsolute
+	if _, err = p.Resolve("zero-absolute-plus-relative"); err == nil {
+		t.Fatal("accepted zero absolute plus valid relative drain cutoff")
 	}
 }
 

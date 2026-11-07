@@ -75,6 +75,7 @@ type Manifest struct {
 	ProtocolBinding             *protocol.Binding         `json:"protocol_binding,omitempty"`
 	ProtocolPilot               *protocol.PilotParameters `json:"protocol_pilot_parameters,omitempty"`
 	RuntimeMetricInterpretation string                    `json:"runtime_metric_interpretation"`
+	OutcomeLedgerInterpretation string                    `json:"outcome_ledger_interpretation,omitempty"`
 }
 
 const LegacyMetricInterpretation = "legacy-acknowledgement-only-v1"
@@ -317,6 +318,11 @@ func prepareRun(o Options) (*preparedRun, error) {
 	if r.TotalTicks >= 1<<32 {
 		return nil, fmt.Errorf("plan has %d ticks; seq must stay below 2^32", r.TotalTicks)
 	}
+	for _, kv := range o.Env {
+		if strings.SplitN(kv, "=", 2)[0] == "COMPLETE_LEDGER" {
+			return nil, fmt.Errorf("COMPLETE_LEDGER is reserved; ledger mode is derived from the resolved plan")
+		}
+	}
 	if r.ProtocolBinding != nil {
 		definitionPath := filepath.Join(o.RepoRoot, "research", "protocols", "iotbench-telemetry-v0.1.0-pilot.1.json")
 		loaded, loadErr := protocol.LoadVerified(definitionPath, o.RepoRoot)
@@ -352,6 +358,9 @@ func newManifest(o Options, prep *preparedRun, k6, host map[string]string, scrip
 		ProtocolBinding: prep.plan.ProtocolBinding, ProtocolPilot: prep.plan.ProtocolPilot, RuntimeMetricInterpretation: LegacyMetricInterpretation,
 		Connection: map[string]any{"keep_alive": prep.plan.Connection.KeepAlive, "connections": "one per VU (k6 VU = one in-flight request)",
 			"http": "HTTP/1.1", "retries": "none (k6 never retries; one iteration = one request)", "request_timeout_ms": prep.plan.RequestTimeMs}}
+	if prep.plan.ProtocolBinding != nil {
+		m.OutcomeLedgerInterpretation = "complete-dispatch-outcome-v1"
+	}
 	m.CPUSnapshotCommand = o.CPUSnapshotCommand
 	for _, kv := range o.Env {
 		m.EnvKeys = append(m.EnvKeys, strings.SplitN(kv, "=", 2)[0])
@@ -462,6 +471,21 @@ func Run(o Options) (string, *Manifest, error) {
 		go func() { captureCPU(ctx, o.CPUSnapshotCommand, dir); close(cpuDone) }()
 	}
 	var stdout bytes.Buffer
+	// Complete-ledger plans already log every outcome. Observe that file rather
+	// than introducing per-request progress work or changing k6's frozen script.
+	var progressExit chan int
+	var progressDone chan struct{}
+	if prep.resolved.ProtocolBinding != nil || prep.resolved.Health.WorkloadPolicy == "dispatch-integrity-v1" {
+		progressExit, progressDone = make(chan int, 1), make(chan struct{})
+		out := o.Stdout
+		if out == nil {
+			out = os.Stdout
+		}
+		go func() {
+			observeProgress(context.Background(), dir, prep.resolved, out, progressExit)
+			close(progressDone)
+		}()
+	}
 	cmd := exec.Command("docker", args...)
 	cmd.Stdout, cmd.Stderr = &stdout, &stdout
 	if err := cmd.Run(); err != nil {
@@ -472,6 +496,10 @@ func Run(o Options) (string, *Manifest, error) {
 		}
 	}
 	m.EndUTC = time.Now().UTC().Format(time.RFC3339Nano)
+	if progressExit != nil {
+		progressExit <- m.K6ExitCode
+		<-progressDone
+	}
 	stop()
 	if cpuDone != nil {
 		<-cpuDone

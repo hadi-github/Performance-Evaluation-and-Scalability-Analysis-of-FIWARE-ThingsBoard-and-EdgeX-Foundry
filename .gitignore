@@ -3,6 +3,22 @@ deploy/*/.env
 
 # raw results stay out of git; amendment files next to runs are versioned (never edit raw results or manifests)
 results/**
+!results/feasible-campaign-20261106/
+results/feasible-campaign-20261106/*
+!results/feasible-campaign-20261106/run-feasible-campaign.py
+!results/feasible-campaign-20261106/operational-ready.md
+!results/feasible-campaign-20261106/README.md
+!results/feasible-campaign-20261106/PLAN.md
+!results/feasible-campaign-20261106/frozen-scope.json
+!results/feasible-campaign-20261106/run-matrix.json
+!results/feasible-campaign-20261106/scope-matrix.md
+!results/feasible-campaign-20261106/make-cell-plans.py
+!results/feasible-campaign-20261106/qualify-endpoint.py
+!results/feasible-campaign-20261106/qualification*-plan.json
+!results/feasible-campaign-20261106/*-final-short-plan.json
+!results/feasible-campaign-20261106/plans/
+results/feasible-campaign-20261106/plans/*
+!results/feasible-campaign-20261106/plans/*.json
 !results/**/
 !results/**/*.amendment.json
 workloads/**/results/
@@ -10,6 +26,7 @@ workloads/**/results/
 # generated executables stay out of git
 bin/*
 !bin/.gitkeep
+/benchctl
 
 __pycache__/
 *.pyc

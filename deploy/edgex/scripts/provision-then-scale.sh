@@ -17,6 +17,21 @@ cd "$(dirname "$0")/.."
 META=http://127.0.0.1:59881/api/v3
 PROFILE=bench-gen-v1   # workloads/k6/lib/adapters.js EDGEX_PROFILE
 
+wait_driver_ready() {
+  # v4.0.2 starts HTTP ping and metadata callbacks before InitCache finishes.
+  # The POST-only resource route is added by driver.Start AFTER bootstrap/cache
+  # initialization. GET must return 405, not startup 404/503. No event is sent.
+  local base=$1 status deadline=$((SECONDS + ${EDGEX_DRIVER_READY_TIMEOUT:-180}))
+  while (( SECONDS < deadline )); do
+    status=$(curl -s -m 3 -o /dev/null -w '%{http_code}' \
+      "$base/api/v3/resource/__bench_readiness__/reading" || true)
+    [[ "$status" == 405 ]] && return 0
+    sleep 1
+  done
+  echo "device-rest ingest route not initialized before readiness deadline: $base" >&2
+  return 4
+}
+
 metadata_state() { # restarts and panics of core-metadata (logs span every restart of the container)
   local c=edgex-core-metadata-1
   jq -n --argjson r "$(docker inspect -f '{{.RestartCount}}' $c)" --arg s "$(docker inspect -f '{{.State.StartedAt}}' $c)" \
@@ -32,8 +47,26 @@ case "${1:-}" in
     make -s check N="$N" >/dev/null
     # Never reset deployment data during qualification. Shrinking device-rest to
     # one replica is required before provisioning, but databases/volumes remain.
+    # Plain compose stop omits profile services. Restart the exporter after NATS
+    # is ready rather than retaining a connection from the previous cold start.
+    docker compose --profile export stop app-http-export
     EDGEX_REPLICAS=1 docker compose up -d
     until curl -sf -m3 -o /dev/null $META/ping && curl -sf -m3 -o /dev/null http://127.0.0.1:59986/api/v3/ping; do sleep 2; done
+    provision_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' edgex-device-rest-1)
+    wait_driver_ready "http://$provision_ip:59986"
+    # Retain the numeric runtime API evidence without private configuration
+    # secrets or device payloads. These are setup observations, not estimates.
+    curl -fsS "$META/device/all?limit=1" | jq '{apiVersion,totalCount}' > "$GATE.retained-inventory.json"
+    curl -fsS "$META/config" | jq '{apiVersion,Service:.config.Service}' > "$GATE.metadata-discovery.json"
+    curl -fsS "http://$provision_ip:59986/api/v3/config" | jq '{apiVersion,Service:.config.Service}' > "$GATE.driver-discovery.json"
+    retained=$(jq -er '.totalCount' "$GATE.retained-inventory.json")
+    metadata_limit=$(jq -er '.Service.MaxResultCount' "$GATE.metadata-discovery.json")
+    driver_limit=$(jq -er '.Service.MaxResultCount' "$GATE.driver-discovery.json")
+    reserve=${EDGEX_INVENTORY_RESERVE:-$D}
+    if (( retained + reserve > metadata_limit || retained + reserve > driver_limit )); then
+      echo "retained inventory $retained plus reserve $reserve exceeds discovery limits $metadata_limit/$driver_limit" >&2
+      exit 4
+    fi
 
     echo "provisioning profile + $D devices at 1 replica"
     curl -fsS -o /dev/null -X POST $META/deviceprofile -H 'Content-Type: application/json' -d "[{\"apiVersion\":\"v3\",\"profile\":{
@@ -57,20 +90,27 @@ case "${1:-}" in
     done
 
     echo "scaling to N=$N, starting the export service"
-    EDGEX_REPLICAS="$N" docker compose up -d --remove-orphans
+    EDGEX_REPLICAS="$N" docker compose up -d
     EDGEX_REPLICAS="$N" docker compose --profile export up -d app-http-export
     until [[ $(docker ps -q --filter name=edgex-device-rest --filter status=running | wc -l) == "$N" ]]; do sleep 2; done
-    sleep 10   # device-rest replicas load devices from core-metadata at startup
 
     echo "gate: every replica accepts every device"
     replicas='[]'
     for c in $(docker ps --format '{{.Names}}' --filter name=edgex-device-rest | sort); do
       ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$c")
       until curl -sf -m3 -o /dev/null "http://$ip:59986/api/v3/ping"; do sleep 2; done
-      ok=$(seq -f "bench-$RUN-%05g" 0 $((D - 1)) | xargs -P 16 -I{} curl -s -m 10 -o /dev/null -w '%{http_code}\n' \
-        -X POST -H 'Content-Type: application/json' -d "{\"run_id\":\"$RUN-gate\",\"seq\":-1,\"scheduled_send_ms\":0}" \
-        "http://$ip:59986/api/v3/resource/{}/reading" | grep -c '^200$' || true)
-      replicas=$(jq -c --arg c "$c" --argjson ok "$ok" --argjson d "$D" '. + [{container: $c, devices_accepted: $ok, devices: $d}]' <<<"$replicas")
+      wait_driver_ready "http://$ip:59986"
+      for ((attempt=1; attempt<=3; attempt++)); do
+        readiness_attempt=$attempt
+        statuses="$GATE.$c.attempt$attempt.http-statuses"
+        seq -f "bench-$RUN-%05g" 0 $((D - 1)) | xargs -P 4 -I{} curl -s -m 10 -o /dev/null -w '%{http_code}\n' \
+          -X POST -H 'Content-Type: application/json' -d "{\"run_id\":\"$RUN-gate\",\"seq\":-1,\"scheduled_send_ms\":0}" \
+          "http://$ip:59986/api/v3/resource/{}/reading" > "$statuses" || true
+        ok=$(grep -c '^200$' "$statuses" || true)
+        (( ok == D )) && break
+        (( attempt == 3 )) || sleep 5
+      done
+      replicas=$(jq -c --arg c "$c" --argjson ok "$ok" --argjson d "$D" --argjson attempts "$readiness_attempt" '. + [{container: $c, devices_accepted: $ok, devices: $d, readiness_attempts: $attempts}]' <<<"$replicas")
       echo "  $c: $ok/$D devices accepted"
     done
     meta=$(metadata_state)

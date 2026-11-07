@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -59,6 +60,8 @@ type Record struct {
 	Platform                  string  `json:"platform"`
 	RunID                     string  `json:"run_id"`
 	Seq                       int64   `json:"seq"`
+	DeviceID                  string  `json:"device_id,omitempty"`
+	ScheduledSendMS           float64 `json:"scheduled_send_ms,omitempty"`
 	Dup                       bool    `json:"dup"` // this (run_id, seq) was observed before
 }
 
@@ -73,6 +76,7 @@ type Server struct {
 	records   chan Record
 	done      chan struct{}
 	closeOnce sync.Once
+	handlers  sync.WaitGroup
 	mu        sync.Mutex
 	seen      map[string]struct{}
 	received  atomic.Int64 // observed messages
@@ -107,8 +111,10 @@ func New(w io.Writer, buffer int) *Server {
 	return s
 }
 
-func (s *Server) Overflow() int64 { return s.overflow.Load() }
-func (s *Server) Received() int64 { return s.received.Load() }
+func (s *Server) Overflow() int64   { return s.overflow.Load() }
+func (s *Server) Received() int64   { return s.received.Load() }
+func (s *Server) Duplicates() int64 { return s.dups.Load() }
+func (s *Server) Unparsed() int64   { return s.bad.Load() }
 
 // IncompleteBody counts requests whose complete body could not be read (read error, truncation or
 // oversized body). No receipt record is emitted for them.
@@ -151,6 +157,9 @@ func readCompleteBody(r io.Reader) ([]byte, error) {
 
 // Close flushes the records; call after the HTTP server has stopped.
 func (s *Server) Close() {
+	// Call after the HTTP server has stopped accepting requests. Waiting for handlers
+	// before closing records prevents a late handler send from panicking or being lost.
+	s.handlers.Wait()
 	s.closeOnce.Do(func() { close(s.records) })
 	<-s.done
 }
@@ -179,34 +188,20 @@ func strOf(v any) (string, bool) {
 
 // Extract returns every (run_id, seq) pair found in a JSON document.
 func Extract(body []byte) ([][2]string, error) {
-	var doc any
-	if err := json.Unmarshal(body, &doc); err != nil {
+	messages, err := ExtractMessages(body)
+	if err != nil {
 		return nil, err
 	}
-	var out [][2]string
-	var walk func(any)
-	walk = func(v any) {
-		switch x := v.(type) {
-		case map[string]any:
-			if r, ok := strOf(x["run_id"]); ok {
-				if q, ok := seqOf(x["seq"]); ok {
-					out = append(out, [2]string{r, strconv.FormatInt(q, 10)})
-				}
-			}
-			for _, c := range x {
-				walk(c)
-			}
-		case []any:
-			for _, c := range x {
-				walk(c)
-			}
-		}
+	out := make([][2]string, 0, len(messages))
+	for _, message := range messages {
+		out = append(out, [2]string{message.RunID, message.Seq})
 	}
-	walk(doc)
 	return out, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.handlers.Add(1)
+	defer s.handlers.Done()
 	switch r.URL.Path {
 	case "/metrics":
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4")
@@ -245,9 +240,28 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	platform := strings.Trim(r.URL.Path, "/")
 	recvMs := float64(now.UnixNano()) / 1e6
 	receiptMs := float64(receiptAt.UnixNano()) / 1e6
+	details := map[string][]MessageIdentity{}
+	if messages, detailedErr := ExtractMessages(body); detailedErr == nil {
+		for _, message := range messages {
+			key := message.RunID + "\x00" + message.Seq
+			details[key] = append(details[key], message)
+		}
+	}
+	detailIndex := make(map[string]int)
 	for _, p := range pairs {
 		seq, _ := strconv.ParseInt(p[1], 10, 64)
 		key := p[0] + "\x00" + p[1]
+		idx := detailIndex[key]
+		list := details[key]
+		var message MessageIdentity
+		if idx < len(list) {
+			message = list[idx]
+			detailIndex[key] = idx + 1
+		}
+		deviceID := message.DeviceID
+		if deviceID == "" {
+			deviceID = r.URL.Query().Get("i") // FIWARE IoT Agent device identifier
+		}
 		s.mu.Lock()
 		_, dup := s.seen[key]
 		if !dup {
@@ -259,9 +273,111 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.dups.Add(1)
 		}
 		select {
-		case s.records <- Record{RecvMs: recvMs, ReceiptCompleteBodyReadMS: receiptMs, ReceiptCaptureSemantics: receipt.CaptureSemantics, Platform: platform, RunID: p[0], Seq: seq, Dup: dup}:
+		case s.records <- Record{RecvMs: recvMs, ReceiptCompleteBodyReadMS: receiptMs, ReceiptCaptureSemantics: receipt.CaptureSemantics, Platform: platform, RunID: p[0], Seq: seq, DeviceID: deviceID, ScheduledSendMS: message.ScheduledSendMS, Dup: dup}:
 		default:
 			s.overflow.Add(1)
 		}
+	}
+}
+
+func extractDeviceID(body []byte) string {
+	var payload struct {
+		DeviceID string `json:"device_id"`
+	}
+	if json.Unmarshal(body, &payload) == nil {
+		return payload.DeviceID
+	}
+	return ""
+}
+
+func extractScheduledSendMS(body []byte) float64 {
+	var payload struct {
+		ScheduledSendMS json.RawMessage `json:"scheduled_send_ms"`
+	}
+	if json.Unmarshal(body, &payload) != nil || len(payload.ScheduledSendMS) == 0 {
+		return 0
+	}
+	var value float64
+	if json.Unmarshal(payload.ScheduledSendMS, &value) != nil {
+		return 0
+	}
+	return value
+}
+
+// MessageIdentity is the per-telemetry identity and payload metadata retained from
+// native JSON envelopes. Device names are inherited from EdgeX event headers and
+// Orion entity IDs where the canonical payload lacks a direct device_id field.
+type MessageIdentity struct {
+	RunID           string
+	Seq             string
+	DeviceID        string
+	ScheduledSendMS float64
+}
+
+func ExtractMessages(body []byte) ([]MessageIdentity, error) {
+	var doc any
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return nil, err
+	}
+	var out []MessageIdentity
+	var walk func(any, string)
+	walk = func(v any, inheritedDevice string) {
+		switch x := v.(type) {
+		case map[string]any:
+			device := inheritedDevice
+			if name, ok := x["deviceName"].(string); ok && name != "" {
+				device = name
+			}
+			if id, ok := x["id"].(string); ok && id != "" {
+				if idx := strings.LastIndex(id, ":"); idx >= 0 && idx+1 < len(id) {
+					device = id[idx+1:]
+				}
+			}
+			if id, ok := strOf(x["device_id"]); ok {
+				device = id
+			}
+			if runID, ok := strOf(x["run_id"]); ok {
+				if seq, ok := seqOf(x["seq"]); ok {
+					sched := numericValue(x["scheduled_send_ms"])
+					out = append(out, MessageIdentity{RunID: runID, Seq: strconv.FormatInt(seq, 10), DeviceID: device, ScheduledSendMS: sched})
+				}
+			}
+			for _, child := range x {
+				walk(child, device)
+			}
+		case []any:
+			for _, child := range x {
+				walk(child, inheritedDevice)
+			}
+		}
+	}
+	walk(doc, "")
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].RunID != out[j].RunID {
+			return out[i].RunID < out[j].RunID
+		}
+		if out[i].Seq != out[j].Seq {
+			return out[i].Seq < out[j].Seq
+		}
+		if out[i].DeviceID != out[j].DeviceID {
+			return out[i].DeviceID < out[j].DeviceID
+		}
+		return out[i].ScheduledSendMS < out[j].ScheduledSendMS
+	})
+	return out, nil
+}
+
+func numericValue(value any) float64 {
+	if m, ok := value.(map[string]any); ok {
+		value = m["value"]
+	}
+	switch v := value.(type) {
+	case float64:
+		return v
+	case string:
+		n, _ := strconv.ParseFloat(v, 64)
+		return n
+	default:
+		return 0
 	}
 }

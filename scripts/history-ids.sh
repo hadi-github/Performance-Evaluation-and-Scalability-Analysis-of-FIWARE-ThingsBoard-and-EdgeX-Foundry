@@ -48,7 +48,10 @@ fw_tables() {
 
 case "$platform" in
   thingsboard)
-    docker exec -i tb-postgres-1 psql -U postgres -d thingsboard -At -v ON_ERROR_STOP=1 <<SQL
+    tb_project="${TB_PROJECT:-tb}"
+    tb_container="${TB_POSTGRES_CONTAINER:-${tb_project}-postgres-1}"
+    docker inspect "$tb_container" >/dev/null 2>&1 || { echo "history-ids: ThingsBoard PostgreSQL container not found: $tb_container (set TB_PROJECT or TB_POSTGRES_CONTAINER)" >&2; exit 1; }
+    docker exec -i "$tb_container" psql -U postgres -d thingsboard -At -v ON_ERROR_STOP=1 <<SQL
 SELECT json_build_object('run_id', r.str_v, 'seq', coalesce(s.long_v, s.dbl_v::bigint, s.str_v::bigint))
 FROM ts_kv s
 JOIN ts_kv r ON r.entity_id = s.entity_id AND r.ts = s.ts

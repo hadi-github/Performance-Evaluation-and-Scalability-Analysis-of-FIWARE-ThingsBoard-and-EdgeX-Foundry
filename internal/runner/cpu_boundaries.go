@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -45,9 +44,9 @@ func captureCPU(ctx context.Context, command, dir string) {
 	}
 }
 
-// Select a pair enclosing each measured step. CPU cost describes the ACTUAL
-// capture interval, never a falsely exact nominal measurement interval. Preserve
-// all captures and report boundary skew so the reader can judge contamination.
+// Select a pair that encloses every phase using load-host request/response
+// brackets. SUT snapshot wall clocks are not compared to load-host scenario times.
+// The actual counter-snapshot instant lies within each request/response bracket.
 func finishCPU(dir string) error {
 	b, err := os.ReadFile(filepath.Join(dir, "k6-summary.json"))
 	if err != nil {
@@ -82,10 +81,11 @@ func finishCPU(dir string) error {
 		return err
 	}
 	type snapshot struct {
-		Text        string `json:"snapshot_tsv"`
-		Status      string `json:"status"`
-		Rows        []cpubound.SnapshotRecord
-		First, Last float64
+		Text     string    `json:"snapshot_tsv"`
+		Status   string    `json:"status"`
+		Request  time.Time `json:"request_utc"`
+		Response time.Time `json:"response_utc"`
+		Rows     []cpubound.SnapshotRecord
 	}
 	var samples []snapshot
 	for _, line := range strings.Split(string(b), "\n") {
@@ -97,29 +97,12 @@ func finishCPU(dir string) error {
 		if err != nil || len(s.Rows) == 0 {
 			continue
 		}
-		valid := true
-		for i, row := range s.Rows {
-			t, e := strconv.ParseFloat(row.EpochS, 64)
-			if e != nil {
-				valid = false
-				break
-			}
-			if i == 0 || t < s.First {
-				s.First = t
-			}
-			if i == 0 || t > s.Last {
-				s.Last = t
-			}
-		}
-		if valid {
+		if !s.Request.IsZero() && !s.Response.IsZero() && !s.Response.Before(s.Request) {
 			samples = append(samples, s)
 		}
 	}
 	var reports []map[string]any
 	for _, step := range resolved.Steps {
-		if step.Phase == "warmup" {
-			continue
-		}
 		var t0 float64
 		var n int64
 		for _, s := range summary.Steps {
@@ -129,16 +112,20 @@ func finishCPU(dir string) error {
 			}
 		}
 		end := t0 + float64(step.Duration)
+		startTime := time.Unix(0, int64(t0*float64(time.Second)))
+		endTime := time.Unix(0, int64(end*float64(time.Second)))
 		before, after := -1, -1
 		for i, s := range samples {
-			if s.Last <= t0 && (before < 0 || s.Last > samples[before].Last) {
+			if !s.Response.After(startTime) && (before < 0 || s.Response.After(samples[before].Response)) {
 				before = i
 			}
-			if s.First >= end && (after < 0 || s.First < samples[after].First) {
+			if !s.Request.Before(endTime) && (after < 0 || s.Request.Before(samples[after].Request)) {
 				after = i
 			}
 		}
-		entry := map[string]any{"step": step.Index, "measurement_start_epoch_seconds": t0, "measurement_end_epoch_seconds": end, "status": "UNAVAILABLE"}
+		entry := map[string]any{"step": step.Index, "phase": step.Phase, "phase_start_load_epoch_seconds": t0,
+			"phase_end_load_epoch_seconds": end, "status": "UNAVAILABLE",
+			"alignment_clock": "load-host CLOCK_REALTIME for request/response brackets and k6 scenario timestamps; SUT wall clock not compared"}
 		if t0 > 0 && before >= 0 && after >= 0 {
 			pre, post := samples[before], samples[after]
 			prefix := fmt.Sprintf("cpu-step-%02d", step.Index)
@@ -148,11 +135,16 @@ func finishCPU(dir string) error {
 			if err = os.WriteFile(filepath.Join(dir, prefix+"-after.tsv"), []byte(post.Text), 0644); err != nil {
 				return err
 			}
-			entry["capture_start_epoch_seconds"] = pre.First
-			entry["capture_end_epoch_seconds"] = post.Last
-			entry["before_skew_seconds"] = t0 - pre.First
-			entry["after_skew_seconds"] = post.Last - end
-			entry["report"] = cpubound.Diff(pre.Rows, post.Rows, &cpubound.Denominator{Count: n, Source: "k6-summary.json", Definition: "attempted HTTP sends in this measured step; CPU interval includes explicitly reported boundary skew", Present: true}, "CPU delta covers the capture interval, not precisely the nominal phase. No retrospective counters are inferred.")
+			preRequest, preResponse := float64(pre.Request.UnixNano())/1e9, float64(pre.Response.UnixNano())/1e9
+			postRequest, postResponse := float64(post.Request.UnixNano())/1e9, float64(post.Response.UnixNano())/1e9
+			entry["before_capture_request_epoch_seconds"] = preRequest
+			entry["before_capture_response_epoch_seconds"] = preResponse
+			entry["after_capture_request_epoch_seconds"] = postRequest
+			entry["after_capture_response_epoch_seconds"] = postResponse
+			entry["before_boundary_skew_bounds_seconds"] = []float64{t0 - preResponse, t0 - preRequest}
+			entry["after_boundary_skew_bounds_seconds"] = []float64{postRequest - end, postResponse - end}
+			entry["counter_interval_duration_bounds_seconds"] = []float64{postRequest - preResponse, postResponse - preRequest}
+			entry["report"] = cpubound.Diff(pre.Rows, post.Rows, &cpubound.Denominator{Count: n, Source: "k6-summary.json", Definition: "attempted HTTP sends in this phase; CPU delta interval is bounded by load-host request/response brackets", Present: true}, "SUT counters are compared between snapshots whose request/response intervals bracket this phase. SUT wall timestamps are not aligned to load-host scenario timestamps; no exact-phase or cross-host latency claim is made.")
 			entry["status"] = "CAPTURED"
 		}
 		reports = append(reports, entry)

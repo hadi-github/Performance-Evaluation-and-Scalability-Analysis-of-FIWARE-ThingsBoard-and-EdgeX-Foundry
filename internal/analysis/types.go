@@ -15,6 +15,7 @@ type Status string
 const (
 	LegacyMetricInterpretation   = "legacy-acknowledgement-only-v1"
 	ProtocolMetricInterpretation = "protocol-scheduled-cohort-v1"
+	DispatchMetricInterpretation = "protocol-application-dispatch-cohort-v1"
 )
 
 const (
@@ -250,11 +251,12 @@ type ProtocolReceiptCapture struct {
 }
 
 type ProtocolReceipt struct {
-	RunID           string  `json:"run_id"`
-	Seq             int64   `json:"seq"`
-	DeviceID        string  `json:"device_id"`
-	Phase           string  `json:"phase"`
-	ScheduledSendMS float64 `json:"scheduled_send_ms"`
+	RunID            string  `json:"run_id"`
+	Seq              int64   `json:"seq"`
+	DeviceID         string  `json:"device_id"`
+	Phase            string  `json:"phase"`
+	ScheduledSendMS  float64 `json:"scheduled_send_ms"`
+	ActualDispatchMS float64 `json:"actual_dispatch_ms,omitempty"`
 	// ObservedMS is the complete-body receipt time in the capture's declared clock domain. For
 	// schema-2 captures it must come from the versioned complete-body-before-parse semantics; for
 	// schema-1 captures it remains legacy arrival data and cannot produce the new primary metrics.

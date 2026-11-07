@@ -39,6 +39,7 @@ function parseUltraLight(body) {
   const parts = body.split('|');
   const fields = {};
   for (let i = 0; i < parts.length; i += 2) fields[parts[i]] = parts[i + 1];
+  if (fields.d === '""') fields.d = '';
   return fields;
 }
 
@@ -105,6 +106,7 @@ for (const adapter of ADAPTERS) {
     }
 
     if (adapter === 'fiware') {
+      if (offset === 0) assert.ok(native.body.endsWith('|d|""'), 'empty padding must use valid UltraLight quoting');
       const fields = parseUltraLight(native.body);
       assert.equal(fields.d, native.padding, `${adapter}/${offset}: ultraLight d alias carries actual padding`);
       assert.equal(fields.r, RUN_ID);

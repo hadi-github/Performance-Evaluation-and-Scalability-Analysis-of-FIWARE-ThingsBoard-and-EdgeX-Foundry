@@ -79,7 +79,7 @@ func Analyze(o Options) (*Result, error) {
 	r := &Result{SchemaVersion: 1, Claims: map[string]Claim{}, Provenance: map[string]json.RawMessage{}, CampaignVerdict: "NOT_ASSESSED", MetricInterpretation: LegacyMetricInterpretation}
 	r.Limitations = []string{
 		"No durable-commit latency producer exists; history is retrievable visibility, not commit timing.",
-		"Success identities are inferred from complete aggregate outcomes and the planned ledger, not individual success records.",
+		"For legacy summaries without per-message success rows, success identities are inferred from aggregate outcomes and the planned ledger; protocol-bound runs validate the per-message outcome ledger.",
 		"Per-step k6 trend percentiles are not mergeable: exact run-wide acknowledgement p99 is unavailable without raw samples.",
 		"Observation completeness, clock relationship and configuration sidecars are explicit caller attestations, not independently verified capture facts.",
 		"This offline analysis does not qualify the campaign, establish permanent loss, or adopt application thresholds.",
@@ -243,8 +243,20 @@ func Analyze(o Options) (*Result, error) {
 		}
 	}
 	if ledgerErr == nil && parseErr == nil {
-		if err = validateLedger(&resolved, planned, recs); err != nil {
+		completeLedger := false
+		if protocolMode {
+			var ledgerMode string
+			completeLedger = json.Unmarshal(protocolManifest["outcome_ledger_interpretation"], &ledgerMode) == nil && ledgerMode == "complete-dispatch-outcome-v1"
+		}
+		if err = validateLedger(&resolved, planned, recs, completeLedger); err != nil {
 			blockers = append(blockers, err.Error())
+		}
+		if protocolMode && !ev.Synthetic {
+			if !completeLedger {
+				blockers = append(blockers, "protocol-bound manifest lacks complete dispatch/outcome ledger interpretation")
+			} else if e := validateCompleteOutcomeLedger(&resolved, &sum, recs); e != nil {
+				blockers = append(blockers, e.Error())
+			}
 		}
 	}
 	cb, cpuErr := rd.read("generator_cpu", "gen-cpu.ndjson")
@@ -273,7 +285,11 @@ func Analyze(o Options) (*Result, error) {
 		var synthetic bool
 		if json.Unmarshal(raw, &synthetic) == nil && synthetic {
 			r.Synthetic = true
-			ev.Synthetic = true
+		}
+		if protocolMode {
+			if json.Unmarshal(raw, &synthetic) != nil || synthetic != ev.Synthetic {
+				blockers = append(blockers, "protocol manifest synthetic/live provenance is missing, malformed, or contradicts evidence specification")
+			}
 		}
 	}
 	for _, k := range []string{"git", "k6", "k6_scripts_sha256", "generator_cpuset", "connection_model"} {
@@ -493,7 +509,7 @@ func validateSummary(raw []byte, r *plan.Resolved, s *report.Summary) error {
 	return nil
 }
 
-func validateLedger(r *plan.Resolved, planned []audit.Planned, recs []report.Record) error {
+func validateLedger(r *plan.Resolved, planned []audit.Planned, recs []report.Record, allowSuccessfulRows bool) error {
 	bySeq := map[int64]audit.Planned{}
 	for _, p := range planned {
 		bySeq[p.Seq] = p
@@ -512,12 +528,59 @@ func validateLedger(r *plan.Resolved, planned []audit.Planned, recs []report.Rec
 			return fmt.Errorf("inconsistent outcome timestamps at seq %d", rc.Seq)
 		}
 		early := rc.ActualMs-rc.SchedMs < -r.Health.EarlyToleranceMs
-		if early != rc.Early || rc.Outcome == "ack_success" && !rc.Early {
+		if early != rc.Early || !allowSuccessfulRows && rc.Outcome == "ack_success" && !rc.Early {
 			return fmt.Errorf("outcome ledger early/success record contradicts producer schema at seq %d", rc.Seq)
 		}
 	}
 	if len(r.TestFaults.DuplicateSeqs) > 0 || r.TestFaults.EarlyEvery > 0 {
 		return fmt.Errorf("generator fault injection active; not an unmodified offered-load measurement")
+	}
+	return nil
+}
+
+// validateCompleteOutcomeLedger is the stricter protocol-bound mode. The v1 pilot
+// contract relies on one full outcome per offered slot; thinning/implicit NOT_SENT
+// attribution is not supported by this ledger and must fail closed.
+func validateCompleteOutcomeLedger(r *plan.Resolved, summary *report.Summary, recs []report.Record) error {
+	if r.Arrivals.Model != "constant" || len(r.TestFaults.DuplicateSeqs) != 0 || r.TestFaults.EarlyEvery != 0 {
+		return fmt.Errorf("complete protocol outcome ledger requires constant arrivals and no generator fault injection")
+	}
+	if r.TotalTicks < 0 || int64(len(recs)) != r.TotalTicks {
+		return fmt.Errorf("complete dispatch/outcome ledger has %d rows for %d planned ticks", len(recs), r.TotalTicks)
+	}
+	if len(summary.Steps) != len(r.Steps) {
+		return fmt.Errorf("complete dispatch/outcome ledger cannot reconcile %d summary steps with %d plan steps", len(summary.Steps), len(r.Steps))
+	}
+	type counts struct{ ack, failure, unknown int64 }
+	byStep := make(map[int]counts, len(r.Steps))
+	seen := make(map[int64]bool, len(recs))
+	for _, row := range recs {
+		if row.Seq < 0 || row.Seq >= r.TotalTicks || seen[row.Seq] {
+			return fmt.Errorf("complete dispatch/outcome ledger has duplicate or out-of-range seq %d", row.Seq)
+		}
+		seen[row.Seq] = true
+		c := byStep[row.Step]
+		switch row.Outcome {
+		case "ack_success":
+			c.ack++
+		case "explicit_failure":
+			c.failure++
+		case "unknown":
+			c.unknown++
+		default:
+			return fmt.Errorf("complete dispatch/outcome ledger has unsupported outcome %q at seq %d", row.Outcome, row.Seq)
+		}
+		byStep[row.Step] = c
+	}
+	for i, step := range r.Steps {
+		ss := summary.Steps[i]
+		c := byStep[step.Index]
+		if c.ack != int64(ss.AckSuccess) || c.failure != int64(ss.ExplicitFailure) || c.unknown != int64(ss.Unknown) {
+			return fmt.Errorf("complete dispatch/outcome ledger counts contradict summary for step %s", step.Name)
+		}
+		if int64(ss.Attempted) != step.Ticks || int64(ss.Dropped) != 0 || int64(ss.Thinned) != 0 {
+			return fmt.Errorf("complete dispatch/outcome ledger has incomplete scheduled coverage for step %s", step.Name)
+		}
 	}
 	return nil
 }

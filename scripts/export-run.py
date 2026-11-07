@@ -27,11 +27,16 @@ def main():
         prior=json.loads((pathlib.Path(a.responses_dir)/'export.json').read_text())
         for k,v in {'run_id':a.run_id,'platform':a.platform,'measurement_start':a.start,'measurement_end':a.end,'step_seconds':a.step,'context_seconds':a.context}.items():
             if prior.get(k)!=v:p.error('offline response metadata mismatch: '+k)
-    out=pathlib.Path(a.out);out.mkdir(parents=True,exist_ok=False)
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
+    out=pathlib.Path(a.out)
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import matplotlib.dates as mdates
+    except ImportError:
+        raise SystemExit('chart export needs matplotlib in a pinned environment; '
+                         'offline dispatch analysis does not (see PLAN P2.2)')
+    out.mkdir(parents=True,exist_ok=False)
     dashboard=json.loads(pathlib.Path(a.dashboard).read_text())
     report={'run_id':a.run_id,'platform':a.platform,'measurement_start':a.start,'measurement_end':a.end,'step_seconds':a.step,'context_seconds':a.context,'campaign_verdict':'NOT_EVALUATED','query_start_epoch_seconds':start-a.context,'query_end_epoch_seconds':end+a.context,'prometheus':a.prometheus,'queries':[]}
     report['grafana_url']=a.grafana.rstrip('/')+'/d/iot-run-review?'+urllib.parse.urlencode({'var-run_id':a.run_id,'var-platform':a.platform,'from':int((start-a.context)*1000),'to':int((end+a.context)*1000)})

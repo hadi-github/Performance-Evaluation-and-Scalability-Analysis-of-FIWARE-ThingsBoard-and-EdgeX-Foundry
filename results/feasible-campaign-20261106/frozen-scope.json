@@ -1,0 +1,48 @@
+{
+  "scope_id": "feasible-ordinary-dispatch-20261106-v1",
+  "status": "integrated_review_candidate_not_yet_launch_approved",
+  "platform_order_by_repetition": [
+    ["thingsboard", "fiware", "edgex"],
+    ["fiware", "edgex", "thingsboard"],
+    ["edgex", "thingsboard", "fiware"],
+    ["thingsboard", "edgex", "fiware"],
+    ["fiware", "thingsboard", "edgex"]
+  ],
+  "measurement_contract": "DISPATCH-20261106",
+  "workload_policy": "dispatch-integrity-v1",
+  "run_id_template": "disp-{tb|fw|ex}-r{01..05}-20261106",
+  "seed_by_repetition": [202611061, 202611062, 202611063, 202611064, 202611065],
+  "hardware_upgrade": false,
+  "ordinary_cells": [
+    {"platform": "thingsboard", "replicas_n": 2, "application_cpu_pool": "4-5", "application_cpu_budget_k": 2, "rate_per_second": 25, "devices": 1000, "payload_encoding": "logical-json-ascii-v1", "payload_size_offset_bytes": 0, "warmup_seconds": 300, "measurement_seconds": 600, "independent_run_repetitions": 5, "qualification": "new_endpoint_one_bounded_e2e_before_batch"},
+    {"platform": "fiware", "replicas_n": 2, "application_cpu_pool": "4-5", "application_cpu_budget_k": 2, "rate_per_second": 25, "devices": 1000, "payload_encoding": "logical-json-ascii-v1", "payload_size_offset_bytes": 0, "warmup_seconds": 300, "measurement_seconds": 600, "independent_run_repetitions": 5, "qualification": "bounded_deployment_path_and_history_check_before_batch"},
+    {"platform": "edgex", "replicas_n": 2, "application_cpu_pool": "4-5", "application_cpu_budget_k": 2, "rate_per_second": 25, "devices": 1000, "payload_encoding": "logical-json-ascii-v1", "payload_size_offset_bytes": 0, "warmup_seconds": 300, "measurement_seconds": 600, "independent_run_repetitions": 5, "qualification": "bounded_deployment_path_and_history_check_before_batch"}
+  ],
+  "shared_configuration": {
+    "generator_cpu_pool": "0-1",
+    "sink_cpu": "2",
+    "monitoring_cpu": "3",
+    "GOGC": "400",
+    "keep_alive": true,
+    "request_timeout_ms": 5000,
+    "vus_preallocated_per_scenario": 150,
+    "vus_max_per_scenario": 150,
+    "open_loop": true,
+    "warmup_rate_per_second": 25,
+    "complete_local_request_ledger": true,
+    "remote_write": "http://127.0.0.1:9090/api/v1/write",
+    "maximum_receipt_drain_seconds": 900,
+    "quiet_interval_seconds": 30,
+    "late_observation_seconds": 30,
+    "isolated_one_platform_at_a_time": true,
+    "manual_faults": "separate_operator_controlled_batch_not_a_blocker_for_ordinary_runs"
+  },
+  "scope_rationale": "One conservative common ordinary operating point within previously exercised per-platform rate ranges; not maximum capacity, a device/payload sweep or an N-scaling experiment. D39/S5 supplies 300 s warm-up, 600 s confirmation and at least five repetitions. Each repetition has unique run/devices and distinct time window; shared deployed/database state is retained and disclosed, not claimed to be cold-start IID replications.",
+  "replicate_reporting": "Report per-run nearest-rank p99 and conditional receipt denominator, then min/median/max and empirical replicate variation across the five runs. Do not pool messages as independent replications or claim five successes prove a reliability probability. Invalid attempts and valid platform failures remain in the executed matrix; no favorable early stopping or automatic replacement.",
+  "not_in_this_batch": [
+    {"case": "N=1", "reason": "Do not repeat merely for completeness; existing evidence retained with original endpoint. Fresh runs only if required by a separately selected comparison."},
+    {"case": "N=3 and larger device/payload/rate cells", "classification": "requires_bounded_qualification_not_demonstrated_infeasible", "reason": "No new scaling or capacity claim sought in the narrowed ordinary batch."},
+    {"case": "manual replica stops", "classification": "requires_operator_action_separate_batch", "reason": "Must not delay ordinary results."},
+    {"case": "configurations exceeding rendered fixed memory/cpuset budgets", "classification": "infeasible_only_after_effective_config_budget_check", "reason": "Do not infer infeasibility solely from absence of a test."}
+  ]
+}

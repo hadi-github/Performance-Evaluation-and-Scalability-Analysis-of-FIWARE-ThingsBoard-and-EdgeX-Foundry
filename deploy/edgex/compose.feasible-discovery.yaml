@@ -1,0 +1,6 @@
+# Preserve historical device cohorts while discovering the full bounded
+# campaign inventory. Images, replicas and resource limits are unchanged.
+services:
+  core-common-config-bootstrapper:
+    environment:
+      ALL_SERVICES_SERVICE_MAXRESULTCOUNT: "16384"

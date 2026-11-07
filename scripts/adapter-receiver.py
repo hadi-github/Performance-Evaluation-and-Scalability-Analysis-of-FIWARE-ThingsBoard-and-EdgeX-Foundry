@@ -17,12 +17,14 @@ import urllib.parse
 
 
 class State:
-    def __init__(self, output, delay=0):
+    def __init__(self, output, delay=0, token_length=32):
         self.output = output
         self.delay = delay
+        self.token_length = token_length
         self.lock = threading.Lock()
         self.devices = {}
         self.tokens = {}
+        self.credentials = {}
         self.groups = set()
         self.received = 0
         self.errors = 0
@@ -92,11 +94,14 @@ def handler(state, allow):
                     ident = hashlib.sha256(name.encode()).hexdigest()[:32]
                     with state.lock:
                         state.devices[ident] = name
-                        state.tokens[ident] = name
+                        credential = ident[:state.token_length]
+                        state.tokens[credential] = name
+                        state.credentials[ident] = credential
                         state.setup_requests += 1
                     return self.reply(200, {'id': {'id': ident}})
                 if path.startswith('/api/device/') and path.endswith('/credentials'):
-                    return self.reply(200, {'credentialsId': path.split('/')[3]})
+                    ident = path.split('/')[3]
+                    return self.reply(200, {'credentialsId': state.credentials.get(ident, ident)})
                 if path == '/iot/services':
                     with state.lock:
                         state.groups.update(g['apikey'] for g in body['services'])
@@ -129,7 +134,7 @@ def handler(state, allow):
                     message = dict(run_id=fields['r'], seq=int(fields['q']), scheduled_send_ms=float(fields['s']), temperature=int(fields['t']), humidity=int(fields['h']), pressure=int(fields['p']))
                     if 'd' in fields:
                         # Explicit M1e payload mode: the padding alias is stored as actual wire text.
-                        message['padding'] = fields['d']
+                        message['padding'] = '' if fields['d'] == '""' else fields['d']
                     adapter = 'fiware'
                 elif path.startswith('/api/v3/resource/') and path.endswith('/reading'):
                     device = state.devices.get(path.split('/')[4])
@@ -143,7 +148,13 @@ def handler(state, allow):
                 assert isinstance(message['seq'], int)
                 for key in ('scheduled_send_ms', 'temperature', 'humidity', 'pressure'):
                     assert isinstance(message[key], (int, float))
-                state.record(dict(**message, device_id=device, adapter=adapter, recv_ns=str(recv_ns), recv_ms=recv_ns/1e6, request_path=self.path, body=raw, status=200))
+                # Payloads can themselves carry device_id. Receiver identity is
+                # authoritative, so merge first and set the receipt metadata last.
+                record = dict(message)
+                record.update(device_id=device, adapter=adapter, recv_ns=str(recv_ns),
+                              recv_ms=recv_ns/1e6, request_path=self.path, body=raw,
+                              status=200)
+                state.record(record)
                 if state.delay:
                     time.sleep(state.delay)
                 return self.reply(200)
@@ -159,10 +170,14 @@ def main():
     p.add_argument('--port', type=int, required=True)
     p.add_argument('--out', required=True)
     p.add_argument('--delay-ms', type=int, default=0)
+    p.add_argument('--token-length', type=int, default=32,
+                   help='synthetic ThingsBoard credential length (default: 32)')
     p.add_argument('--allow', action='append', default=['127.0.0.1'])
     a = p.parse_args()
     with open(a.out, 'x', buffering=1) as f:
-        state = State(f, a.delay_ms/1000)
+        if a.token_length < 1:
+            p.error('--token-length must be positive')
+        state = State(f, a.delay_ms/1000, a.token_length)
         server = Server(('0.0.0.0', a.port), handler(state, set(a.allow)))
         def stop(*_):
             threading.Thread(target=server.shutdown, daemon=True).start()

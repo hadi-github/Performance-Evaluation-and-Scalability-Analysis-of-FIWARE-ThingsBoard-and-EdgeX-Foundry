@@ -24,7 +24,8 @@ const (
 	// SchemaVersion is the current protocol receipt-capture document schema. Schema 2 requires
 	// CaptureSemantics; schema 1 is retained read-only as a legacy capture and cannot claim the new
 	// primary delivery metrics.
-	SchemaVersion = 2
+	SchemaVersion         = 2
+	DispatchSchemaVersion = 3
 
 	// LegacySchemaVersion is the retained pre-M1d capture schema. It remains readable, but its
 	// records lack the complete-body-before-parse attestation.

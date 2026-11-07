@@ -52,8 +52,22 @@ case "${1:-}" in
   fiware)
     ORION="http://$SUT:1026"
     FH=(-H "fiware-service: ${FIWARE_SERVICE:-openiot}" -H 'fiware-servicepath: /')
-    if curl -fsS "${FH[@]}" "$ORION/v2/subscriptions" | jq -e '.[] | select(.description == "bench sink")' >/dev/null; then
-      echo "subscription 'bench sink' already exists"; exit 0
+    subscriptions=$(curl -fsS "${FH[@]}" "$ORION/v2/subscriptions")
+    count=$(jq '[.[] | select(.description == "bench sink")] | length' <<<"$subscriptions")
+    if (( count > 1 )); then
+      echo "multiple bench sink subscriptions; refusing ambiguous route" >&2; exit 1
+    fi
+    if (( count == 1 )); then
+      current=$(jq -r '.[] | select(.description == "bench sink") | .notification.http.url' <<<"$subscriptions")
+      if [[ "$current" == "$SINK/fiware" ]]; then
+        echo "subscription 'bench sink' already has the requested route"; exit 0
+      fi
+      id=$(jq -r '.[] | select(.description == "bench sink") | .id' <<<"$subscriptions")
+      body=$(jq -nc --arg url "$SINK/fiware" '{notification:{http:{url:$url},attrs:["seq","run_id","scheduled_send_ms"],attrsFormat:"keyValues"}}')
+      curl -fsS -X PATCH "${FH[@]}" -H 'Content-Type: application/json' \
+        "$ORION/v2/subscriptions/$id" --data-binary "$body"
+      echo "updated bench sink route; waiting 65 s for replica cache refresh"; sleep 65
+      exit 0
     fi
     curl -fsS -o /dev/null -w "subscription: HTTP %{http_code}\n" "${FH[@]}" -H 'Content-Type: application/json' \
       -X POST "$ORION/v2/subscriptions" -d "{

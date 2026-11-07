@@ -82,6 +82,27 @@ func TestPilotCampaignFailClosedAndExplicitParameters(t *testing.T) {
 	if e := CheckEligibility(p, b, settings, EvidenceReferences{}); e != nil {
 		t.Fatal(e)
 	}
+	relative := 900
+	quiet, late := 30, 30
+	settingsRelative := &PilotParameters{RatePerSecond: &rate, MeasurementSeconds: &measurement, WarmupSeconds: &warmup, DrainSecondsAfterMeasurement: &relative, QuietIntervalSeconds: &quiet, LateObservationSeconds: &late}
+	if e := CheckEligibility(p, b, settingsRelative, EvidenceReferences{}); e != nil {
+		t.Fatalf("measurement-relative pilot cutoff rejected: %v", e)
+	}
+	settingsBoth := *settings
+	settingsBoth.DrainSecondsAfterMeasurement = &relative
+	if e := CheckEligibility(p, b, &settingsBoth, EvidenceReferences{}); e == nil {
+		t.Fatal("accepted simultaneous absolute and relative cutoffs")
+	}
+	zeroAbsolute := int64(0)
+	settingsBoth.DrainCutoffUnixMS = &zeroAbsolute
+	if e := CheckEligibility(p, b, &settingsBoth, EvidenceReferences{}); e == nil {
+		t.Fatal("accepted zero absolute cutoff alongside a valid relative cutoff")
+	}
+	zeroRelative := 0
+	settingsRelative.DrainSecondsAfterMeasurement = &zeroRelative
+	if e := CheckEligibility(p, b, settingsRelative, EvidenceReferences{}); e == nil {
+		t.Fatal("accepted non-positive relative cutoff")
+	}
 	b.ExecutionClass = Campaign
 	if e := CheckEligibility(p, b, settings, EvidenceReferences{[]string{"q"}, []string{"c"}, []string{"p"}}); e == nil {
 		t.Fatal("preliminary pending protocol became campaign eligible")

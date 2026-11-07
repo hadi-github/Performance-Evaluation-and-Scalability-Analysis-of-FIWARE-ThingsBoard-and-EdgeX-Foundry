@@ -40,6 +40,9 @@ const EARLY_EVERY = cfg.test_faults.early_every || 0;
 // Calibration runs with full JSON output: attach seq/scheduled time to the samples (non-indexed metadata), so
 // k6's own ns sample times can serve as the authoritative send time (benchctl sendtimes).
 const FULL_JSON = __ENV.FULL_JSON === '1';
+// Explicit dispatch-integrity plans and protocol-bound runs need a full per-message
+// ledger. Historical unbound plans retain the compact error-only log.
+const COMPLETE_LEDGER = !!cfg.protocol_binding || cfg.health.workload_policy === 'dispatch-integrity-v1';
 
 // ---- metrics, declared in the init context of every VU. Keep the number of metric objects small: k6 creates them
 // per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/methodology/calibration.md).
@@ -127,16 +130,21 @@ function record(r) {
   console.log(JSON.stringify(r));
 }
 
-function send(st, step, m, i) {
+function send(st, step, m, i, timing) {
   const req = adapter.request(cfg, st, m);
+  const requestReadyElapsedMs = COMPLETE_LEDGER ? exec.instance.currentTestRunDuration : null;
   if (FULL_JSON) {
     exec.vu.metrics.metadata.seq = String(m.seq);
     exec.vu.metrics.metadata.sched = String(m.scheduled_send_ms);
   }
+  // These elapsed-clock marks measure work after iteration entry only. They
+  // have no common-origin mapping to the wall-clock deadline, so do not use
+  // them to infer scheduler lateness. The gate remains wall-clock based.
+  const preHttpElapsedMs = COMPLETE_LEDGER ? exec.instance.currentTestRunDuration : null;
   const actual = Date.now();
-  const lag = actual - m.scheduled_send_ms;
   const res = http.post(req.url, req.body, { headers: req.headers, timeout: TIMEOUT, tags: { name: 'send' } });
   const response = Date.now();
+  const lag = actual - m.scheduled_send_ms;
   const c = adapter.classify(res);
   const boundary = BOUNDARY_OUTCOMES.includes(c.outcome);
   const mm = M[step.index];
@@ -155,19 +163,26 @@ function send(st, step, m, i) {
   }
   const early = lag < -EARLY_TOL;
   if (early) mm.early.add(1);
-  if (c.outcome !== 'ack_success' || early) {
+  if (COMPLETE_LEDGER || c.outcome !== 'ack_success' || early) {
     const ledger = ledgerOutcome(c);
     record({
       rec: 'msg', run_id: m.run_id, seq: m.seq, device_id: m.device, rate_step: step.index, phase: step.phase,
       tick: i, scheduled_send_ms: m.scheduled_send_ms, actual_send_ms: actual, outcome: ledger.outcome,
       http_status: res.status, error_code: res.error_code || 0, response_ms: response, detail: ledger.detail,
       early,
+      ...(COMPLETE_LEDGER ? {
+        timing_clock: 'k6_test_run_elapsed_ms',
+        iteration_entry_elapsed_ms: timing.iterationEntryElapsedMs,
+        request_ready_elapsed_ms: requestReadyElapsedMs,
+        pre_http_elapsed_ms: preHttpElapsedMs,
+      } : {}),
     });
   }
 }
 
 export function gen(st) {
   const step = cfg.steps[parseInt(__ENV.STEP, 10)];
+  const iterationEntryElapsedMs = COMPLETE_LEDGER ? exec.instance.currentTestRunDuration : null;
   const i = exec.scenario.iterationInTest;
   const mm = M[step.index];
   if (i === 0) mm.t0.add(exec.scenario.startTime);
@@ -180,8 +195,11 @@ export function gen(st) {
   const m = Object.assign({
     run_id: cfg.run_id, seq, device: seq % cfg.devices, scheduled_send_ms: Math.round(sched * 1000) / 1000,
   }, values(cfg.seed, seq));
-  send(st, step, m, i);
-  if (DUP.has(seq)) { mm.dupInjected.add(1); send(st, step, m, i); }
+  const timing = COMPLETE_LEDGER ? {
+    iterationEntryElapsedMs,
+  } : null;
+  send(st, step, m, i, timing);
+  if (DUP.has(seq)) { mm.dupInjected.add(1); send(st, step, m, i, timing); }
 }
 
 export function teardown(st) {

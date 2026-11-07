@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "plan_id": "dispatch-endpoint-headroom-fiware-20261106",
+  "purpose": "Bounded fiware 50/s adapter-specific headroom check for the frozen 25/s ordinary scope; not a campaign repetition or maximum-capacity measurement.",
+  "pilot_only": true,
+  "seed": 20261106,
+  "adapter": "fiware",
+  "payload": {
+    "encoding_id": "logical-json-ascii-v1",
+    "size_offset_bytes": 0
+  },
+  "target": {
+    "base_url": "http://87.107.191.107:1026",
+    "north_url": "http://87.107.191.107:4041",
+    "south_url": "http://87.107.191.107:7896"
+  },
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 150,
+    "max": 150
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 50,
+        "duration_s": 30,
+        "vus": 150
+      },
+      {
+        "phase": "measurement",
+        "rate": 50,
+        "duration_s": 120,
+        "vus": 150
+      }
+    ]
+  },
+  "health": {
+    "workload_policy": "dispatch-integrity-v1",
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 0,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {},
+  "protocol_pilot_parameters": {
+    "rate_per_second": 50,
+    "measurement_seconds": 120,
+    "warmup_seconds": 30,
+    "drain_seconds_after_measurement": 900,
+    "quiet_interval_seconds": 30,
+    "late_observation_seconds": 30
+  },
+  "deviations": [
+    "Explicitly bound by health.workload_policy to DISPATCH-20261106, not to the preliminary scheduled-primary protocol.",
+    "GOGC=400, generator cpuset0-1, sink2 and required remote-write recording retained.",
+    "Send lag is diagnostic; complete physical workload-integrity and same-host dispatch-to-complete-body checks are assessed separately, not inferred from benchctl VALID alone."
+  ]
+}

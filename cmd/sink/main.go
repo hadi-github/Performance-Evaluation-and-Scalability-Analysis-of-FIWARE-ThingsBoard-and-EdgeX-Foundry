@@ -41,10 +41,18 @@ func main() {
 	<-sig
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_ = srv.Shutdown(ctx)
+	shutdownErr := srv.Shutdown(ctx)
+	if shutdownErr != nil {
+		log.Printf("HTTP shutdown incomplete: %v; forcing connection close", shutdownErr)
+		_ = srv.Close()
+	}
 	s.Close()
 	_ = f.Close()
-	log.Printf("observed %d messages, overflow %d, incomplete bodies %d", s.Received(), s.Overflow(), s.IncompleteBody())
+	log.Printf("final counters received=%d duplicates=%d unparsed=%d overflow=%d incomplete_body=%d body_read_error=%d oversized_body=%d shutdown_clean=%t",
+		s.Received(), s.Duplicates(), s.Unparsed(), s.Overflow(), s.IncompleteBody(), s.BodyReadErrors(), s.OversizedBody(), shutdownErr == nil)
+	if shutdownErr != nil {
+		os.Exit(4)
+	}
 	if s.Overflow() > 0 {
 		os.Exit(3)
 	}

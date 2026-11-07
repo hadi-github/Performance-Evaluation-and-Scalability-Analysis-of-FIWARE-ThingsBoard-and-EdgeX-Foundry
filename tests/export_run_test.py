@@ -11,8 +11,15 @@ import threading
 import unittest
 import urllib.parse
 
+try:
+    import matplotlib  # noqa: F401
+    HAVE_MATPLOTLIB = True
+except ImportError:
+    HAVE_MATPLOTLIB = False
+
 
 class ExportTest(unittest.TestCase):
+    @unittest.skipUnless(HAVE_MATPLOTLIB, "chart export is optional and needs matplotlib")
     def test_partial_export_keeps_missing_and_errors_unavailable(self):
         class Handler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):

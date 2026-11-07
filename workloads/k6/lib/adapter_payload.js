@@ -92,7 +92,10 @@ function legacyUltraLightBody(m) {
 function ultraLightBody(stored) {
   return 't|' + stored.temperature + '|h|' + stored.humidity + '|p|' + stored.pressure
     + '|q|' + stored.seq + '|r|' + stored.run_id + '|s|' + stored.scheduled_send_ms
-    + '|d|' + stored.padding;
+    // UltraLight rejects a bare trailing empty value. Its quoted empty string
+    // stores Text "" (verified against the deployed IoT Agent), preserving the
+    // canonical zero-padding logical payload rather than omitting the field.
+    + '|d|' + (stored.padding === '' ? '""' : stored.padding);
 }
 
 // nativePayload is the single adapter-facing constructor. Every platform receives exactly the

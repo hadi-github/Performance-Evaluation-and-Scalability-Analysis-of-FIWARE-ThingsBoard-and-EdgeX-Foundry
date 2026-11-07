@@ -371,7 +371,7 @@ func TestBoundaryLedgerRecordsPassValidationAndAnalysis(t *testing.T) {
 			text(t, d, "records.ndjson", string(b)+"\n")
 			r := load[plan.Resolved](t, d, "resolved.json")
 			sum := load[report.Summary](t, d, "k6-summary.json")
-			if err := validateLedger(&r, audit.PlannedMessages(&r, &sum), []report.Record{rc}); err != nil {
+			if err := validateLedger(&r, audit.PlannedMessages(&r, &sum), []report.Record{rc}, false); err != nil {
 				t.Fatalf("boundary ledger record rejected: %v", err)
 			}
 			result := analyse(t, d)
@@ -389,9 +389,24 @@ func TestRawBoundaryCategoryStillRejectedByLedgerValidation(t *testing.T) {
 			SchedMs: 1700000000900, ActualMs: 1700000000901, RespMs: 1700000001920, Outcome: outcome}
 		r := load[plan.Resolved](t, d, "resolved.json")
 		sum := load[report.Summary](t, d, "k6-summary.json")
-		if err := validateLedger(&r, audit.PlannedMessages(&r, &sum), []report.Record{rc}); err == nil {
+		if err := validateLedger(&r, audit.PlannedMessages(&r, &sum), []report.Record{rc}, false); err == nil {
 			t.Fatalf("raw boundary outcome %q silently accepted", outcome)
 		}
+	}
+}
+
+func TestNonEarlySuccessRowsAreProtocolOnly(t *testing.T) {
+	d := fixture(t)
+	r := load[plan.Resolved](t, d, "resolved.json")
+	sum := load[report.Summary](t, d, "k6-summary.json")
+	rc := report.Record{Rec: "msg", RunID: r.RunID, Seq: 0, Device: 0, Step: 0, Phase: r.Steps[0].Phase,
+		Tick: 0, SchedMs: 1700000000000, ActualMs: 1700000000001, RespMs: 1700000000002, Outcome: "ack_success"}
+	planned := audit.PlannedMessages(&r, &sum)
+	if err := validateLedger(&r, planned, []report.Record{rc}, false); err == nil {
+		t.Fatal("legacy compact-ledger validator accepted a non-early success row")
+	}
+	if err := validateLedger(&r, planned, []report.Record{rc}, true); err != nil {
+		t.Fatalf("protocol complete-ledger validator rejected an explicit success row: %v", err)
 	}
 }
 

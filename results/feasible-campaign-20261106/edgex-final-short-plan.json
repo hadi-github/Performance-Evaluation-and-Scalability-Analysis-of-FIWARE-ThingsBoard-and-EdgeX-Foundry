@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "plan_id": "edgex-final-short-verification-20261106",
+  "purpose": "Short end-to-end deployment, capture and history verification. Diagnostic only, not a frozen ordinary repetition or full-duration headroom qualification.",
+  "pilot_only": true,
+  "seed": 20261106,
+  "adapter": "edgex",
+  "payload": {"encoding_id": "logical-json-ascii-v1", "size_offset_bytes": 0},
+  "target": {"base_url": "http://87.107.191.107:59986", "metadata_url": "http://87.107.191.107:59881", "ingress_url": "http://87.107.191.107:59986"},
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {"keep_alive": true},
+  "arrivals": {"model": "constant"},
+  "vus": {"pre_allocated": 150, "max": 150},
+  "schedule": {"type": "steps", "steps": [
+    {"phase": "warmup", "rate": 50, "duration_s": 10, "vus": 150},
+    {"phase": "measurement", "rate": 50, "duration_s": 30, "vus": 150}
+  ]},
+  "health": {"workload_policy": "dispatch-integrity-v1", "min_achieved_ratio": 0.99, "send_lag_p99_ms": 0, "early_tolerance_ms": 2, "max_core_busy": 0},
+  "cleanup": false,
+  "test_faults": {},
+  "protocol_pilot_parameters": {"rate_per_second": 50, "measurement_seconds": 30, "warmup_seconds": 10, "drain_seconds_after_measurement": 60, "quiet_interval_seconds": 10, "late_observation_seconds": 5}
+}

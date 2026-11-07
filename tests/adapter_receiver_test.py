@@ -47,6 +47,43 @@ class ReceiverTest(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+    def test_thingsboard_canonical_payload_with_device_id_and_20_char_token(self):
+        out = io.StringIO()
+        state = receiver.State(out, token_length=20)
+        server = receiver.Server(('127.0.0.1', 0), receiver.handler(state, {'127.0.0.1'}))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        base = f'http://127.0.0.1:{server.server_port}'
+
+        def request(path, method='GET', body=None, headers=None):
+            data = None if body is None else json.dumps(body, separators=(',', ':')).encode()
+            req = urllib.request.Request(base+path, data=data, method=method,
+                                         headers=headers or {})
+            with urllib.request.urlopen(req) as response:
+                raw = response.read()
+                return json.loads(raw) if raw else None
+
+        try:
+            token = request('/api/auth/login', 'POST', {'username': 'synthetic', 'password': 'synthetic'})['token']
+            device = request('/api/device', 'POST', {'name': 'bench-tb-n2-netctl-confirm-20261106-00000', 'type': 'bench'},
+                             {'X-Authorization': 'Bearer '+token})['id']['id']
+            credential = request('/api/device/'+device+'/credentials')['credentialsId']
+            self.assertEqual(len(credential), 20)
+            self.assertEqual(credential, device[:20])
+            body = {'run_id': 'tb-n2-netctl-confirm-20261106', 'seq': 0,
+                    'device_id': 'bench-tb-n2-netctl-confirm-20261106-00000',
+                    'scheduled_send_ms': 1793923982388.125,
+                    'temperature': 26, 'humidity': 43, 'pressure': 1099, 'padding': ''}
+            request('/api/v1/'+credential+'/telemetry', 'POST', body)
+            receipt = json.loads(out.getvalue())
+            self.assertEqual(receipt['device_id'], body['device_id'])
+            self.assertEqual(receipt['adapter'], 'thingsboard')
+            self.assertEqual(receipt['body'], json.dumps(body, separators=(',', ':')))
+            self.assertEqual(len(receipt['body'].encode()), 204)
+            self.assertEqual(state.received, 1)
+        finally:
+            server.shutdown()
+            server.server_close()
+
 
 if __name__ == '__main__':
     unittest.main()

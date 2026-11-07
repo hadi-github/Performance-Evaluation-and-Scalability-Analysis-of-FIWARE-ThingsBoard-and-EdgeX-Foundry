@@ -149,6 +149,10 @@ const edgex = {
   successStatus: 200,
   needsBody: () => true, // a 207 answer must be parsed item by item
   setup(cfg) {
+    const preprovisioned = __ENV.EDGEX_PREPROVISIONED_RUN_ID === cfg.run_id;
+    if (__ENV.EDGEX_PREPROVISIONED_RUN_ID && !preprovisioned) {
+      exec.test.abort('EdgeX preprovision gate identity does not match this run');
+    }
     const meta = cfg.target.metadata_url + '/api/v3';
     const get = { tags: { name: 'setup' }, responseType: 'none' };
     // Existing profile/devices are reused, never re-posted: with several device-rest replicas, adding a device makes
@@ -167,6 +171,7 @@ const edgex = {
     for (let i = 0; i < cfg.devices; i++) devices.push(deviceName(cfg.run_id, i));
     const missing = devices.filter((name) =>
       must(http.get(meta + '/device/name/' + name, get), [200, 404], 'get device ' + name).status === 404);
+    if (preprovisioned && missing.length) exec.test.abort('preprovisioned EdgeX cohort has missing devices');
     for (let off = 0; off < missing.length; off += 100) {
       const batch = missing.slice(off, off + 100).map((name) => ({ apiVersion: 'v3', device: {
         name, serviceName: 'device-rest', profileName: EDGEX_PROFILE, adminState: 'UNLOCKED', operatingState: 'UP',
@@ -177,6 +182,10 @@ const edgex = {
       const bad = r.json().find((x) => x.statusCode !== 201);
       if (bad) exec.test.abort('create devices: ' + JSON.stringify(bad));
     }
+    // The campaign's pre-traffic gate already exercised every device directly
+    // on every replica. Do not inject redundant negative-sequence setup events
+    // into its isolated measurement sink. Legacy setup retains its probes.
+    if (preprovisioned) return { devices };
     // device-rest learns new devices from a system event over the message bus. Probe the first and the last device
     // until 8 consecutive readings are accepted (the LB spreads probes over replicas). Probes carry run_id
     // "<run_id>-probe" and seq -1, so reconciliation never counts them as messages of this run.
