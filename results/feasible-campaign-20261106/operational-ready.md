@@ -1,5 +1,13 @@
 # Feasible ordinary batch: reviewed operational sequence
 
+**Current-state warning (2026-11-07):** this procedure is deployment-specific,
+not fresh authorization. Runtime work is paused for source/documentation
+handoff. Before any continuation, recover/reconcile FIWARE repetition 2 and
+establish a working reviewed SSH/SCP transport. Review receipts and raw evidence
+are held outside Git. Read `docs/status.md`, `docs/operations/ordinary-campaign.md`
+and this directory's `README.md`; do not rerun completed attempts or the
+historical qualification executor to fill missing packaging dependencies.
+
 This is the switch/verify procedure for `frozen-scope.json` and
 `DISPATCH-20261106`. Frozen cells: 25 msg/s in both 300 s warm-up and 600 s
 measurement; 1,000 devices; `logical-json-ascii-v1`, size offset 0; N=2; CPU

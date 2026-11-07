@@ -15,6 +15,13 @@ go test ./internal/... && go test ./tests/integration -v           # unit + faul
 
 ## Model
 
+**Current policy:** explicitly marked `dispatch-integrity-v1` runs use the
+[dispatch contract](dispatch-contract-20261106.md), complete per-message outcome
+logging and the [bounded runbook](../operations/ordinary-campaign.md). Historical
+unmarked plans retain compact logging and their original send-lag gates. Read
+[test coverage](../development/testing.md) and [progress semantics](../development/generator-progress.md)
+before interpreting an ACK or live completion percentage.
+
 - **Open model only.** Every step is a k6 `constant-arrival-rate` scenario (one scenario per step, consecutive
   `startTime`s). One iteration sends at most one HTTP request. There are no sleeps and no retries: k6 never
   retries, and the generator never does either.
@@ -39,7 +46,7 @@ go test ./internal/... && go test ./tests/integration -v           # unit + faul
   |---|---|---|---|
   | fixture / reference | `POST /ingest` JSON incl. `device_id` | 332 (203-byte body) | one record |
   | ThingsBoard | `POST /api/v1/<token>/telemetry` JSON | 308 (145-byte body) | 6 `ts_kv` rows (one per key), same ts |
-  | FIWARE | `POST /iot/d?k=&i=` UltraLight `t\|h\|p\|q(seq)\|r(run_id)\|s(sched)` | 289 (77-byte body) | entity attributes, **latest value only** (no history yet) |
+   | FIWARE | `POST /iot/d?k=&i=` UltraLight `t\|h\|p\|q(seq)\|r(run_id)\|s(sched)` | 289 (77-byte historical body) | baseline latest-value attributes; explicit candidate adds QL/Timescale history |
   | EdgeX | `POST device-rest /api/v3/resource/<dev>/reading` JSON, `Object` resource | 335 (139-byte body) | one reading with an object value |
 
   The bodies exceed the ~100 B target because identity fields are never truncated (`run_id` is ~35 characters).
@@ -58,16 +65,19 @@ go test ./internal/... && go test ./tests/integration -v           # unit + faul
 - **EdgeX:** on the ingestion path, device-rest answers **200** (accepted) or **404** (unknown device/resource), not
   207 (checked live). 207 batch answers come from the provisioning APIs, which the adapter's setup parses item by
   item. The send path parses a 207 too, should one ever appear.
-- **What is recorded per message:** only non-success outcomes and early sends, as JSON lines in
+- **Historical compact plans:** only non-success outcomes and early sends, as JSON lines in
   `records.ndjson`, with fields `run_id, seq, device_id, rate_step, phase, tick, scheduled_send_ms,
   actual_send_ms, outcome, http_status, error_code, response_ms, detail, early`. Every other seq of the plan is
-  `ack_success` by construction.
+  `ack_success` by construction. Protocol-bound and dispatch-integrity plans
+  instead record **every** planned dispatch/HTTP outcome; missing success rows
+  cannot be inferred as ACKs in those complete ledgers.
 - **Per-step counters** (exact, in `k6-summary.json`): attempted, each outcome, early sends, beyond-plan, thinned,
   dropped iterations, `http_reqs`, `data_sent`.
-- **Per-step bucketed histograms** of send lag (`actual − scheduled`) and acknowledgement latency
-  (`response − scheduled`, successes only). These use one k6 Counter per bucket, not a k6 Trend (Trends keep every
-  sample in memory). The bucket edges are in the plan, and the send-lag limit must be one of them, so the p99 gate
-  is exact.
+- **Per-step k6 Trends** of send lag (`actual − scheduled`) and acknowledgement latency
+  (`response − scheduled`, successes only), with per-minute ACK summaries.
+  The current script retains Trend samples; calibration/resource evidence must
+  include their memory cost. Primary dispatch latency is computed from joined
+  individual request/sink records, not from these aggregate Trends.
 - `http_req_duration` is kept only as a k6 diagnostic. It starts at actual send and is never used as SLO latency.
 
 ## Health gates (per step, in `health.json` and the manifest)
@@ -80,10 +90,10 @@ the retained files.
 | `dropped_iterations` | must be 0 |
 | `ticks_complete` | executed ticks == rate × duration |
 | `achieved_rate` | sends / planned sends ≥ `min_achieved_ratio` (0.99) |
-| `send_lag_p99` | p99 send lag ≤ `send_lag_p99_ms` (10 ms) |
+| `send_lag_p99` | Historical plans: p99 ≤ configured limit; diagnostic only under explicit `dispatch-integrity-v1`, whose distribution/gap/trend gates are separate |
 | `no_early_sends` | no send more than `early_tolerance_ms` (2 ms) before its scheduled time |
 | `outcome_accounting` | ack + failure + unknown == attempted |
-| `record_completeness` | records.ndjson has exactly one record per non-success outcome and per early send; no seq has two |
+| `record_completeness` | Compact plans: records for failures/unknowns/early sends; complete-ledger plans: exactly one record per planned dispatch/outcome; no duplicate identities |
 | `generator_core_busy` | per-core busy ≤ `max_core_busy` if set (> 0); otherwise reported only |
 
 Also reported: peak VUs vs `vus.max` (a warning when reached), generator CPU per core (mean and max per step,
@@ -134,6 +144,23 @@ The automated fault tests prove each category (`tests/integration`).
 
 - **Cores and GC.** Run k6 with `GOGC=400` (`-env GOGC=400`). With the default GC, the p99 send lag fails the
   10 ms gate even at 500/s on 2 cores.
+
+### Prospective dispatch-integrity policy (explicit opt-in)
+
+Plans may set `health.workload_policy` to `dispatch-integrity-v1`. This does not alter existing plans or historical
+verdicts: the existing 10 ms `send_lag_p99` gate remains in force when the marker is absent. For marked plans,
+send-lag p99 is retained as a diagnostic (the configured threshold is not a validity gate); zero dropped iterations,
+complete tick/record accounting and achieved rate >= 0.99 remain validity gates. Protocol receipt schema 3 joins
+`actual_send_ms` (application dispatch immediately before `http.post`, after payload construction) to the sink's
+complete-body-read timestamp; the primary conditional latency is dispatch-to-complete-body receipt. Scheduled-to-
+receipt remains secondary, and missing, late and duplicate receipt counts remain separate. Both timestamps use the
+load-host wall-clock epoch; validate their ordering and retain clock-step diagnostics. This timestamp does not assert
+network-interface transmission or cross-host clock accuracy.
+
+Use calibrated `-env GOGC=400` for prospective campaign runs and retain the actual passed environment keys in run
+provenance. This is a prior calibration finding, not proof that GC explains any particular lag trace. Higher GC
+threshold trades collection frequency for memory; size VUs from measured latency and check generator memory before
+campaign use. Historical runs and their 10 ms validity gate are unchanged.
 - **Ceiling.** About 1 core per 1,000 req/s: ~1,000/s on 2 cores, ~1,500 (2,000 borderline) on 3 cores.
 - **VU pool.** Size it from measured ack latency (`rate × p99.9 latency × 2`), never generously: memory and GC
   pauses grow with VUs × steps (200 VUs × 30 steps: 5.2 GB and 3 invalid steps; 50 VUs: 1.6 GB, all valid).

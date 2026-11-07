@@ -16,13 +16,13 @@ jobs:
         with:
           go-version-file: go.mod
       - name: build
-        run: go build ./...
+        run: go build ./cmd/...
       - name: vet
-        run: go vet ./...
+        run: go vet ./internal/... ./cmd/... ./tests/...
       - name: gofmt (no diffs allowed)
         run: test -z "$(gofmt -l cmd internal)"
-      - name: unit + integration tests (no servers contacted)
-        run: go test ./... -count=1
+      - name: unit + local-fixture integration tests (no benchmark hosts contacted)
+        run: go test ./internal/... ./cmd/... ./tests/... -count=1
 
   static:
     name: Shell + Python + evidence integrity
@@ -39,6 +39,17 @@ jobs:
         run: shellcheck -f gcc scripts/*.sh deploy/*/scripts/*.sh workloads/legacy/run.sh
       - name: python syntax
         run: python3 -m py_compile scripts/*.py scripts/diag/*.py monitoring/grafana/*.py yaade/*.py
+      - name: offline Python regressions
+        run: |
+          python3 -B -m unittest discover -s tests -p '*_test.py'
+          python3 -B -m unittest discover -s tests/offline -p 'test_*.py'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: offline adapter regressions
+        run: node --test tests/offline/*.test.mjs
+      - name: mocked ThingsBoard log capture regression
+        run: bash tests/capture_thingsboard_file_logs_test.sh
       - name: preregistration archive integrity (bytes never change)
         run: bash scripts/check-preregistration.sh
 
@@ -46,10 +57,11 @@ jobs:
         run: bash scripts/check-thingsboard-config.sh
       - name: evidence manifest (only meaningful when results/ is present locally — raw data is not in Git)
         run: |
-          if [ -d results ] && [ -n "$(find results -type f | head -1)" ]; then
+          first_input=$(awk 'NF >= 2 {print $2; exit}' evidence/evidence-integrity.sha256)
+          if [ -n "$first_input" ] && [ -f "$first_input" ]; then
             sha256sum -c evidence/evidence-integrity.sha256
           else
-            echo "results/ not present (raw data lives outside Git) — evidence verification skipped by design; run it on the evidence host"
+            echo "Raw evidence bundle not present — checksum verification skipped, not passed; run it on the evidence host. Versioned campaign plans are not raw evidence."
           fi
 
   deploy:
@@ -63,9 +75,9 @@ jobs:
           for p in fiware thingsboard edgex; do
             echo "== deploy/$p"
             ( cd "deploy/$p" \
-              && EDGEX_REPLICAS=2 THINGSBOARD_REPLICAS=2 FIWARE_REPLICAS=2 \
+               && EDGEX_REPLICAS=2 TB_REPLICAS=2 FIWARE_REPLICAS=2 POOL_CPUSET=4-5 \
                  docker compose --env-file .env.example config --quiet \
-              && EDGEX_REPLICAS=2 THINGSBOARD_REPLICAS=2 FIWARE_REPLICAS=2 \
+               && EDGEX_REPLICAS=2 TB_REPLICAS=2 FIWARE_REPLICAS=2 POOL_CPUSET=4-5 \
                  docker compose --env-file .env.example config --format json \
                  | "$(pwd)/../../scripts/check-resources.sh" )
           done
@@ -76,5 +88,9 @@ jobs:
 
       - name: render the monitoring stacks
         run: |
-          docker compose -f monitoring/compose.yaml config --quiet && echo "monitoring ok"
-          ( cd monitoring/exporters && docker compose -f compose.edgex.yaml --env-file .env.example config --quiet 2>/dev/null || true )
+          # Render-only placeholder; never used to deploy a service or stored as a credential.
+          GF_ADMIN_PASSWORD=ci-render-placeholder-not-a-deployed-password \
+            docker compose --env-file monitoring/.env.example -f monitoring/compose.yaml config --quiet
+          for p in fiware thingsboard edgex; do
+            docker compose -f "monitoring/exporters/compose.$p.yaml" config --quiet
+          done

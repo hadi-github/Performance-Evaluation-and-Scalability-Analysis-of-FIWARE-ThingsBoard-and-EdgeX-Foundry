@@ -6,24 +6,23 @@ One Docker Compose stack per platform. Every stack has the same shape:
 load generator ──HTTP──► HAProxy (always present, also at N=1) ──► replicated tier(s) ──► single stateful tier
 ```
 
-**The only thing you change to scale is the number of platform instances, N.** Each instance runs in the shared
-platform CPU pool covering `4 … 4+N-1` (see "Resource layout"). **N is not free choice at run time:** the memory
-budget accepts N per platform, and one qualification level per platform is currently owned (FIWARE and EdgeX k=4
-fit the budget; ThingsBoard's k decision is pending owner options O1–O5 — k=4 does not fit at 1280 MiB, see
-[`docs/status.md`](docs/status.md) §1-B6). Qualification levels beyond the owned ones need their own qualified run
-first, not an argument.
+The deployment tooling supports a shared application CPU pool covering `4 … 4+N-1`
+(see "Resource layout"). Configuration fit is not performance qualification.
+The current owner-approved comparison is deliberately fixed at **N=2/k=2, pool
+`4-5`, 25 msg/s, 1,000 devices and payload selector 0**, not a scaling experiment.
 
-> **State of this repository:** *benchmark tooling + exploratory qualification.* The main experimental campaign
-> has not been executed. What is verified, and how recent runs are labelled (exploratory vs campaign-grade), is
-> maintained in one page: [`docs/status.md`](docs/status.md). Per-session narratives are archived under
+> **State of this repository (2026-11-07):** benchmark tooling, reviewed bounded qualification,
+> and a **partially executed ordinary campaign**. Two ordinary attempts are validated; one
+> setup failure is preserved and another attempt's remote artifacts await reconciliation.
+> Runtime work is paused for repository handoff. No completed campaign, capacity or scalability
+> claim is made. Current evidence, limitations and the exact continuation gate live in
+> [`docs/status.md`](docs/status.md). Per-session narratives are archived under
 > `docs/archive/sessions/` and may contradict each other; `docs/status.md` wins.
 
-```bash
-cd deploy/thingsboard && make install && make up N=2 && make smoke N=2    # example: the qualified TB level
-# cold start before the next benchmark cell ONLY, wipes all platform data — not part of normal startup:
-make clean
-make check N=2   # print the resource layout and refuse it if it does not fit the host (also run by `make up`)
-```
+Start with the [documentation index](docs/README.md),
+[publication/handoff checklist](docs/operations/publication-handoff.md) and
+[operator runbook](docs/operations/ordinary-campaign.md).
+**Do not use `make clean` or `down -v` between retained campaign attempts.**
 
 Only one platform can run at a time on the SUT (they share port 8404, and the platform pool cores).
 
@@ -37,24 +36,28 @@ All stacks expose HAProxy stats on `:8404/stats` and Prometheus metrics on `:840
 container, so per-tier CPU/memory can be monitored separately (`docker stats`, cAdvisor, ...). HAProxy discovers
 replicas through Docker DNS (`server-template`, up to 16 per tier) within ~5 s.
 
-## Running an experiment
+## Build and verify locally (no benchmark servers)
 
 The load generator and the monitoring stack run on **ramonavm1**, the platforms on **ramonavm2** (the SUT).
 
+Requires the Go toolchain specified in `go.mod`, Python 3 and Node.js for offline
+adapter tests. Docker/Compose is needed for deployment; cloning is not permission
+to deploy or generate traffic. From the repository root:
+
 ```bash
-# Example cell: the currently qualified ThingsBoard level (k=2 at 1280 MiB; owner decision O1–O5 pending)
-cd deploy/thingsboard && make install && make up N=2 && make smoke N=2
-# FIWARE / EdgeX use the same rhythm; pick N within the platform's memory budget:
-cd deploy/fiware && make up N=1 && make smoke N=1
-cd deploy/edgex  && make build && make up N=1 && make smoke N=1
-# cold start before the next benchmark cell ONLY — wipes all platform data, not part of normal startup:
-make clean
-# SUT-side platform exporters
-cd monitoring/exporters && make up P=thingsboard
-# capacity statements come from the campaign-grade generator path (benchctl, see docs/methodology/generator.md);
-# workloads/legacy/run.sh is the legacy harness — its verdicts are exploratory by policy (docs/status.md §2)
-./workloads/legacy/run.sh thingsboard 200 10m
+go build ./cmd/...
+go test -short -count=1 ./internal/... ./cmd/... ./tests/...
+python3 -B -m unittest discover -s tests -p '*_test.py'
+python3 -B -m unittest discover -s tests/offline -p 'test_*.py'
+node --test tests/offline/*.test.mjs
+bash scripts/check-preregistration.sh
 ```
+
+Official execution uses the [frozen ordinary matrix](results/feasible-campaign-20261106/run-matrix.json)
+and reviewed launcher, with the [dispatch contract](docs/methodology/dispatch-contract-20261106.md),
+automatic per-message offline analysis and [live progress reports](docs/development/generator-progress.md).
+Read the runbook first: existing deployments, review receipts and external evidence are
+required. Legacy `workloads/legacy/run.sh` results retain their historical exploratory scope.
 
 See `workloads/README.md` (open workload model, options, what makes a run invalid) and `monitoring/README.md`
 (Prometheus/Grafana, exporters, firewall, dashboards).
@@ -74,7 +77,9 @@ On the 8-core SUT (ramonavm2):
   behaves as if it ran on a dedicated N-core machine, and the tiers split the cores as the load demands.
 - **Memory:** every container has a hard limit with swap disabled (`mem_limit` = `memswap_limit`), and JVM heaps
   sit inside it. Memory per instance is constant across N: FIWARE 512 MB + 512 MB, EdgeX 512 MB + 512 MB,
-  ThingsBoard 1 GB + 1 GB + 512 MB (three JVMs cannot share 1 GB).
+  ThingsBoard's base descriptors use separate JVM limits; the qualified ordinary deployment
+  explicitly uses **1280 MiB core + 1280 MiB rule-engine + 768 MiB transport** per replica.
+  Effective run-time resources and image identities, not this overview, govern eligibility.
 - **Guards:** `scripts/resources.mk` refuses an N whose pool does not fit the host's cores, and
   `scripts/check-resources.sh` refuses a stack whose memory limits exceed host memory minus a 1.5 GB reserve, or
   any service without a cpuset/memory limit. N_max on the 8-core SUT is 4.
@@ -92,8 +97,11 @@ On the 8-core SUT (ramonavm2):
    notification sink (`cmd/sink`, configured by `scripts/outbound.sh`); `make smoke` does not exercise it. This is a
    known gap, not a pass.
 
-The smoke tests start as soon as HAProxy reports the replicas UP. Right after a cold start FIWARE and EdgeX may
-still reject the first requests for a few seconds; wait ~30 s after `make up` before measuring or smoke testing.
+Historical smoke helpers can race cold-start initialization even after HAProxy
+reports UP. A fixed sleep is **not** ordinary-campaign readiness. Use the actual
+bounded backend, initialized-ingest-route and all-device replica gates in the
+[operator runbook](docs/operations/ordinary-campaign.md); do not measure merely
+because a service ping succeeds or 30 seconds elapsed.
 
 ## Design decisions (and what a reviewer could attack)
 
@@ -111,7 +119,10 @@ still reject the first requests for a few seconds; wait ~30 s after `make up` be
 | ThingsBoard pinned to 4.3.x | 4.4 moved to BUSL 1.1; 4.3.x is the last Apache-2.0 line | "Not latest" → licence scope of the paper |
 | TB: own HAProxy config | Official config limits each client IP to 100 req/10 s and pins REST by source IP | — |
 
-## Status: what is verified (2026-10-29)
+## Historical qualification summary (2026-10-29)
+
+The following is historical, not the current campaign status. See [`docs/status.md`](docs/status.md)
+for the narrowed release, preserved failures and remaining official attempts.
 
 - All three stacks boot and smoke-test on the SUT (ramonavm2, 8 vCPU / 16 GB) and are exercised end to end from
   the load-generator host with the Yaade collections in `yaade/`; boot fixes are listed in the compose headers.
@@ -125,8 +136,8 @@ still reject the first requests for a few seconds; wait ~30 s after `make up` be
 
 - **ThingsBoard partitions.** Kafka topic partition counts cap how many core/rule-engine replicas can do useful
   work. The defaults (10) are above N_max = 4.
-- **ThingsBoard install** loads demo data (`TB_LOAD_DEMO=true`) so the smoke test has a tenant. For clean
-  benchmark runs, decide whether to keep it, and state it.
+- **ThingsBoard install** can load demo data (`TB_LOAD_DEMO=true`) so smoke tests have a tenant.
+  The retained campaign does not delete existing data; report actual deployment state.
 - **EdgeX build** needs github.com and a reachable Go module proxy during `make build`. Where proxy.golang.org is
   blocked, build a builder image that sets `GOPROXY` and point `GO_BUILDER_BASE` at it in `.env`:
   `printf 'FROM golang:1.25-alpine3.22\nENV GOPROXY=https://goproxy.cn,direct\n' | docker build -t local/golang-goproxy:1.25-alpine3.22 -`

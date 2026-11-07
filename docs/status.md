@@ -1,14 +1,111 @@
 # Project status — single authoritative page
 
-**Last reconciled: 2026-10-31** (branch `chore/ci-and-release`).
+## Prospective owner amendment — 2026-11-06
+
+The owner has changed the future primary latency endpoint to **application dispatch → first complete-message sink receipt on the same load host** and withdrawn the universal 10 ms send-lag p99 rejection rule for future explicitly marked runs. Historical verdicts remain unchanged. Scheduled-to-receipt and send lag remain diagnostics/secondary evidence, not silently reinterpreted historical results. See `docs/methodology/dispatch-contract-20261106.md` and the narrowed review-candidate matrix at `results/feasible-campaign-20261106/frozen-scope.json`.
+
+The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. Its current execution state is **PAUSED at owner request**, as detailed below. Older gates/authorization text below remain dated historical context, not an override of the narrowed release or pause.
+
+**Last reconciled: 2026-11-07** (branch `chore/ci-and-release`).
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
 preserved verbatim — and may contradict each other — under [`docs/archive/sessions/`](archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
 (or re-derived from the raw evidence), never re-litigated from the narratives.
 
-Overall verdict unchanged: **NO-GO for the main experimental campaign.** What exists is benchmark *tooling* whose
-novel parts are qualified, plus **exploratory qualification evidence** (labelled as such below). Nothing here is a
-completed benchmark campaign.
+Current verdict: **bounded ordinary campaign partially executed; runtime work PAUSED for
+repository/publication handoff at owner request; campaign not complete**.
+The broader capacity/scaling/fault campaign is not qualified by this release. Historical NO-GO
+statements below retain their original dated scope and verdicts.
+
+## Current ordinary campaign checkpoint — 2026-11-07
+
+**Do not launch further workloads during this handoff.** Direct workstation → `ramonavm1`
+SSH timed out, but strict-key SSH via `ramonavm2` succeeded. The jump path is not yet integrated
+into the launcher's SSH/SCP transport. Read-only inspection found entry 4's remote request,
+capture and analysis artifacts, no current k6 container, and no `/run` workload lock. The load
+host reports a later boot at 2026-11-07 16:07:21 UTC, so absence of the volatile lock is not
+historical cleanup proof. SUT FIWARE services were still running. No new workload or remote
+mutation was performed. See the [operator runbook](operations/ordinary-campaign.md) for the
+verified network path and exact recovery gates; no country-wide filtering cause is established.
+The FIWARE repetition 2 local launcher was cancelled with “Command cancelled because the server
+restarted.” This confirms local launcher cancellation only: **remote workload termination, final
+measurement outcome, service state and cleanup remain unverified**. No remote stop is claimed.
+
+Frozen scope: 25 msg/s, 1,000 devices, payload selector 0, N=2/k=2, application pool `4-5`,
+300 s warm-up + 600 s measurement, `GOGC=400`, monitoring enabled; five planned attempts per
+platform in the exact interleaved matrix. Primary endpoint is application dispatch after payload
+preparation → sink complete-body read, not wire transmission. Per-message offline analysis runs
+automatically; send-lag p99 alone is not a rejection criterion under `dispatch-integrity-v1`.
+
+| Entry | Attempt | State | Measurement dispatch p99 |
+|---|---|---|---|
+| 1 | `disp-tb-r01-20261106` | Setup failure: first login HTTP 503; 0/22,500 offered/planned telemetry; no measurement. Recovery accepted, cleanup verified; no replacement. | Not assessed |
+| 2 | `disp-fw-r01-20261106` | Valid platform/history success; 22,500 exact request/sink/history identities; cleanup verified. | 107.137939453125 ms |
+| 3 | `disp-ex-r01-20261106` | Valid platform/history success; 22,500 exact request/sink/history identities; cleanup verified; no new metadata panic/restart. | 7.9072265625 ms |
+| 4 | `disp-fw-r02-20261106` | Local launcher cancelled by harness server restart; remote outcome and cleanup unverified. | Not established |
+
+Entries 2–3 passed workload/capture/clock and generator/SUT resource gates, with zero missing,
+duplicate or late deliveries. **Four attempts launched, three reconciled, eleven not yet launched**;
+entry 4 is unresolved, not counted as a valid result or proven stopped workload. TB has five planned
+attempts but at most four valid measured repetitions if all remaining TB attempts succeed.
+
+Before resuming: inspect entry 4's existing artifacts and remote workload/capture processes,
+service state and workload lock; recover evidence and establish outcome/cleanup without overwriting
+originals. Preserve interrupted/failed attempts; no automatic retry, replacement ID or favorable
+substitution. Apply existing pause/review gates. The next original matrix entry after resolving
+entry 4 is `disp-ex-r02-20261106`; this is a continuation pointer, **not authorization to launch**.
+
+Evidence and execution records:
+- [Approved plan and chronological checkpoints](../results/feasible-campaign-20261106/PLAN.md),
+  [frozen matrix](../results/feasible-campaign-20261106/run-matrix.json), and
+  [source/evidence policy](../results/feasible-campaign-20261106/README.md) are versioned.
+- Externally retained under `results/feasible-campaign-20261106/` (not included
+  in Git): `campaign-progress.json`, `independent-review-ordinary-release.json`,
+  `independent-review-tb-r01-recovery.json`, `resume-check-20261107.json`,
+  `evidence/` and `aggregate/summary.md`. A reviewed public archive location is
+  still an owner publication decision; these are provenance paths, not shipped datasets.
+
+Full repaired FIWARE and EdgeX endpoint/headroom qualifications were independently accepted,
+each reconciling 7,500 request/sink/history identities. TB qualification reuse carries an explicit
+**reconstructed host-provenance caveat**, not a contemporaneous sink-process attestation.
+Phase-aligned SUT CPU-cost snapshots were unavailable (HTTP 503): **no phase CPU-cost claim**.
+Optional plotting is unavailable and nonblocking. No capacity/scalability, hardware/framework
+upgrade, image replacement, data reset, historical-device deletion or automated replica-stop
+experiment is authorized or implied by these bounded results.
+
+### Generator progress logging follow-up — 2026-11-07
+
+Owner requested more visible generator progress and a short successful-send
+report. The local runner now observes its existing complete outcome log every
+10 seconds, printing completed/planned tick counts, ACK/failure/unknown totals
+and the latest completed-response phase. Future builds write
+`generator-progress.log`, `generator-progress.json` and `generator-send-report.md`
+inside each run directory, with per-phase counts and a final k6 exit status.
+No k6 request-timing code, frozen workload or verdict gate is changed. ACKs are
+not sink/history delivery; 100% does not mean drain/analysis/cleanup completed.
+Details and live-view commands: [generator progress guide](development/generator-progress.md).
+This is a local tooling change, not a deployed feature or recovery of FIWARE
+repetition 2. **Runtime work is paused for handoff; entry 4's outcome remains unverified.**
+Validation: `go test -race -count=1 ./internal/runner ./cmd/benchctl` and
+`git diff --check` passed. Focused tests cover partial/incremental log reads,
+per-phase outcomes, duplicate and invalid identities, zero-response setup aborts,
+preservation of raw logs and existing progress evidence, and ACK/delivery caveats.
+
+### Repository handoff and testing documentation — 2026-11-07
+
+The owner requested documentation/commits rather than more runtime work. Start
+with the [publication checklist](operations/publication-handoff.md),
+[ordinary-campaign runbook](operations/ordinary-campaign.md) and
+[test catalogue](development/testing.md). Frozen control files are versioned;
+raw evidence, review receipts and mutable campaign progress are not. The broader
+historical requirements below are not silently declared complete. Publication
+still needs owner licence/citation decisions, a full-history secret scan and a
+stable reviewed archive location. No GitHub push or licence choice is implied.
+Independent re-review accepted the source/documentation handoff after packaging,
+readiness wording and diagnostic progress corrections. That acceptance does not
+clear public release, runtime continuation, FW2 acceptance or experiment completion.
+
+## Historical qualification and decision record (through 2026-11-05)
 
 ---
 
@@ -121,6 +218,11 @@ was not rewritten. A checksum inventory certifies the included files, not experi
 ---
 
 ## 5. Publication boundary (backlog)
+
+**Historical policy record:** the orphan-publication strategy below is retained
+from the earlier checkpoint, not current authorization to rewrite history or
+force-push. The current [publication handoff](operations/publication-handoff.md)
+requires explicit owner decisions and grants no push/history-rewrite permission.
 
 1. ~~`.gitignore` carried a malformed `workloads/` exclusion line~~ — repaired on the layout branch (single
    correct exclusion block, plus `deploy/*/.env` and `bin/*`).
@@ -283,7 +385,8 @@ closure, hashes or identity reconciliation. Do not regenerate historical transcr
 | M2c offline render/verify validation | Approved M2b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2c-approval-20261105.md); packet `docs/archive/sessions/m2c-render-verify-20261105.md`; review `ses_e557e06aefferRFlsPQc9HpYVD`, 2026-11-05 | Preserve; nonblocking F1/F2/F3 noted; no live claim |
 | M2d offline execution-plan render | Approved M2c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2d-approval-20261105.md); packet `docs/archive/sessions/m2d-execution-plan-20261105.md`; review `ses_e55615fd5ffeRiVCyh2iO9Qs1i`, 2026-11-05 | Preserve; no lifecycle/live claim |
 | M2e health/evidence dry-run | Plan by Kimi; implementation by DeepSeek Flash | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review intentionally waived by owner | COMPLETE, SELF-TESTED, NO INDEPENDENT REVIEW | Packet `docs/archive/sessions/m2e-health-evidence-20261105.md`; evidence `results/m2e-health-evidence-20261105-113210+0330/`; 2026-11-05 | Synthetic offline only; independently unverified by owner choice; no live claim |
-| M3 live preflight | M2e self-test; approved offline foundations | Orchestrator session | COMPLETE READ-ONLY; deployment not started | `results/live-preflight-20261105T080836Z/` with Gate A/B/C captures and SHA256SUMS, 2026-11-05 | Clock offset unmeasured; no platform workload running; image/effect-config/digest and resource mapping not frozen; Gate D not entered |
+| M3 live preflight | M2e self-test; approved offline foundations | Orchestrator session | COMPLETE READ-ONLY (pre-deployment snapshot) | `results/live-preflight-20261105T080836Z/` with Gate A/B/C captures and SHA256SUMS, 2026-11-05 | Host state now superseded by the bounded live smoke; clock offset still unmeasured |
+| M3 live smoke | M2e self-test; preflight; source checkpoint `29f5dead` | Orchestrator session | PARTIAL — N1 VALID; N2 INVALID generator gate | `results/live-tb-20261105/README.md`; N1 sink 3300/3300 unique, N2 isolated sink 3300/3300 but warm-up send-lag 13 ms, 2026-11-05 | Preserve runs; rerun N2 with qualified generator configuration before any scaling claim; no capacity claim |
 | M3–M7 live qualification/campaign | Approved offline foundations; deployed producers; calibrated clock/drain/recovery policies | Not started | BLOCKED at session checkpoint | No live revised-scope evidence; both hosts were reachable in a bounded read-only check at 2026-11-05 07:37 UTC, with only exporters/monitoring running; no deployment or load was performed | Resume live preflight and deployment preparation; campaign remains NO-GO |
 | Protocol freeze | M0b, producer/analyzer integration, policy calibration | Astra review | BLOCKED on evidence | Initial review CHANGES_REQUIRED for campaign freeze | Qualify policies; keep campaign eligibility fail-closed |
 | M1–M7 remaining scope | Approved contract and preceding milestone gates | Luna implementation / Astra independent review | NOT_COMPLETE | No revised-scope acceptance evidence | Follow dependency-ordered handoff; manual fault cells require operator |
@@ -339,5 +442,83 @@ Read-only captures: [`sut-gates.txt`](../results/live-preflight-20261105T080836Z
   configuration were not frozen. No Gate D action, deployment, provisioning, load or data reset
   occurred.
 
-**Live deployment remains blocked** pending explicit authorization and freeze of platform, N/K,
-resource budgets, artifact digests, clock/capture procedure, output paths and rollback plan.
+Full live qualification and campaign execution remain blocked pending the remaining protocol
+freeze, artifact digests, clock/capture procedure, output paths and rollback plan.
+
+### Current qualification continuation — 2026-11-05
+
+The concise, evidence-linked open-gate ledger is
+[`docs/qualification/readiness-checklist-20261105.md`](qualification/readiness-checklist-20261105.md).
+M1f remains **complete/approved for offline reducers and manual-operator attestations**; live fault
+execution is outstanding. The existing N=2 failure has not been attributed to CPU or VU
+starvation. First-attempt UNKNOWN seq 0–17 are each 5 s transport timeouts and all 18 later appear
+at sink; the second attempt has no unknowns. Both fail unchanged warm-up send-lag p99 ≤10 ms at
+13 ms. Peak VUs were 50 then 4, k6 memory peaks 415,305,728 B and 382,894,080 B, and all
+generator-host core-busy maxima stayed below 50%. Phase-aligned SUT counters and throttling
+counters are absent, so a limiting component is **not identified**; no identical retry or gate
+relaxation is authorized by this evidence.
+
+Raw identity reconciliation adds an important scope detail: the first N=2 run had 3,186/3,300
+sink identities at capture end; all 3,000 measurement identities arrived, while 114 absent
+identities were in warm-up. All 18 UNKNOWN identities were among the receipts, so the 114 absent
+warm-up identities are within the aggregate ACK count; the legacy ledger lacks success-per-message
+rows to name them. This INVALID run is not a platform verdict. The second N=2 run had 3,300/3,300
+sink identities.
+
+Current read-only inventory/CPU/clock captures are in
+[`results/qualification-live-20261105T1045Z/`](../results/qualification-live-20261105T1045Z/).
+The 30-sample clock probe has an all-sample interval union [−2.96,145.06] ms (one RTT outlier
+147.51 ms); constant-offset intersection [−1.74,0.74] ms does not bound unsampled drift. The
+primary load-host-local scheduled→sink clock does not require SUT clock conversion. The temporary
+source-restricted, read-only capture helper is running on SUT port 18085, allowed only from the
+load host; no reboot or clock adjustment occurred. Full qualification remains **NO-GO**.
+
+Protocol integration milestone is **implemented and independently code-reviewed; final N=1 engineering-pilot evidence passed independent integrated review**.
+Protocol-bound runs now derive full message outcome logging from resolved protocol metadata; analysis
+checks the complete constant-arrival ledger against plan and k6 summary; native sink envelopes retain
+per-identity device/scheduled-send metadata; live/synthetic provenance disagreement fails closed; and
+`scripts/protocol-receipts.py` assembles only complete, identity-reconciled full-body captures. GPT-6.1
+Sol reviews returned and the implementation addressed findings on caller environment override, plan/counter
+validation, repeated-identity metadata, k6 scenario-start timing tolerance, sink lifecycle ownership, and
+final capture-window/counter validation. Fourteen receipt/firewall tests and focused Go packages pass.
+The first full protocol-bound N=1 run completed its 900-second relative cutoff, quiet interval and late
+observation, but strict receipt assembly failed because every ThingsBoard sink receipt omitted `device_id`.
+Read-only history was correctly not used to fill the missing receipt field; the independent integrated
+review disposition is FAIL/BLOCKED. User approved canonical `logical-json-ascii-v1` baseline offset zero;
+Sol reviewed the amended plan with no gate changes. A separate one-message diagnostic carried the actual
+device name into the sink and passed strict receipt assembly (diagnostic only). Fresh full N=1 run
+`tb-n1-protocol-pilot-20261105-final2` then completed with 18,000/18,000 sink observations, strict receipt
+assembly, zero missing/duplicate/late measurement receipts, and clean read-only history reconciliation.
+Claim-gated analysis and exact archived-input reproduction are retained in
+`results/live-protocol-tb-n1-20261105T1340Z/analysis-final2-final/` and
+`analysis-final2-final-reproduction/`; GPT-6.1 Sol's integrated PASS is retained in
+`attempt-final2/integrated-review.md`. This clears the N=1 engineering-pilot review prerequisite only.
+N=2 generator-readiness gates remain unresolved and N=3 remains unassessed; no live advancement was
+performed. Campaign remains **NOT ASSESSED / NO-GO**; Kafka lag is unavailable, cross-host clock error
+and exact-phase CPU cost are unqualified, and no capacity or payload-envelope claim is supported.
+
+### Bounded live smoke — 2026-11-05
+
+Owner authorization received for the recommended path. Source checkpoint `29f5dead9d475fa0a41763a772252623673b350c`;
+new Compose project `tbq20261105` with fresh volumes; old projects, volumes, ledgers and load-host
+sink preserved. ThingsBoard 4.3.1.6 uses explicit 1280 MiB tb-core/rule-engine and 768 MiB
+transport limits, application cpuset `4` at N=1 and `4-5` at N=2, supporting tier `2-3`.
+
+- Smoke: 100/100 HTTP messages stored, all 200 responses. The first smoke invocation reported a
+  false rule-engine failure because it queried the old Compose project; the corrected invocation
+  passed all checks.
+- `live-tb-n1-25-valid-20261105`: generator **VALID**. 3,300/3,300 sends acknowledged, zero
+  drops/errors/unknowns; new sink received 3,300 unique identities with zero duplicates,
+  overflow, unparsed records or body errors.
+- `live-tb-n2-25-20261105`: INVALID. Warm-up send-lag p99 13 ms; 18 warm-up unknowns; sink
+  received 3,186 unique identities.
+- `live-tb-n2-25-isolated-20261105`: INVALID. All 3,000 measurement sends acknowledged and sink
+  received 3,300 unique identities, but warm-up send-lag p99 remained 13 ms. This is a generator
+  gate failure, not a platform performance verdict.
+
+Evidence: [`results/live-tb-20261105/README.md`](../results/live-tb-20261105/README.md). These
+runs use the legacy `legacy-acknowledgement-only-v1` interpretation; they do not provide
+scheduled-cohort delivery p99, payload-size results, capacity, replica-failure or campaign
+evidence. N=2 currently needs a qualified generator configuration and longer warm-up before any
+scaling claim. The live deployment is left running; no reset/delete occurred. Campaign remains
+**NO-GO**.

@@ -2,6 +2,14 @@
 
 **Status:** owner-approved. Primary latency stays in the offline per-message join; Grafana support for it is optional. This plan must not be re-scoped after seeing campaign outcomes.
 
+**Current handoff (2026-11-07):** runtime work is paused at owner request for
+repository/documentation commits. Direct load-host SSH fails, but strict-key
+jump access via the SUT works; that route is not integrated into the launcher.
+Entry 4's remote artifacts exist but its outcome/continuity/cleanup remain
+unreconciled after a later load-host reboot. No automatic retry or new workload.
+Use `docs/status.md` and `docs/operations/ordinary-campaign.md` for the current
+continuation gates; the checkpoints below retain their chronological context.
+
 **Scope:** bounded ordinary batch — 25 msg/s, 1,000 devices, canonical payload selector 0, N=2, application pool `4-5` (k=2), 300 s warm-up, 600 s measurement, five independent repetitions per platform (ThingsBoard, FIWARE, EdgeX), `GOGC=400`, required monitoring enabled, open-loop constant arrivals. Not a capacity, maximum-throughput or scalability study. Manual replica stops remain a separate operator batch.
 
 ## Priority 0 — required before any campaign launch

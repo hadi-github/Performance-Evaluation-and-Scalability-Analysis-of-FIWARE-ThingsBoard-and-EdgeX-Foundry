@@ -1,5 +1,12 @@
 # Offline claim analysis
 
+> **Current scope:** this page includes historical protocol/profile decisions.
+> The bounded ordinary campaign's prospective primary endpoint and validity
+> policy are in the [dispatch contract](../methodology/dispatch-contract-20261106.md).
+> Use [status](../status.md) and the [runbook](../operations/ordinary-campaign.md)
+> for current readiness; historical NO-GO or pending-profile statements below
+> must not be read as new execution instructions or retrospective gate changes.
+
 **Current authority (owner approval, 2026-11-01):** [D44](../architecture/design-decisions.md#d44--owner-profile-mappings-2026-11-01)
 adopts the three profile mappings. The executable policy is
 [`offline-profiles-20261101.json`](../../research/protocols/offline-profiles-20261101.json)

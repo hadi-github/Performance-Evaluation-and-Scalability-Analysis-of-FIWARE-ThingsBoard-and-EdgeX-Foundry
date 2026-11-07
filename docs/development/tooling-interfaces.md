@@ -8,12 +8,16 @@ documented interface only.
 |---|---|
 | Fault fixture | **exists**: `internal/fixture`, `cmd/fixture-target` (5xx, timeout-but-stored, slowdown, 207 batches) |
 | Generator (k6 + benchctl) | **exists**: `docs/methodology/generator.md`, calibration in `docs/methodology/calibration.md` |
-| Reconciliation | **exists**: fixture store (`benchctl reconcile`) and EdgeX/ThingsBoard history (`scripts/history-ids.sh`, `benchctl explore -history`); FIWARE has no history (D9) |
+| Reconciliation | **exists**: fixture store, EdgeX/ThingsBoard history and the explicit FIWARE QL/Timescale candidate; dispatch analyzer reconciles request/sink/history separately |
 | Reference ingester | missing (being built separately) |
 | Sink | **exists**: `internal/sink`, `cmd/sink`, run by `scripts/sink.sh` / `scripts/run-with-sink.sh` |
 | DB timestamp / audit instrumentation | missing for per-message write timing; the D23 persistence rate uses a cumulative stored counter (`scripts/persist-series.sh`, `benchctl explore -persist`) |
-| Experiment controller | partial: `benchctl run` covers one run; no campaign, reset/readiness or search |
-| Offline analysis | partial: `benchctl explore` (capacity brackets, outstanding work, D23 persistence), `scripts/demand-fit.py`, `scripts/explore-tables.py`; no statistical analysis or confidence intervals |
+| Experiment controller | bounded serial launcher with frozen IDs, readiness/resource/source gates and volume-preserving finish; no general capacity search or automatic replacement |
+| Offline analysis | per-message dispatch analyzer and per-run aggregation; protocol-bound `benchctl analyze`/`compare`; historical exploratory tools remain separate; no new capacity/CI claims |
+
+Current execution: [runbook](../operations/ordinary-campaign.md).
+Tests and safety boundaries: [test catalogue](testing.md).
+Progress: [live generator observation](generator-progress.md), diagnostic only.
 
 ## Reference ingester (Go + PostgreSQL)
 - **Purpose:** minimal receive / validate / store-history service, used as the CPU-cost reference (O = U_platform / U_reference).
@@ -64,7 +68,9 @@ documented interface only.
 - **Exists for EdgeX and ThingsBoard history:** `scripts/history-ids.sh <platform> <run_id>` exports the
   `(run_id, seq)` rows stored in ThingsBoard `ts_kv` or EdgeX `core_data.reading`; `benchctl explore -history FILE`
   runs the same join and writes `history_reconciliation` into `explore.json` (`cmd/benchctl/main.go:97,332-341`).
-  FIWARE keeps no history, so its reader exits 3 (D9).
+   The baseline Orion latest-value store is not history. The explicit FIWARE
+   candidate exports the independent QuantumLeap/Timescale tier; include that
+   tier's actual container/configuration in the evidence and resource boundary.
 - **Exists:** the sink-observation join: `benchctl explore -sink FILE` reports `planned_reached_sink`,
   `sink_unique`, `sink_duplicates` and `sink_other_run_ids` (`cmd/benchctl/main.go:301-318`;
   `internal/explore/explore.go:46,117-121`).
@@ -126,11 +132,13 @@ authenticated access. Include **every relevant compose project** in one command;
 both `fiware` and `fiwhc`, not just the baseline. `--name CONTAINER` is available for a standalone
 controlled receiver. Do not put credentials in the command: it is recorded in the manifest.
 
-The runner retains `cpu-snapshots.jsonl` (request/response UTC, status, errors, raw TSV), selects
-snapshots bracketing each non-warmup scenario using `scenario_start_ms` from the k6 summary, and
-writes `cpu-step-NN-before.tsv`, `cpu-step-NN-after.tsv` and `cpu-boundary.json`. It reports the
-actual capture interval and boundary skew, **not falsely exact phase CPU**. Counter deltas include
-that skew. The automatic denominator is explicitly `attempted HTTP sends in this measured step`;
+The runner retains `cpu-snapshots.jsonl` (load-host request/response UTC, status, errors, raw TSV), selects
+snapshots bracketing every phase, including warm-up, using the load-host request/response intervals and
+`scenario_start_ms` from the k6 summary. It does **not** compare SUT wall timestamps to load-host timestamps.
+It writes `cpu-step-NN-before.tsv`, `cpu-step-NN-after.tsv` and `cpu-boundary.json`, including lower/upper
+boundary-skew and capture-duration bounds from the load-host request/response brackets. The counter delta
+is an interval measure, **not falsely exact phase CPU**; no numeric alignment acceptance threshold is invented.
+The automatic denominator is explicitly `attempted HTTP sends in this phase`;
 use `benchctl cpu -audit-file ...` separately for a correctness-qualified denominator after audit.
 Cross-host phase alignment requires a qualified clock relationship; the counter delta itself is
 on the SUT and does not require cross-host clock subtraction. An omitted capture command or failed
