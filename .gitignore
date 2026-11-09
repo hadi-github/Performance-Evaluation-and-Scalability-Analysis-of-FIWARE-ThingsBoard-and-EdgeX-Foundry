@@ -34,3 +34,12 @@ __pycache__/
 # local documentation skill/handbook for agents
 /DOCUMENTING.md
 /HANDJOB.md
+
+# local agent configuration (no credentials in git)
+/opencode.jsonc
+
+# local generated documentation catalogue
+/DOCUMENTATION-CATALOG.local.md
+
+# raw campaign evidence belongs on a separate evidence branch
+/results/feasible-campaign-20261106/evidence/
