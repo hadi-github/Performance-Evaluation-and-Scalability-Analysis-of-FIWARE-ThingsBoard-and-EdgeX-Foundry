@@ -5,6 +5,10 @@ execution handoff, **not an instruction to start traffic now**. Runtime work is
 paused for repository preparation. Official attempts require owner authorization,
 the actual independent review receipt and fresh preflight checks.
 
+Related navigation: [quickstart](../quickstart.md), [glossary](../glossary.md),
+[persistent execution](persistent-execution.md) and
+[troubleshooting](troubleshooting.md).
+
 ## Frozen comparison
 
 | Item | Setting |

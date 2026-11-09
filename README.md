@@ -19,7 +19,8 @@ The current owner-approved comparison is deliberately fixed at **N=2/k=2, pool
 > [`docs/status.md`](docs/status.md). Per-session narratives are archived under
 > `docs/archive/sessions/` and may contradict each other; `docs/status.md` wins.
 
-Start with the [documentation index](docs/README.md),
+Start with the [quickstart](docs/quickstart.md) if you are new, then the
+[documentation index](docs/README.md),
 [publication/handoff checklist](docs/operations/publication-handoff.md) and
 [operator runbook](docs/operations/ordinary-campaign.md).
 **Do not use `make clean` or `down -v` between retained campaign attempts.**
