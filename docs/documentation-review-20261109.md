@@ -6,7 +6,7 @@ runtime state or experimental validity.
 
 ## Scope checked
 
-- Root `README.md` and `CONTRIBUTING.md`.
+- Root `README.md`.
 - `docs/README.md`, the consolidated design/method pages, operations,
   development, methodology, qualification and archive material.
 - `DOCUMENTING.md` for the repository's documentation rules.
@@ -29,7 +29,6 @@ documents. The archive accounts for a large part of that volume.
 | `docs/methodology/` | Detailed contracts and reconciliation records, including the dispatch contract and metrics dictionary |
 | `docs/qualification/` | Blockers, D28/D29a checks, readiness checklist, Step-5 decision packet and owner sign-off |
 | `docs/archive/sessions/` | Verbatim historical session narratives and state snapshots |
-| `CONTRIBUTING.md` | Ground rules, local verification and pull-request expectations |
 
 The material is technically strong where it exists. It preserves distinctions
 between dispatch, wire transmission, HTTP acknowledgement, sink receipt and
