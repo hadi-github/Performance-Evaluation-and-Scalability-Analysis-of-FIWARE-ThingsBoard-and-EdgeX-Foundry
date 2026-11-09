@@ -1,0 +1,30 @@
+{
+  "all_workloads": [
+    "Separate workload-aware launcher and aggregation; current B0 launcher/matrix/analysis grouping are not a W1-W4 release.",
+    "Fresh images/resources/clock/capture/history/provenance and workload integrity gates; preserve invalid attempts and valid platform failures.",
+    "Freeze qualification plans and workload-aware verdict policy before variant outcomes. Reuse only matching qualified evidence.",
+    "Reconcile independent stored history and report missing, late, duplicate, malformed/truncated and UNKNOWN deliveries separately."
+  ],
+  "W1": [
+    "Full-duration 50/s, 300/600-second generator/capture validation under actual adapter/recording/monitoring: 15000 warm-up and 30000 measurement identities.",
+    "Existing 50/s 30/120-second B0 qualification is not full-duration W1 clearance.",
+    "The dispatch-integrity-v1 evaluator now has an explicit 100/s profile with unchanged identity, timing, loss, bin, gap and lag-integrity checks. This is source support only: qualify 100/s generator/capture capability under matching HTTP/recording conditions before release; do not edit active B0 gates."
+  ],
+  "W2": [
+    "Validate 2000-device provisioning and every active replica recognizing the entire intended cohort before traffic.",
+    "For EdgeX, retain numeric runtime inventory and metadata/driver discovery limits with historical cohorts; reserve the entire planned batch plus qualifications/margin. Current 16384 limit is below projected 36192 experimental population.",
+    "Any common discovery-setting amendment must be frozen for the new batch and its B0 comparability disclosed; no deletion/reset and no active-B0 change."
+  ],
+  "W3": [
+    "Exactly 1024 extra ASCII logical padding bytes, using size_offset_bytes=1024 on every adapter, with live sink/history preservation and independent payload validation.",
+    "Current FIWARE sink/history subscriptions select only identity/timing fields, and sink records omit padding. Review and qualify a payload-preserving evidence path with common-batch/comparability treatment; never silently change only W3 or active B0.",
+    "Report logical bytes, actual serialized adapter body bytes, scoped measured transport bytes and measurement method separately. Current HTTP-header arithmetic is only an estimate, not actual on-wire capture.",
+    "For identical identity fields FIWARE zero padding is encoded as quoted empty text; native body delta can be 1022 although logical padding delta is exactly 1024."
+  ],
+  "W4": [
+    "Exactly one active replica of each replicated service, same two-core pool 4-5, unchanged per-replica limits, supporting tiers and HAProxy path.",
+    "N=1 must not imply k=1/core4; verify Docker/kernel effective cpusets and one UP backend per tier, including ThingsBoard rule-engine container count.",
+    "Report changed aggregate application memory caused by fewer replicas; this is not a fixed-total-memory or CPU-scaling experiment."
+  ],
+  "other_configuration_headroom": "Qualify applicable 50/s headroom for D=2000, padding=1024 or N=1/k=2, or obtain reviewed matching evidence; B0 qualification does not automatically transfer."
+}

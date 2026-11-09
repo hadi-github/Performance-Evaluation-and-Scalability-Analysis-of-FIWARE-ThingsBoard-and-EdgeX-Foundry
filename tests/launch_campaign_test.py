@@ -104,6 +104,30 @@ class ValidateCellPlanTests(unittest.TestCase):
                 mod.validate_cell_plan("thingsboard", "tb-r06-20261106", path, resolved_for())
             self.assertIn("template", str(e.exception))
 
+    def test_owner_amended_supplemental_attempt_has_unique_id_and_identical_plan(self):
+        rid = 'disp-tb-r04a-20261109'
+        amendment = json.loads((mod.HERE / 'supplemental-attempts-20261109.json').read_text())
+        row = next(x for x in amendment['attempts'] if x['run_id'] == rid)
+        plan_path = mod.frozen_plan_path('thingsboard', rid)
+        baseline = mod.frozen_plan_path('thingsboard', row['baseline_run_id'])
+        matrix = json.loads((mod.HERE / 'run-matrix.json').read_text())['ordinary_runs']
+        self.assertNotIn(rid, [x['run_id'] for x in matrix])
+        self.assertEqual(plan_path.read_bytes(), baseline.read_bytes())
+        self.assertIn('matches', mod.validate_cell_plan('thingsboard', rid, plan_path,
+                                                         resolved_for(run_id=rid)))
+
+    def test_supplemental_attempt_cannot_change_platform_or_plan(self):
+        rid = 'disp-tb-r04a-20261109'
+        with self.assertRaises(SystemExit):
+            mod.frozen_plan_path('fiware', rid)
+        with tempfile.TemporaryDirectory() as d:
+            altered = pathlib.Path(d) / 'plan.json'
+            plan = json.loads(mod.frozen_plan_path('thingsboard', rid).read_text())
+            plan['schedule']['steps'][1]['rate'] = 50
+            altered.write_text(json.dumps(plan))
+            with self.assertRaises(SystemExit):
+                mod.validate_cell_plan('thingsboard', rid, altered, resolved_for(run_id=rid))
+
 
 class EvidenceTests(unittest.TestCase):
     def test_tb_backend_gate_requires_both_exact_n2_backends(self):
@@ -217,6 +241,8 @@ class LaunchOrderingTests(unittest.TestCase):
         def ssh(host, command, **kwargs):
             if command.startswith('cat '):
                 return mock.Mock(returncode=0, stdout=json.dumps(resolved_for(platform,rid)), stderr='')
+            if '/snapshot' in command:
+                return mock.Mock(returncode=0, stdout='snapshot\trow\n', stderr='')
             if command.startswith('rmdir '):
                 events.append('unlock')
             return mock.Mock(returncode=0, stdout='', stderr='')

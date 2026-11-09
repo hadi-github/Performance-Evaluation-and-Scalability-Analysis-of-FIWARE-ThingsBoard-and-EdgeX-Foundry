@@ -4,6 +4,10 @@ import argparse, json, math
 from pathlib import Path
 
 POLICY = "dispatch-integrity-v1"
+# Conservative 100/s extension for prospective generator headroom evidence.
+# Existing 25/s and 50/s bins remain unchanged; rate-specific thresholds are
+# explicit so this does not silently infer or relax a gate.
+RATE_BIN_LIMITS = {25: (23, 27, 7), 50: (48, 52, 11), 100: (98, 102, 21)}
 
 def evaluate(run):
     run = Path(run)
@@ -63,9 +67,8 @@ def evaluate(run):
         edge=start
         while edge+100<=end:
             hundred.append(sum(edge<=r["actual_send_ms"]<edge+100 for r in physical)); edge+=100
-        if rate not in (25,50): raise ValueError("dispatch-integrity-v1 supports only frozen 25/s and 50/s rates")
-        lo,hi= (48,52) if rate==50 else (23,27)
-        max100=11 if rate==50 else 7
+        if rate not in RATE_BIN_LIMITS: raise ValueError("dispatch-integrity-v1 supports only qualified 25/s, 50/s and prospective 100/s rates")
+        lo,hi,max100=RATE_BIN_LIMITS[int(rate)]
         ordered=sorted(physical,key=lambda r:r["actual_send_ms"])
         edge_gaps=[]
         if ordered:

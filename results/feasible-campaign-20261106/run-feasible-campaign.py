@@ -10,8 +10,10 @@ import argparse
 import fcntl
 import hashlib
 import json
+import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -58,6 +60,26 @@ def qualification_run_ids(platform):
 
 def frozen_plan_path(platform, run_id):
     prefix = PLATFORM_PREFIX[platform]
+    # Owner-authorized supplemental attempts are kept outside the frozen B0
+    # matrix and require a separately reviewed amendment plus unique run ID.
+    amendment_path = HERE / 'supplemental-attempts-20261109.json'
+    if amendment_path.is_file():
+        amendment = json.loads(amendment_path.read_text())
+        for attempt in amendment.get('attempts', []):
+            if attempt.get('run_id') != run_id:
+                continue
+            if attempt.get('platform') != platform:
+                raise SystemExit('supplemental run ID platform does not match amendment')
+            plan = (HERE / attempt['plan']).resolve()
+            if not plan.is_relative_to(HERE.resolve()) or not plan.is_file():
+                raise SystemExit('supplemental plan path is invalid')
+            if sha256_file(plan) != attempt.get('plan_sha256'):
+                raise SystemExit('supplemental plan hash does not match amendment')
+            baseline = frozen_plan_path(platform, attempt['baseline_run_id'])
+            expected = json.loads(baseline.read_text())
+            if json.loads(plan.read_text()) != expected:
+                raise SystemExit('supplemental attempt must preserve the baseline workload plan exactly')
+            return plan
     if platform in ('fiware','edgex') and run_id in qualification_run_ids(platform) and '-finalshort' in run_id:
         return HERE / f'{platform}-final-short-plan.json'
     if run_id in qualification_run_ids(platform):
@@ -68,8 +90,24 @@ def frozen_plan_path(platform, run_id):
     raise SystemExit('run ID does not match a frozen ordinary or qualification cell')
 
 
+def transport_options():
+    """One explicit, private configuration shared by SSH and every SCP path."""
+    config = os.environ.get('IOT_BENCH_SSH_CONFIG')
+    if not config:
+        return []
+    path = Path(config).resolve()
+    if not path.is_file():
+        raise RuntimeError('IOT_BENCH_SSH_CONFIG is not a file')
+    return ['-F', str(path), '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
+            '-o', 'ConnectTimeout=10', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3']
+
+
+def scp_command(*args):
+    return ['scp', *transport_options(), *map(str, args)]
+
+
 def ssh(host, command, timeout=180, check=True):
-    p = subprocess.run(["ssh", "-o", "BatchMode=yes", host, command], text=True,
+    p = subprocess.run(["ssh", *transport_options(), "-o", "BatchMode=yes", host, command], text=True,
                        capture_output=True, timeout=timeout)
     if check and p.returncode:
         raise RuntimeError(f"ssh {host} failed ({p.returncode}):\n{p.stdout}\n{p.stderr}\n$ {command}")
@@ -310,7 +348,7 @@ def stage_edgex_helper():
     digest = sha256_file(source)
     target = EDGEX + '/scripts/provision-feasible-' + digest[:16] + '.sh'
     if ssh(SUT, 'test -e ' + shlex.quote(target), check=False).returncode:
-        subprocess.run(['scp', str(source), SUT + ':' + target], check=True, timeout=60)
+        subprocess.run(scp_command(source, SUT + ':' + target), check=True, timeout=60)
     actual = ssh(SUT, 'sha256sum ' + shlex.quote(target)).stdout.split()[0]
     if actual != digest:
         raise RuntimeError('staged EdgeX helper hash mismatch; do not execute')
@@ -322,7 +360,7 @@ def stage_edgex_discovery_override():
     digest = sha256_file(source)
     target = EDGEX + '/compose.feasible-discovery-' + digest[:16] + '.yaml'
     if ssh(SUT, 'test -e ' + shlex.quote(target), check=False).returncode:
-        subprocess.run(['scp', str(source), SUT + ':' + target], check=True, timeout=60)
+        subprocess.run(scp_command(source, SUT + ':' + target), check=True, timeout=60)
     if ssh(SUT, 'sha256sum ' + shlex.quote(target)).stdout.split()[0] != digest:
         raise RuntimeError('EdgeX discovery override hash mismatch')
     return target
@@ -474,6 +512,34 @@ def sha256_file(path):
     return h.hexdigest()
 
 
+def build_source_sha256():
+    """Bind prebuilt tools to this controller's exact Go source, not its label."""
+    paths = [REPO / 'go.mod']
+    if (REPO / 'go.sum').exists():
+        paths.append(REPO / 'go.sum')
+    for directory in ('cmd', 'internal'):
+        paths.extend((REPO / directory).rglob('*.go'))
+    h = hashlib.sha256()
+    for path in sorted(paths):
+        h.update(str(path.relative_to(REPO)).encode()+b'\0'+path.read_bytes()+b'\0')
+    return h.hexdigest()
+
+
+def validate_prebuilt_tools(source=None, names=('benchctl', 'sink')):
+    """Pure local verification; call before locks, stack switches or traffic."""
+    source = source or os.environ.get('IOT_BENCH_PREBUILT_DIR')
+    if not source:
+        return None
+    source = Path(source).resolve()
+    provenance = json.loads((source / 'build-provenance.json').read_text())
+    if provenance.get('go_source_sha256') != build_source_sha256():
+        raise RuntimeError('prebuilt tools do not match this controller Go source')
+    for name in names:
+        if sha256_file(source / name) != provenance['sha256'][name]:
+            raise RuntimeError('prebuilt binary hash mismatch: ' + name)
+    return source, provenance
+
+
 STAGED_SCRIPTS = [
     "scripts/run-capture.sh",
     "scripts/run-protocol-capture.sh",
@@ -499,9 +565,16 @@ def stage_reviewed_source(run_id, plan_path, out_dir):
     """Build and stage exact reviewed bytes; verify every remote hash."""
     build = out_dir / "build"
     build.mkdir(parents=True)
-    for name in ("benchctl", "sink"):
-        subprocess.run(["go", "build", "-o", str(build / name), "./cmd/" + name],
-                       cwd=REPO, check=True, timeout=300)
+    prebuilt = validate_prebuilt_tools()
+    if prebuilt:
+        source, provenance = prebuilt
+        for name in ('benchctl', 'sink'):
+            shutil.copy2(source / name, build / name)
+        (build / 'build-provenance.json').write_text(json.dumps(provenance, indent=2)+'\n')
+    else:
+        for name in ("benchctl", "sink"):
+            subprocess.run(["go", "build", "-o", str(build / name), "./cmd/" + name],
+                           cwd=REPO, check=True, timeout=300)
     members = {}
     for rel in STAGED_SCRIPTS:
         members[rel] = REPO / rel
@@ -520,8 +593,8 @@ def stage_reviewed_source(run_id, plan_path, out_dir):
             manifest.append(f"{sha256_file(path)}  {arcname}")
     (out_dir / "staged-source.sha256").write_text("\n".join(manifest) + "\n")
     ssh(LOAD, f"set -eu; umask 077; mkdir -p {REMOTE_SOURCE}")
-    subprocess.run(["scp", str(archive), f"{LOAD}:{REMOTE_SOURCE}/staged-source.tar.gz"], check=True, timeout=300)
-    subprocess.run(["scp", str(out_dir / "staged-source.sha256"), f"{LOAD}:{REMOTE_SOURCE}/staged-source.sha256"], check=True, timeout=120)
+    subprocess.run(scp_command(archive, f"{LOAD}:{REMOTE_SOURCE}/staged-source.tar.gz"), check=True, timeout=300)
+    subprocess.run(scp_command(out_dir / "staged-source.sha256", f"{LOAD}:{REMOTE_SOURCE}/staged-source.sha256"), check=True, timeout=120)
     remote(LOAD, f"cd {REMOTE_SOURCE}; tar -xzf staged-source.tar.gz; sha256sum -c staged-source.sha256; "
                  "chmod 700 bin/* scripts/*.sh scripts/*.py")
     return manifest
@@ -549,11 +622,20 @@ def validate_cell_plan(platform, run_id, plan_path, resolved):
                 steps != expected_steps):
             raise SystemExit('resolved qualification differs from bounded 50/s scope')
         return 'resolved plan matches the bounded adapter-specific qualification'
-    m = re.fullmatch(r"disp-(tb|fw|ex)-r(0[1-5])-20261106", run_id or "")
+    amendment_path = HERE / 'supplemental-attempts-20261109.json'
+    supplemental = None
+    if amendment_path.is_file():
+        supplemental = next((a for a in json.loads(amendment_path.read_text()).get('attempts', [])
+                             if a.get('run_id') == run_id), None)
+    baseline_id = supplemental.get('baseline_run_id') if supplemental else run_id
+    m = re.fullmatch(r"disp-(tb|fw|ex)-r(0[1-5])-20261106", baseline_id or "")
     if not m:
         raise SystemExit(f"run id does not match the frozen template: {run_id!r}")
     if m.group(1) != PLATFORM_PREFIX[platform]:
         raise SystemExit(f"run id prefix does not match platform {platform}")
+    if supplemental and (supplemental.get('platform') != platform or
+                         Path(plan_path).resolve() != frozen_plan_path(platform, run_id).resolve()):
+        raise SystemExit('supplemental cell is not bound to its reviewed platform/plan')
     rep = int(m.group(2))
     cell = next(c for c in SCOPE["ordinary_cells"] if c["platform"] == platform)
     plan = json.loads(Path(plan_path).read_text())
@@ -649,6 +731,7 @@ def cleanup_run(run_id, out_dir, acquire_lock):
 def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False):
     if resume_setup:
         raise SystemExit('pretraffic resume is disabled: use a separately reviewed fresh attempt')
+    validate_prebuilt_tools()
     frozen_plan = frozen_plan_path(platform, run_id)
     plan_path = Path(plan_path).resolve()
     if not plan_path.is_file():
@@ -680,6 +763,13 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
         (out_dir/'effective-resources-before.json').write_text(json.dumps(effective,indent=2)+'\n')
         print(verify_live(platform))
         if platform == 'thingsboard':
+            # The protocol-capture diagnostic sampler calls this helper during
+            # the run. Prove its active-project CPU snapshot works before any
+            # workload traffic can start.
+            snapshot = ssh(SUT, "curl -fsS --max-time 8 http://127.0.0.1:18085/snapshot")
+            if not snapshot.stdout.strip():
+                raise RuntimeError('TB pretraffic CPU snapshot helper returned no data')
+            (out_dir/'cpu-snapshot-pretraffic.tsv').write_text(snapshot.stdout)
             (out_dir/'tb-haproxy-before.prom').write_text(wait_tb_backends())
         owned_workload_check()
         grafana = f"GRAFANA_URL={shlex.quote(grafana_url)} " if grafana_url else ""
@@ -826,7 +916,7 @@ def fetch_evidence(run_id, out_dir):
         dest = out_dir / name
         dest.mkdir(exist_ok=False)
         try:
-            p = subprocess.run(["scp", "-r", f"{LOAD}:{remote_path}", str(dest)],
+            p = subprocess.run(scp_command("-r", f"{LOAD}:{remote_path}", dest),
                                text=True, capture_output=True, timeout=600)
         except Exception as e:
             errors.append({'glob':remote_path,'error':str(e)})
@@ -860,7 +950,7 @@ def fetch_edgex_gate(run_id, out_dir):
                    '.json.metadata-discovery.json','.json.driver-discovery.json'):
         target = out_dir / ('edgex-gate'+suffix)
         try:
-            p = subprocess.run(['scp', f'{SUT}:{REMOTE_RESULTS}/gates/{run_id}{suffix}',str(target)],
+            p = subprocess.run(scp_command(f'{SUT}:{REMOTE_RESULTS}/gates/{run_id}{suffix}',target),
                                text=True,capture_output=True,timeout=60)
             status.append({'suffix':suffix,'exit':p.returncode,'stderr':p.stderr})
         except Exception as e:
@@ -868,7 +958,7 @@ def fetch_edgex_gate(run_id, out_dir):
     attempts = out_dir / 'edgex-gate-statuses'
     attempts.mkdir(exist_ok=True)
     try:
-        p = subprocess.run(['scp',f'{SUT}:{REMOTE_RESULTS}/gates/{run_id}.json.*.http-statuses',str(attempts)],
+        p = subprocess.run(scp_command(f'{SUT}:{REMOTE_RESULTS}/gates/{run_id}.json.*.http-statuses',attempts),
                            text=True,capture_output=True,timeout=60)
         status.append({'suffix':'readiness-statuses','exit':p.returncode,'stderr':p.stderr})
     except Exception as e:
@@ -884,7 +974,7 @@ def export_history_from_workstation(platform, run_id, out_dir):
     target = out_dir / f"{run_id}.history.ndjson"
     with (REPO / "scripts" / "history-ids.sh").open("rb") as src, target.open("wb") as dst, \
             (out_dir / f"{run_id}.history.log").open("wb") as log:
-        p = subprocess.run(["ssh", "-o", "BatchMode=yes", SUT,
+        p = subprocess.run(["ssh", *transport_options(), "-o", "BatchMode=yes", SUT,
                             f"env {env} bash -s '{platform}' '{run_id}'"],
                            stdin=src, stdout=dst, stderr=log, timeout=300)
     if p.returncode:
@@ -921,6 +1011,8 @@ def main():
     args = ap.parse_args()
     if args.action in ("switch", "activate", "finish", "launch") and not (args.execute_reviewed and args.sol_review):
         raise SystemExit("mutating action refused: obtain integrated Sol review and pass --execute-reviewed --sol-review RECEIPT")
+    if args.action in ('switch', 'activate', 'finish', 'launch'):
+        validate_prebuilt_tools()
     lock_path = HERE / ".campaign.lock"
     with lock_path.open("w") as lock:
         try:

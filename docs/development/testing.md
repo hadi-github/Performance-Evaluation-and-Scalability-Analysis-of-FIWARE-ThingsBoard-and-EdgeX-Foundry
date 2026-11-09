@@ -54,6 +54,7 @@ safety tests are mocked, not executed against benchmark hosts.
 | `export_run_test.py` | Synthetic Prometheus export: fractional timestamps, gaps, NaN, absent series/query errors remain unavailable, not zero; optional plotting checks can skip when dependencies are missing. |
 | `resume_safe_provision_test.py` | Preparation preserves existing storage; guards against destructive reset commands. |
 | `qualification_packaging_test.py` | Fresh-clone copy of the historical one-off qualification script: default invocation labels itself unsupported and launches nothing; execution with the ignored companion absent fails before output creation or remote access. |
+| `fixed_point_variants_test.py` | Offline W1–W4 staging: exactly one treatment field changes, all platforms receive five proposed attempts, shared HTTP/VUs/seeds and 300/600-second phases match B0, W4 keeps k=2/pool 4–5, IDs are unique and width-matched, message counts/interleaving/hash bindings are correct, B0 stays byte-identical, overwrite/drift is refused. No hosts or traffic. |
 
 `tests/offline/test_history_export.py` and `test_history_payload.py` exercise
 history parsing/normalization, including the FIWARE candidate, using fixtures
@@ -82,6 +83,7 @@ storage/deployment evidence.
 |---|---|
 | `tests/offline/adapter-payload.test.mjs` | `node --test tests/offline/adapter-payload.test.mjs`; deterministic payload offsets/accounting and response-boundary outcomes, including empty FIWARE padding. No real k6/platform connection. |
 | `tests/offline/edgex-preprovision.test.mjs` | `node --test tests/offline/edgex-preprovision.test.mjs`; stubbed k6/HTTP verifies matching preprovisioned cohort skips provisioning and mismatched settings fail. |
+| `tests/offline/fixed-point-padding.test.mjs` | `node --test tests/offline/fixed-point-padding.test.mjs`; all three real adapter constructors carry exactly 1,024 extra ASCII logical padding bytes. Checks native-body differences (JSON +1,024, FIWARE +1,022) separately from actual wire bytes; no HTTP/k6/platform invocation. |
 | `tests/capture_thingsboard_file_logs_test.sh` | `bash tests/capture_thingsboard_file_logs_test.sh`; fake Docker checks hostname-specific current/rotated log capture and overwrite refusal. Creates its temporary parent (`TMPDIR` or `/tmp/opencode`); no real platforms. |
 | `tests/k6-timing-origin-probe.js` | Optional `k6 run tests/k6-timing-origin-probe.js`; elapsed-clock probe with deliberate setup/sleeps, no HTTP requests. Not part of frozen workload; elapsed marks do not prove wall-clock dispatch accuracy. |
 

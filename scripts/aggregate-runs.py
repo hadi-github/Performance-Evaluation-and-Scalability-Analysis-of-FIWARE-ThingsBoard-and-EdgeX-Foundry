@@ -49,7 +49,7 @@ def run_kind(run_id):
 
 
 def discover(paths):
-    found = {}
+    grouped = {}
     for raw in paths:
         p = pathlib.Path(raw)
         if p.is_file():
@@ -60,7 +60,19 @@ def discover(paths):
             raise SystemExit(f"input does not exist: {p}")
         for analysis in candidates:
             run_id = analysis.name[:-len(".dispatch-analysis.json")]
-            found[run_id] = analysis
+            grouped.setdefault(run_id, set()).add(analysis.resolve())
+    found = {}
+    for run_id, candidates in grouped.items():
+        if len(candidates) == 1:
+            found[run_id] = next(iter(candidates))
+            continue
+        canonical = [p for p in candidates if p.parent.name == run_id]
+        # Preserved/recovered versions below a canonical attempt are retained,
+        # not additional repetitions. Never choose one by alphabetical order.
+        if len(canonical) == 1 and all(p == canonical[0] or canonical[0].parent in p.parents for p in candidates):
+            found[run_id] = canonical[0]
+        else:
+            raise SystemExit('ambiguous analyses for '+run_id+'; provide one explicit canonical input')
     return found
 
 

@@ -4,32 +4,54 @@
 
 The owner has changed the future primary latency endpoint to **application dispatch → first complete-message sink receipt on the same load host** and withdrawn the universal 10 ms send-lag p99 rejection rule for future explicitly marked runs. Historical verdicts remain unchanged. Scheduled-to-receipt and send lag remain diagnostics/secondary evidence, not silently reinterpreted historical results. See `docs/methodology/dispatch-contract-20261106.md` and the narrowed review-candidate matrix at `results/feasible-campaign-20261106/frozen-scope.json`.
 
-The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. Its current execution state is **PAUSED at owner request**, as detailed below. Older gates/authorization text below remain dated historical context, not an override of the narrowed release or pause.
+The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. After the controller paused at TB repetition 2, independent review accepted its valid platform failure and cleared a **new persistent controller at original entry 7, EdgeX repetition 3**. Older gates/authorization text below remain dated historical context, not an override of this narrowed release.
 
-**Last reconciled: 2026-11-07** (branch `chore/ci-and-release`).
+**Last reconciled: 2026-11-08 handoff**; actual recorded UTC timestamps govern run timing.
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
 preserved verbatim — and may contradict each other — under [`docs/archive/sessions/`](archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
 (or re-derived from the raw evidence), never re-litigated from the narratives.
 
-Current verdict: **bounded ordinary campaign partially executed; runtime work PAUSED for
-repository/publication handoff at owner request; campaign not complete**.
+Current verdict: **bounded ordinary campaign partially executed; reviewed continuation
+of original entries 7–15 running; campaign not complete**.
 The broader capacity/scaling/fault campaign is not qualified by this release. Historical NO-GO
 statements below retain their original dated scope and verdicts.
 
-## Current ordinary campaign checkpoint — 2026-11-07
+## Current ordinary campaign checkpoint — persistent continuation
 
-**Do not launch further workloads during this handoff.** Direct workstation → `ramonavm1`
-SSH timed out, but strict-key SSH via `ramonavm2` succeeded. The jump path is not yet integrated
-into the launcher's SSH/SCP transport. Read-only inspection found entry 4's remote request,
-capture and analysis artifacts, no current k6 container, and no `/run` workload lock. The load
-host reports a later boot at 2026-11-07 16:07:21 UTC, so absence of the volatile lock is not
-historical cleanup proof. SUT FIWARE services were still running. No new workload or remote
-mutation was performed. See the [operator runbook](operations/ordinary-campaign.md) for the
-verified network path and exact recovery gates; no country-wide filtering cause is established.
-The FIWARE repetition 2 local launcher was cancelled with “Command cancelled because the server
-restarted.” This confirms local launcher cancellation only: **remote workload termination, final
-measurement outcome, service state and cleanup remain unverified**. No remote stop is claimed.
+The SUT tmux session `iot-feasible-ordinary-20261108` started at observed
+**2026-11-07 21:22 UTC**, with controller PID 4078364 verified on **CPU 0**.
+It accepted EX repetition 2, then halted with exit 1 at observed **22:41 UTC**
+after TB repetition 2 returned a valid platform delivery failure. Original
+controller state/log/exit and both attempts are retained. No entry 7 or retry
+was started by that controller. Independent review accepted EX2 success and TB2
+as `VALID_PLATFORM_FAILURE_OR_BACKLOG`, with no instrumentation blocker or
+replacement/full-qualification rerun required. A fresh ordinal-7 receipt binds
+the unchanged sources, binaries and remaining plans. The new tmux session
+`iot-feasible-ordinary-r07-20261108` started at observed **22:52 UTC**, with PID
+143674 verified on CPU 0, beginning `disp-ex-r03-20261106`. Old state and logs
+remain unchanged; live state is now `state-r07/controller-state.json`. Never
+reuse attempted IDs or the old state. The supervisor halts on nonzero/missing gates, collisions, input changes,
+ownership/cleanup/history failures, aggregation errors or `STOP_AFTER_CURRENT`;
+no retry/replacement and no automatic reboot resume. Do not start a competing
+launcher. Live authority is the controller's remote `state-r07/controller-state.json`
+under `/root/iot-feasible-controller-20261107-1810`, not a stale workstation copy.
+
+The launcher now shares an explicit strict SSH/SCP configuration. The controller
+uses native SUT → load access, not the unreliable workstation direct path.
+A dedicated source/forwarding-restricted **root-capable** key is private to the
+SUT; it is not command-restricted, and the general workstation key was not copied.
+The administrative connection is not the measured telemetry path. No national
+filtering cause is established.
+
+FW repetition 2's original remote run completed despite local launcher
+cancellation. Its raw evidence and original failed-history assessment were
+preserved; independent recovery review accepted request/sink/history identity
+reconciliation, and named services were safely stopped with cleanup verified.
+History was exported at recovery, **not proven visible by the original cutoff**;
+later reboot/lock absence is not reconstructed historical controller cleanup.
+See [persistent execution](operations/persistent-execution.md) for receipts,
+detach proof, viewing/pause commands and recovery caveats.
 
 Frozen scope: 25 msg/s, 1,000 devices, payload selector 0, N=2/k=2, application pool `4-5`,
 300 s warm-up + 600 s measurement, `GOGC=400`, monitoring enabled; five planned attempts per
@@ -42,18 +64,35 @@ automatically; send-lag p99 alone is not a rejection criterion under `dispatch-i
 | 1 | `disp-tb-r01-20261106` | Setup failure: first login HTTP 503; 0/22,500 offered/planned telemetry; no measurement. Recovery accepted, cleanup verified; no replacement. | Not assessed |
 | 2 | `disp-fw-r01-20261106` | Valid platform/history success; 22,500 exact request/sink/history identities; cleanup verified. | 107.137939453125 ms |
 | 3 | `disp-ex-r01-20261106` | Valid platform/history success; 22,500 exact request/sink/history identities; cleanup verified; no new metadata panic/restart. | 7.9072265625 ms |
-| 4 | `disp-fw-r02-20261106` | Local launcher cancelled by harness server restart; remote outcome and cleanup unverified. | Not established |
+| 4 | `disp-fw-r02-20261106` | Original completed attempt recovered and independently accepted; 22,500 exact identities; delayed history/cleanup caveats above. | 122.3681640625 ms |
+| 5 | `disp-ex-r02-20261106` | Valid platform/history success; 22,500 exact identities; cleanup verified; no new metadata defect. | 8.38134765625 ms |
+| 6 | `disp-tb-r02-20261106` | Independently accepted valid platform delivery failure: 200 warm-up identities absent at sink cutoff; full history; safe finish/cleanup. | 203.120849609375 ms (15,000/15,000 measurement receipts) |
+| 7 | `disp-ex-r03-20261106` | New persistent controller preparing/running original attempt; no result accepted yet. | Pending |
 
-Entries 2–3 passed workload/capture/clock and generator/SUT resource gates, with zero missing,
-duplicate or late deliveries. **Four attempts launched, three reconciled, eleven not yet launched**;
-entry 4 is unresolved, not counted as a valid result or proven stopped workload. TB has five planned
-attempts but at most four valid measured repetitions if all remaining TB attempts succeed.
+Six original attempts have completed: four valid platform successes, one
+zero-traffic setup failure and TB repetition 2's valid platform delivery failure.
+Nine original entries remain including the active `disp-ex-r03-20261106`;
+eight further entries have not started. TB still has five planned attempts and at most four valid measured
+repetitions; a valid platform failure is not an invalid measurement or a reason
+to substitute another run.
 
-Before resuming: inspect entry 4's existing artifacts and remote workload/capture processes,
-service state and workload lock; recover evidence and establish outcome/cleanup without overwriting
-originals. Preserve interrupted/failed attempts; no automatic retry, replacement ID or favorable
-substitution. Apply existing pause/review gates. The next original matrix entry after resolving
-entry 4 is `disp-ex-r02-20261106`; this is a continuation pointer, **not authorization to launch**.
+TB repetition 2 sent all 22,500 planned identities. Measurement delivered all
+15,000; warm-up delivered 7,300/7,500 by cutoff, with conditional p99
+33,786.958740234375 ms and 200 missing. Of 36 warm-up UNKNOWN HTTP outcomes,
+22 reached the sink and 14 did not; the other 186 missing sink identities were
+acknowledged. All 22,500 identities were independently found in history. There
+were no duplicate, late or malformed receipts, and no clock/capture/resource
+failure was reported. Do not discard warm-up, infer permanent loss beyond the
+observation window, or claim a cold-start/network root cause from these counts.
+
+The separate 625-message loopback diagnostic passed and survived the initiating
+SSH disconnect: reconnection witnessed tmux/k6 active at 208/625; final wrapper
+exit was 0, with 625 exact request/receiver identities and verified cleanup.
+It is not a qualification, headroom result or ordinary repetition. Independent
+artifact review issued `ACCEPTED_PERSISTENT_ORDINARY_CONTINUATION` for exact
+original entries 5–15, bound to frozen plans, complete source/binary manifests
+and a separate reviewed-probe receipt. The raw probe's false review flag remains
+unchanged. No successful run or failed TB attempt was rerun or replaced.
 
 Evidence and execution records:
 - [Approved plan and chronological checkpoints](../results/feasible-campaign-20261106/PLAN.md),
@@ -61,8 +100,10 @@ Evidence and execution records:
   [source/evidence policy](../results/feasible-campaign-20261106/README.md) are versioned.
 - Externally retained under `results/feasible-campaign-20261106/` (not included
   in Git): `campaign-progress.json`, `independent-review-ordinary-release.json`,
-  `independent-review-tb-r01-recovery.json`, `resume-check-20261107.json`,
-  `evidence/` and `aggregate/summary.md`. A reviewed public archive location is
+  `independent-review-tb-r01-recovery.json`, `independent-review-fw-r02-recovery.json`,
+  `independent-review-persistent-continuation.json`, `independent-review-persistent-r07-continuation.json`,
+  `controller-pause-r06-20261108/`, `persistence-probe-20261108a1/`,
+  `resume-check-20261107.json`, `evidence/` and `aggregate/summary.md`. A reviewed public archive location is
   still an owner publication decision; these are provenance paths, not shipped datasets.
 
 Full repaired FIWARE and EdgeX endpoint/headroom qualifications were independently accepted,
@@ -84,8 +125,9 @@ inside each run directory, with per-phase counts and a final k6 exit status.
 No k6 request-timing code, frozen workload or verdict gate is changed. ACKs are
 not sink/history delivery; 100% does not mean drain/analysis/cleanup completed.
 Details and live-view commands: [generator progress guide](development/generator-progress.md).
-This is a local tooling change, not a deployed feature or recovery of FIWARE
-repetition 2. **Runtime work is paused for handoff; entry 4's outcome remains unverified.**
+This observer is now proven by the detached diagnostic and included in the
+hash-verified tools used for the remaining campaign. It does not retroactively
+add progress logs to older runs or replace the separate FW2 recovery review.
 Validation: `go test -race -count=1 ./internal/runner ./cmd/benchctl` and
 `git diff --check` passed. Focused tests cover partial/incremental log reads,
 per-phase outcomes, duplicate and invalid identities, zero-response setup aborts,
@@ -104,6 +146,38 @@ stable reviewed archive location. No GitHub push or licence choice is implied.
 Independent re-review accepted the source/documentation handoff after packaging,
 readiness wording and diagnostic progress corrections. That acceptance does not
 clear public release, runtime continuation, FW2 acceptance or experiment completion.
+
+### Separate W1–W4 configuration batch staged
+
+The owner approved four one-factor fixed-point configurations for all three
+platforms: W1 rate 50/s, W2 2,000 devices, W3 1,024 extra logical padding bytes,
+and W4 one replica per replicated service on the **same CPU pool 4–5/k=2**.
+The active B0 controller, frozen settings and existing attempt IDs are unchanged.
+No variant has been launched.
+Independent review accepted staging/documentation only, not runtime execution.
+
+The new [batch controls](../workloads/campaigns/fixed-points-20261108/README.md)
+contain 60 distinct interleaved experimental entries: **five attempts per
+workload/platform proposed**, separate from B0's existing five. All 60 generator
+plans resolve offline; one-factor/count/interleaving/preservation tests and the
+three-adapter logical-padding test pass. These are source/engineering checks,
+not live deployment, qualification or experimental results.
+
+All variants still need workload-aware execution/report grouping and separate
+release. W1 needs full-duration 50/s capture validation and resolution of its
+applicable 100/s headroom-policy gap. W2 needs all-device replica readiness and
+live retained EdgeX inventory/discovery checks; projected B0+new experimental
+cohorts reach 36,192 devices before new qualification cohorts, above the current
+16,384 discovery setting. W3 needs live padding preservation, capture/headroom
+and an actual transport/wire measurement method; current FIWARE sink/history
+subscriptions and sink records do not retain padding. Any evidence-path change
+requires common-batch/comparability review, not an undisclosed W3-only change.
+Computed header bytes are not measured wire bytes. W4 needs verified N=1/k=2 resources and the same HAProxy path.
+These blocked prerequisites do not establish infeasibility. Do not modify active
+B0 to clear them, delete history/devices or count qualification as repetitions.
+
+For the configuration table, rationale, evidence boundaries and comparison
+limits, see [workload methodology](methodology.md#8-workload-configurations-b0-and-the-separate-w1w4-batch).
 
 ## Historical qualification and decision record (through 2026-11-05)
 
@@ -326,7 +400,7 @@ This update authorizes no runtime action. **Campaign remains NO-GO.**
 ## 11. M0a baseline preservation and receiver recovery — 2026-11-03
 
 Scoped recovery and review packet: [`docs/archive/sessions/m0a-baseline-recovery-20261103.md`](archive/sessions/m0a-baseline-recovery-20261103.md);
-raw evidence: [`results/m0a-20261103-020828+0330/`](../results/m0a-20261103-020828%2B0330/).
+raw evidence: [`results/m0a-20261103-020828+0330/`](../results/m0a-20261103-020828+0330/).
 Before recovery, the dirty baseline on `chore/ci-and-release` at `36f8348e5f6a8cf286cbe93b7e2a8358bcb20d51`
 was snapshotted (tracked diff SHA-256 `f0da0d534b343c0db6e8f1d8389becdc828b69de136f78935338f5464e2680c2`,
 plus hashes/copies of all untracked source/doc/test files); no pre-existing work was reset or overwritten.

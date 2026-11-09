@@ -38,6 +38,21 @@ def analysis(platform_run, p99, valid=True, assessed=True):
 
 
 class AggregateTests(unittest.TestCase):
+    def test_canonical_analysis_wins_over_nested_preserved_versions(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d);rid='disp-fw-r02-20261106'
+            canonical=root/rid;canonical.mkdir()
+            original=canonical/'recovery'/'remote-original-analysis';original.mkdir(parents=True)
+            a=canonical/(rid+'.dispatch-analysis.json');a.write_text('{}')
+            (original/a.name).write_text('{}')
+            import importlib.util
+            spec=importlib.util.spec_from_file_location('aggregate_discovery',ROOT/'scripts/aggregate-runs.py')
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+            self.assertEqual(module.discover([root])[rid],a.resolve())
+            a.unlink()
+            other=canonical/'other-preserved';other.mkdir();(other/a.name).write_text('{}')
+            with self.assertRaisesRegex(SystemExit,'ambiguous analyses'):module.discover([root])
+
     def test_zero_traffic_setup_recovery_stays_visible_without_message_loss(self):
         with tempfile.TemporaryDirectory() as d:
             rid='disp-tb-r01-20261106'

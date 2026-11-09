@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "batch_id": "fixed-points-w1-w4-20261108",
+  "design_status": "OWNER_APPROVED_CONFIGURATIONS_REPETITION_COUNT_PROPOSED",
+  "execution_authorized": false,
+  "baseline_workload_id": "B0",
+  "baseline_files_sha256": {
+    "results/feasible-campaign-20261106/frozen-scope.json": "cee82c997f5911cb0619fe6f792689ff4a802d7cb107616a1213157aea08e00a",
+    "results/feasible-campaign-20261106/run-matrix.json": "44bbc3f0d93f8abefffdfb6aa4c12f4321e5002b1ec469a24201c37a59a49704",
+    "results/feasible-campaign-20261106/plans/disp-ex-r01-20261106.json": "7e30897216edea1a8dc9ced3f11ae082fdc660b384e375f471a18ce3f10796b9",
+    "results/feasible-campaign-20261106/plans/disp-ex-r02-20261106.json": "836ea18a87804f272ef8cf19b9bf5929d074643c3f7aa2ef06e63e24ad700fd8",
+    "results/feasible-campaign-20261106/plans/disp-ex-r03-20261106.json": "f767a721e82625fcefc20e9e867080c03286081e71df4a26ac67f4dd8ab8bf37",
+    "results/feasible-campaign-20261106/plans/disp-ex-r04-20261106.json": "1aa1536b14790e70ece7c86c2fb1bf4fbbaa27ce73e31bc34319d375d4548cbd",
+    "results/feasible-campaign-20261106/plans/disp-ex-r05-20261106.json": "e50aece2a4da29904865fca05a36b1f5902f51164e74a32e6518c384c801769f",
+    "results/feasible-campaign-20261106/plans/disp-fw-r01-20261106.json": "d21dd71a80b9af5d3c9b959adf9f685e9b6ee8914cd703eaee1ea4547830af7c",
+    "results/feasible-campaign-20261106/plans/disp-fw-r02-20261106.json": "83cd8dbd4d26c74ef7ac2e000b0e975dec83148b5831089a82edfcd60d11bdb2",
+    "results/feasible-campaign-20261106/plans/disp-fw-r03-20261106.json": "b7b95ca349e381c5fdf9653961420fe83c404ea750625ccc1bc2fa0dd2aa9da8",
+    "results/feasible-campaign-20261106/plans/disp-fw-r04-20261106.json": "f8b8e74406815f24c466976924dae2ea6981dc17618a28f56e58857c682e76a3",
+    "results/feasible-campaign-20261106/plans/disp-fw-r05-20261106.json": "ba0f63f7d3945383b299a203856df224deb2729759191e22d6ba8f2a90d7c033",
+    "results/feasible-campaign-20261106/plans/disp-tb-r01-20261106.json": "6946d859bb9f4b5f86d385cc93e6275b74d37ce32ff4f2f907e29a0dc2e2cf77",
+    "results/feasible-campaign-20261106/plans/disp-tb-r02-20261106.json": "6418389a723b069c271ea22cab07bb1f4521cbd94b31047646174065663c2253",
+    "results/feasible-campaign-20261106/plans/disp-tb-r03-20261106.json": "ddc927cad20cf718e8c8465d1fc45bbf275df7718ff182e276f2354a4ec77462",
+    "results/feasible-campaign-20261106/plans/disp-tb-r04-20261106.json": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
+    "results/feasible-campaign-20261106/plans/disp-tb-r05-20261106.json": "1c488bd74120dc7f46d8289cfdae782dc685c29ff3475bd27cf9ff4c3b1130b1"
+  },
+  "baseline_configuration": {
+    "devices": 1000,
+    "total_messages_per_second": 25,
+    "extra_logical_padding_bytes": 0,
+    "replicas_per_replicated_service": 2
+  },
+  "variants": {
+    "W1": {
+      "devices": 1000,
+      "total_messages_per_second": 50,
+      "extra_logical_padding_bytes": 0,
+      "replicas_per_replicated_service": 2
+    },
+    "W2": {
+      "devices": 2000,
+      "total_messages_per_second": 25,
+      "extra_logical_padding_bytes": 0,
+      "replicas_per_replicated_service": 2
+    },
+    "W3": {
+      "devices": 1000,
+      "total_messages_per_second": 25,
+      "extra_logical_padding_bytes": 1024,
+      "replicas_per_replicated_service": 2
+    },
+    "W4": {
+      "devices": 1000,
+      "total_messages_per_second": 25,
+      "extra_logical_padding_bytes": 0,
+      "replicas_per_replicated_service": 1
+    }
+  },
+  "proposed_attempts_per_workload_platform": 5,
+  "experimental_attempts_proposed": 60,
+  "seed_by_repetition": [
+    202611061,
+    202611062,
+    202611063,
+    202611064,
+    202611065
+  ],
+  "shared": {
+    "generator_cpu_pool": "0-1",
+    "sink_cpu": "2",
+    "monitoring_cpu": "3",
+    "GOGC": "400",
+    "keep_alive": true,
+    "request_timeout_ms": 5000,
+    "vus_preallocated_per_scenario": 150,
+    "vus_max_per_scenario": 150,
+    "open_loop": true,
+    "complete_local_request_ledger": true,
+    "remote_write": "http://127.0.0.1:9090/api/v1/write",
+    "maximum_receipt_drain_seconds": 900,
+    "quiet_interval_seconds": 30,
+    "late_observation_seconds": 30,
+    "isolated_one_platform_at_a_time": true,
+    "manual_faults": "separate_operator_controlled_batch_not_a_blocker_for_ordinary_runs",
+    "application_cpu_pool": "4-5",
+    "application_cpu_budget_k": 2,
+    "warmup_seconds": 300,
+    "measurement_seconds": 600,
+    "device_selection": "round-robin seq modulo devices",
+    "same_haproxy_ingress": true,
+    "preserve_devices_and_history": true,
+    "warmup_rate_rule": "same as each workload total_messages_per_second"
+  },
+  "endpoint": "application_dispatch_to_first_complete_body_sink_receipt",
+  "latency_method": "offline per-message first-receipt join; nearest-rank conditional percentiles plus missing denominators",
+  "result_grouping": [
+    "workload_id",
+    "platform"
+  ],
+  "attempt_policy": "Five proposed attempts, not five guaranteed successes. Preserve all IDs, failures and in-progress attempts; no automatic retries or replacement.",
+  "qualification_policy": "Separate IDs/evidence for diagnostics and qualifications; no such runs count toward the proposed 60 experimental attempts.",
+  "claim_scope": "Fixed-point comparisons only; no maximum capacity, full scaling curve or cold-start IID claim.",
+  "edgex_inventory_budget": {
+    "new_experimental_cohort_devices": 25000,
+    "projected_retained_after_original_b0": 11192,
+    "projected_total_before_new_qualifications": 36192,
+    "previous_discovery_limit": 16384,
+    "status": "BLOCKED_PENDING_LIVE_INVENTORY_AND_COMMON_DISCOVERY_CONFIGURATION_REVIEW",
+    "note": "Projection, not a live inventory observation. Include all new diagnostic/qualification cohorts and margin; no deletion. Do not change active B0 or silently raise the limit for W2 alone."
+  }
+}
