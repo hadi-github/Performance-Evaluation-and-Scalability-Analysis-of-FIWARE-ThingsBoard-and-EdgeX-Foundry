@@ -37,9 +37,36 @@ record it: run manifests name the target they used.
 
 ## 1. Register the hosts
 
-Both hosts must be known to the launcher by name, not by address. The frozen
-controls refer to the SUT and load host by the identifiers baked into
-`results/feasible-campaign-20261106/run-feasible-campaign.py` (`SUT`, `LOAD`).
+Both hosts must be resolvable by SSH alias. The launcher defaults to the
+qualified aliases, so a host with the same identity needs no configuration. A
+different layout is configured by environment variable — none of these are
+edited in source, and all defaults reproduce the qualified layout exactly:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `IOTBENCH_SUT` | `ramonavm2` | SSH alias of the system under test |
+| `IOTBENCH_LOAD` | `ramonavm1` | SSH alias of the load generator |
+| `IOTBENCH_TB_COMPOSE` | `/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml` | ThingsBoard compose file, absolute |
+| `IOTBENCH_FW_DIR` | `/root/iot-bench-deploy-cand-auto20261027` | FIWARE deployment root; `edgex/` is expected beneath it |
+| `IOTBENCH_REMOTE_RESULTS` | `/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106` | generator results root on the load host |
+| `IOTBENCH_SUT_IP` | `87.107.191.107` | SUT address used in generated FIWARE subscriptions |
+| `IOTBENCH_LOAD_IP` | `87.107.191.32` | load-host address used in the sink URL |
+
+Export them before invoking the launcher; they are read at import time:
+
+```sh
+export IOTBENCH_SUT=sut IOTBENCH_LOAD=load
+export IOTBENCH_TB_COMPOSE=/srv/iot-bench/sut/thingsboard/compose.yaml
+export IOTBENCH_FW_DIR=/srv/iot-bench/sut
+export IOTBENCH_REMOTE_RESULTS=/srv/iot-bench/load/results
+export IOTBENCH_SUT_IP=10.0.0.5 IOTBENCH_LOAD_IP=10.0.0.6
+```
+
+The default deployment paths under `/root/` embed the date the directory was
+created (`iot-qual-tb-20261105`, `iot-bench-deploy-cand-auto20261027`). They are
+retained because live campaign state depends on them; a fresh deploy should use
+a dated-free layout such as `/srv/iot-bench/{sut,load}` and set the variables
+above.
 
 A new host with a different identity is a **D1-level finding**, not an operational
 detail — see [server-access preflight](server-access-preflight.md) Gate A. Record
@@ -144,6 +171,27 @@ Notes:
   binaries; building them elsewhere and copying them in by hand loses the
   provenance link.
 - Untracked files already on the host (`.env`, `results/`) are preserved.
+- **It ships to `/root/iot-bench-deploy`, which is not where the campaign launcher
+  reads from.** The two paths serve different purposes and both are needed:
+  - `deploy-generator.sh` installs a **usable generator checkout** on the load host
+    (binaries plus a source tree you can run by hand).
+  - The launcher **stages its own source per run** into `IOTBENCH_REMOTE_RESULTS/source/`
+    and verifies the staged manifest before executing. It does not read
+    `/root/iot-bench-deploy`.
+
+  The binaries in that staged tree are built **on the workstation, not the load
+  host**: the launcher runs `go build` for `benchctl` and `sink` from the
+  repository, unless `IOT_BENCH_PREBUILT_DIR` points at a directory holding
+  `benchctl`, `sink` and `build-provenance.json`. That prebuilt path is verified
+  against the controller's Go source hash, so a stale or mismatched binary is
+  refused rather than silently used.
+
+  So a fresh load host needs no Go toolchain and no manual binary placement for a
+  campaign run; what it needs is that `IOTBENCH_REMOTE_RESULTS` exists and is
+  writable. The **workstation** running the launcher does need Go when
+  `IOT_BENCH_PREBUILT_DIR` is unset. Using a stale `/root/iot-bench-deploy` tree
+  from an earlier experiment is harmless for the launcher, but do not mistake it
+  for the binaries a run uses.
 
 ## 5. Configure outbound delivery
 
