@@ -234,7 +234,7 @@ platform order within each workload. Seeds and identity widths are matched to
 the corresponding B0 repetition, while every new attempt has a unique run/device
 cohort. Diagnostics and qualification receive separate IDs and are not counted
 as repetitions. The full proposed order is in the
-[separate matrix](../workloads/campaigns/fixed-points-20261108/run-matrix.json).
+[separate matrix](../workloads/campaigns/fixed-points-w1-w4/run-matrix.json).
 
 Use the same offline application-dispatch → first complete-body receipt join
 and independent history reconciliation. Archive workload ID, platform, run ID,
@@ -264,7 +264,7 @@ B0 repetition summaries or pool messages into a single cross-run p99.
 
 The existing B0-only launcher and platform-only aggregation are not a W1–W4
 execution/reporting release. Those interfaces need separate workload-aware gates
-and review. The [batch preparation guide](../workloads/campaigns/fixed-points-20261108/README.md)
+and review. The [batch preparation guide](../workloads/campaigns/fixed-points-w1-w4/README.md)
 lists the unresolved cases and safe offline reproduction commands.
 
 Retained deployment/history state and chronology can confound comparisons:

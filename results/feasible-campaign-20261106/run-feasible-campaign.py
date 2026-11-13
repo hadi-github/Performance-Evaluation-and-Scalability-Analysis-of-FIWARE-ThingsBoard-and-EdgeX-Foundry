@@ -23,14 +23,31 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 SCOPE = json.loads((HERE / "frozen-scope.json").read_text())
-SUT = "ramonavm2"
-LOAD = "ramonavm1"
-TB = "/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml"
-FW = "/root/iot-bench-deploy-cand-auto20261027"
+# Host and deployment locations are environment-overridable so the documented
+# deployment layout is not the only one that works. Defaults reproduce the
+# qualified layout exactly, so behaviour is unchanged unless a variable is set.
+#
+# IOTBENCH_SUT / IOTBENCH_LOAD   SSH host aliases
+# IOTBENCH_TB_COMPOSE            absolute path to the ThingsBoard compose file
+# IOTBENCH_FW_DIR                FIWARE deployment root (contains edgex/)
+# IOTBENCH_REMOTE_RESULTS        generator results root on the load host
+SUT = os.environ.get("IOTBENCH_SUT", "ramonavm2")
+LOAD = os.environ.get("IOTBENCH_LOAD", "ramonavm1")
+TB = os.environ.get("IOTBENCH_TB_COMPOSE",
+                    "/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml")
+FW = os.environ.get("IOTBENCH_FW_DIR", "/root/iot-bench-deploy-cand-auto20261027")
 EDGEX = FW + "/edgex"
-REMOTE_RESULTS = "/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106"
+REMOTE_RESULTS = os.environ.get(
+    "IOTBENCH_REMOTE_RESULTS",
+    "/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106")
 REMOTE_SOURCE = REMOTE_RESULTS + "/source"
 REMOTE_RUNS = REMOTE_RESULTS + "/runs"
+# Address literals are used inside generated FIWARE subscriptions and EdgeX
+# sink wiring, so they must be single-sourced. Defaults are the qualified hosts.
+SUT_IP = os.environ.get("IOTBENCH_SUT_IP", "87.107.191.107")
+LOAD_IP = os.environ.get("IOTBENCH_LOAD_IP", "87.107.191.32")
+SINK_URL_BASE = f"http://{LOAD_IP}:18091"
+
 REMOTE_LOCK = "/run/iot-bench-workload.lock"
 EVIDENCE = HERE / "evidence"
 COMPOSE = "docker compose"
@@ -179,7 +196,7 @@ def read_only_check(platform):
         return "FIWARE live rendered config confirms baseline N=2 plus pinned QL/Timescale 2 GiB history tier"
     if platform == "edgex":
         env = {"EDGEX_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3",
-               "SINK_URL": "http://87.107.191.32:18091"}
+               "SINK_URL": SINK_URL_BASE}
         cfg = remote(SUT, compose("edgex", EDGEX + "/compose.yaml", env, "config --format json", "--profile export")).stdout
         obj = json.loads(cfg)
         required = {"database": 1610612736, "core-data": 536870912, "device-rest": 536870912,
@@ -307,7 +324,7 @@ def verify_effective_resources(platform, restart_baseline=None, admit_restarts=F
                   {'iot-agent','orion','mongo','haproxy'}),
                  ('fiwhc', FW+'/fiware-history-candidate/compose.yaml', '', {'quantumleap','timescale'})]
     elif platform == 'edgex':
-        env.update(EDGEX_REPLICAS='2', SINK_URL='http://87.107.191.32:18091')
+        env.update(EDGEX_REPLICAS='2', SINK_URL=SINK_URL_BASE)
         override = EDGEX+'/compose.feasible-discovery-'+sha256_file(REPO/'deploy/edgex/compose.feasible-discovery.yaml')[:16]+'.yaml'
         specs = [('edgex', EDGEX+'/compose.yaml', '--profile export -f '+shlex.quote(override),
                   {'database','nats','haproxy','core-keeper','core-metadata','core-data','device-rest','app-http-export','core-common-config-bootstrapper'})]
@@ -422,15 +439,15 @@ h=['-H','fiware-service: openiot','-H','fiware-servicepath: /']
 rows=json.loads(subprocess.check_output(['curl','-fsS',*h,base]))
 if not any(x.get('description') == 'bench quantumleap' for x in rows):
  body={'description':'bench quantumleap','subject':{'entities':[{'idPattern':'.*','type':'Sensor'}],
-       'condition':{'attrs':['seq']}},'notification':{'http':{'url':'http://87.107.191.107:8668/v2/notify'},
+       'condition':{'attrs':['seq']}},'notification':{'http':{'url':f"http://{SUT_IP}:8668/v2/notify"},
        'attrs':['seq','run_id','scheduled_send_ms'],'attrsFormat':'normalized'}}
  p=subprocess.run(['curl','-fsS','-o','/dev/null','-w','%{http_code}','-X','POST',*h,
    '-H','Content-Type: application/json','--data-binary',json.dumps(body),base],text=True,capture_output=True,check=True)
  if p.stdout not in ('201','204'): raise SystemExit('unexpected Orion subscription status '+p.stdout)
 rows=json.loads(subprocess.check_output(['curl','-fsS',*h,base]))
 matches=[x for x in rows if x.get('description') == 'bench quantumleap']
-assert len(matches)==1 and matches[0]['notification']['http']['url']=='http://87.107.191.107:8668/v2/notify'
-route='http://87.107.191.107:8668/v2/notify'
+assert len(matches)==1 and matches[0]['notification']['http']['url']==f"http://{SUT_IP}:8668/v2/notify"
+route=f"http://{SUT_IP}:8668/v2/notify"
 changed=False
 for x in rows:
  if x.get('notification',{}).get('http',{}).get('url') != route: continue
@@ -452,7 +469,7 @@ PY'''
             time.sleep(65)  # bounded Orion replica subscription-cache refresh
         # Configure the existing bounded sink subscription and wait its documented 65 s replica cache refresh.
         local_script = Path(__file__).resolve().parents[2] / "scripts/outbound.sh"
-        subprocess.run(["env", "SUT=87.107.191.107", "SINK_URL=http://87.107.191.32:18091",
+        subprocess.run(["env", f"SUT={SUT_IP}", "SINK_URL=" + SINK_URL_BASE,
                         "FIWARE_SERVICE=openiot", str(local_script), "fiware"], check=True, timeout=120)
     elif platform == "edgex":
         helper = stage_edgex_helper()
@@ -460,7 +477,7 @@ PY'''
         # Required helper avoids core-metadata panic: provision each run's device cohort at N=1,
         # then scale to N=2 and validate every replica before workload. Runs occur serially.
         env = {"EDGEX_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3",
-               "SINK_URL": "http://87.107.191.32:18091"}
+               "SINK_URL": SINK_URL_BASE}
         # Helper's plain `up` is wrapped so Compose cannot pull/build even if its source has build stanzas.
         # Setup-wait budget, measured 2026-11-11 on this host: at 10,192 retained
         # devices the device-rest ingest route registers in 224 s, and a freshly
@@ -488,7 +505,7 @@ PY'''
                 f"EDGEX_INVENTORY_RESERVE={devices} "
                 "EDGEX_DRIVER_READY_TIMEOUT=600 EDGEX_SCALE_TIMEOUT=600 EDGEX_PING_TIMEOUT=180 "
                 f"COMPOSE_FILE={shlex.quote(EDGEX+'/compose.yaml:'+discovery_override)} "
-               "SINK_URL=http://87.107.191.32:18091; "
+               "SINK_URL=" + SINK_URL_BASE + "; "
                 "docker() { if [[ \"$1\" == compose ]]; then shift; local -a args=(); local arg; "
                 "for arg in \"$@\"; do case \"$arg\" in down|rm|pull|build|--remove-orphans) return 2;; "
                 "up) args+=(up --no-build --pull never);; *) args+=(\"$arg\");; esac; done; "
@@ -530,13 +547,13 @@ def verify_live(platform):
         return read_only_check(platform)
     if platform == "fiware":
         # Require both project services healthy and validate Orion/IoT Agent/QL endpoints and database.
-        body = ("docker ps --format '{{.Names}} {{.Status}}' | grep -E '^(fiware-|fiwhc-)' ; "
+        body = (f"docker ps --format '{{.Names}} {{.Status}}' | grep -E '^(fiware-|fiwhc-)' ; "
                 "curl -fsS --max-time 5 http://127.0.0.1:1026/version; "
                  "curl -fsS --retry 12 --retry-delay 2 --retry-all-errors --max-time 5 http://127.0.0.1:8668/health; "
                 "python3 -c 'import json,subprocess; h=[\"-H\",\"fiware-service: openiot\",\"-H\",\"fiware-servicepath: /\"]; "
                 "s=json.loads(subprocess.check_output([\"curl\",\"-fsS\",*h,\"http://127.0.0.1:1026/v2/subscriptions\"])); "
-                 "assert any(x.get(\"description\")==\"bench sink\" and x.get(\"notification\",{}).get(\"http\",{}).get(\"url\")==\"http://87.107.191.32:18091/fiware\" for x in s); "
-                 "assert len([x for x in s if x.get(\"status\")==\"active\" and x.get(\"notification\",{}).get(\"http\",{}).get(\"url\")==\"http://87.107.191.107:8668/v2/notify\"])==1' ")
+                 f"assert any(x.get(\"description\")==\"bench sink\" and x.get(\"notification\",{{}}).get(\"http\",{{}}).get(\"url\")==\"{SINK_URL_BASE}/fiware\" for x in s); "
+                 f"assert len([x for x in s if x.get(\"status\")==\"active\" and x.get(\"notification\",{{}}).get(\"http\",{{}}).get(\"url\")==\"http://{SUT_IP}:8668/v2/notify\"])==1' ")
         remote(SUT, body)
         return "FIWARE/QL service and history API endpoints healthy"
     if platform == "edgex":
@@ -848,7 +865,7 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
             f"test ! -e {REMOTE_RUNS}/{run_id}.capture-window.json; "
             f"setsid env BENCHCTL={REMOTE_SOURCE}/scripts/benchctl-calibrated.sh "
             f"SINK_BIN={REMOTE_SOURCE}/bin/sink SINK_PORT=18091 GENERATOR_CPUSET=0-1 SINK_CPU=2 "
-            f"PROM_RW=http://127.0.0.1:9090/api/v1/write DIAGNOSTIC_TAIL_SECONDS={sampler_tail} {gate_env}{grafana}SUT=87.107.191.107 "
+            f"PROM_RW=http://127.0.0.1:9090/api/v1/write DIAGNOSTIC_TAIL_SECONDS={sampler_tail} {gate_env}{grafana}SUT={SUT_IP} "
             f"scripts/run-capture.sh {REMOTE_SOURCE}/plan.json {shlex.quote(run_id)} {REMOTE_RUNS} {platform} "
             f"> {REMOTE_RUNS}/{run_id}.launch.log 2>&1 & pid=$!; "
             f"echo $pid > {REMOTE_RUNS}/{run_id}.launch.pid; set +e; wait $pid; rc=$?; "

@@ -155,7 +155,7 @@ and W4 one replica per replicated service on the **same CPU pool 4–5/k=2**.
 The active B0 controller, frozen settings and existing attempt IDs are unchanged.
 Independent review accepted staging/documentation only, not runtime execution.
 
-The new [batch controls](../workloads/campaigns/fixed-points-20261108/README.md)
+The new [batch controls](../workloads/campaigns/fixed-points-w1-w4/README.md)
 contain 60 distinct interleaved experimental entries: **five attempts per
 workload/platform proposed**, separate from B0's existing five. All 60 generator
 plans resolve offline; one-factor/count/interleaving/preservation tests and the

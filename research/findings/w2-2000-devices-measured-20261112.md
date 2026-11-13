@@ -195,9 +195,9 @@ unchanged, 19 qualifications (16 W1 + 3 W2). 162 tests pass.
   now measured and `VALID`
 - `results/workload-batch-20261108/evidence/w2-qual-ex-20261110/edgex-gate-statuses/` — the
   provisioning gate: 2 000 devices accepted by both replicas, 0 restarts, 0 panics
-- `workloads/campaigns/fixed-points-20261108/qualification/w2/index.json`
-- `workloads/campaigns/fixed-points-20261108/authorization/owner-w2-qualification-20261112a.json`
-- `workloads/campaigns/fixed-points-20261108/authorization/owner-w2-edgex-cohort-reserve-20261112b.json`
+- `workloads/campaigns/fixed-points-w1-w4/qualification/w2/index.json`
+- `workloads/campaigns/fixed-points-w1-w4/authorization/owner-w2-qualification-20261112a.json`
+- `workloads/campaigns/fixed-points-w1-w4/authorization/owner-w2-edgex-cohort-reserve-20261112b.json`
 - `results/workload-batch-20261108/reports/w2-summary.md`
 - `results/workload-batch-20261108/reports/w2-latency-percentiles.svg`
 - `results/workload-batch-20261108/reports/w2-ack-completeness.svg`

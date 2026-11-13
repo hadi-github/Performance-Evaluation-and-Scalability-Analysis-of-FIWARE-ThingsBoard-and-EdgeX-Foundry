@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pool_policy  # noqa: E402  (single source of truth for the VU pool)
 
 REPO = Path(__file__).resolve().parents[1]
-W_ROOT = REPO / 'workloads/campaigns/fixed-points-20261108'
+W_ROOT = REPO / 'workloads/campaigns/fixed-points-w1-w4'
 W_QUAL_ROOT = W_ROOT / 'qualification'
 B0_MODULE = REPO / 'results/feasible-campaign-20261106/run-feasible-campaign.py'
 # W gets its own remote + local evidence roots. Never share B0's.
@@ -482,7 +482,7 @@ def verify_receipt(receipt_id, run_id):
     bound = receipt.get('bindings_sha256', {})
     for name, rel in (('launcher', 'scripts/run-workload-campaign.py'),
                       ('integrity', 'scripts/dispatch-integrity.py'),
-                      ('scope', 'workloads/campaigns/fixed-points-20261108/scope.json')):
+                      ('scope', 'workloads/campaigns/fixed-points-w1-w4/scope.json')):
         current = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
         if bound.get(name) != current:
             raise SystemExit(f'{name} changed since authorization ({rel}); obtain a new receipt')
@@ -522,7 +522,7 @@ def verify_receipt_for_switch(b0, receipt_id):
     bound = receipt.get('bindings_sha256', {})
     for name, rel in (('launcher', 'scripts/run-workload-campaign.py'),
                       ('integrity', 'scripts/dispatch-integrity.py'),
-                      ('scope', 'workloads/campaigns/fixed-points-20261108/scope.json')):
+                      ('scope', 'workloads/campaigns/fixed-points-w1-w4/scope.json')):
         current = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
         if bound.get(name) != current:
             raise SystemExit(f'{name} changed since authorization ({rel}); obtain a new receipt')

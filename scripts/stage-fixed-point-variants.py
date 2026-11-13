@@ -9,7 +9,7 @@ import subprocess
 
 REPO = Path(__file__).resolve().parents[1]
 B0 = REPO / 'results/feasible-campaign-20261106'
-DEFAULT_OUT = REPO / 'workloads/campaigns/fixed-points-20261108'
+DEFAULT_OUT = REPO / 'workloads/campaigns/fixed-points-w1-w4'
 PLATFORMS = ('thingsboard', 'fiware', 'edgex')
 PREFIX = dict(thingsboard='tb', fiware='fw', edgex='ex')
 BASELINE = dict(devices=1000, total_messages_per_second=25,

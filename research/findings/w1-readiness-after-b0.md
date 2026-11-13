@@ -20,7 +20,7 @@ already in use for B0** — byte-identical, `64f66385…`, the digest recorded i
 Verified by running the actual prebuilt binary, not by reading the staged JSON:
 
 ```bash
-benchctl resolve -plan workloads/campaigns/fixed-points-20261108/plans/w1dp-tb-r01-20261108.json \
+benchctl resolve -plan workloads/campaigns/fixed-points-w1-w4/plans/w1dp-tb-r01-20261108.json \
                  -run-id w1dp-tb-r01-20261108
 # -> steps: warmup 50/s x 15000 ticks, measurement 50/s x 30000 ticks
 ```

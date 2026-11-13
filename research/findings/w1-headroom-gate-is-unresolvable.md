@@ -134,5 +134,5 @@ Any of the three is defensible. What is *not* defensible is relaunching the same
 
 - `research/findings/w1-vu-pool-binds-both-platforms.md` — the two measurement reports.
 - `research/findings/w1-vu-pool-headroom-risk.md` — the original prediction.
-- `workloads/campaigns/fixed-points-20261108/qualification-gates.json` — gate text.
-- `workloads/campaigns/fixed-points-20261108/scope.json` — W2–W4 = 25/s.
+- `workloads/campaigns/fixed-points-w1-w4/qualification-gates.json` — gate text.
+- `workloads/campaigns/fixed-points-w1-w4/scope.json` — W2–W4 = 25/s.

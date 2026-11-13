@@ -207,5 +207,5 @@ capacity, no scaling curve, no cold-start IID claim. W1 is a 50/s fixed point at
 - `research/findings/w1-vu-pool-headroom-risk.md`
 - `research/findings/edgex-w-batch-blocker.md`
 - `research/findings/w1-readiness-after-b0.md`
-- `workloads/campaigns/fixed-points-20261108/qualification/index.json`
+- `workloads/campaigns/fixed-points-w1-w4/qualification/index.json`
 - `scripts/run-workload-campaign.py`, `scripts/stage-w1-qualification.py`

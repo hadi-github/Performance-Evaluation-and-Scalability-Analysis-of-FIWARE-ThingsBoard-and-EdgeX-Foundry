@@ -11,7 +11,7 @@ import pathlib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-W_ROOT = ROOT / 'workloads' / 'campaigns' / 'fixed-points-20261108'
+W_ROOT = ROOT / 'workloads' / 'campaigns' / 'fixed-points-w1-w4'
 
 
 def load(script):

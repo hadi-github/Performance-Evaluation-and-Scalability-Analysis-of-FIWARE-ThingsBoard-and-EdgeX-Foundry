@@ -204,5 +204,5 @@ Either way the run ID stays consumed and is never relaunched.
 - `research/findings/w1-vu-pool-headroom-risk.md` — the prediction and decision tree.
 - `research/findings/w1-readiness-report-20261110.md` — consolidated W readiness.
 - `research/findings/edgex-w-batch-blocker.md` — the EdgeX gate that binds earlier.
-- `workloads/campaigns/fixed-points-20261108/qualification/index.json` — the row now
+- `workloads/campaigns/fixed-points-w1-w4/qualification/index.json` — the row now
   reads `INVALID_VU_POOL_BOUND`.

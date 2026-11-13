@@ -89,7 +89,7 @@ scripts/history-payload.sh thingsboard w3-qual-tb-20261110 > /tmp/tb-stored.ndjs
 scripts/history-payload.sh edgex       w3-qual-ex-20261110 > /tmp/ex-stored.ndjson
 
 benchctl payload-validate \
-  -plan   workloads/campaigns/fixed-points-20261108/qualification/w3/w3-qual-tb-20261110.json \
+  -plan   workloads/campaigns/fixed-points-w1-w4/qualification/w3/w3-qual-tb-20261110.json \
   -run-id w3-qual-tb-20261110 \
   -ledger results/workload-batch-20261108/evidence/w3-qual-tb-20261110/w3-qual-tb-20261110/records.ndjson \
   -stored /tmp/tb-stored.ndjson \

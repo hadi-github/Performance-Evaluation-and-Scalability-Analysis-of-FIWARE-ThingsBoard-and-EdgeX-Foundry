@@ -29,7 +29,7 @@ def load(name):
 pool = load('pool_policy.py')
 integrity = load('dispatch-integrity.py')
 
-W_ROOT = ROOT / 'workloads' / 'campaigns' / 'fixed-points-20261108'
+W_ROOT = ROOT / 'workloads' / 'campaigns' / 'fixed-points-w1-w4'
 
 
 class PoolArithmeticTests(unittest.TestCase):

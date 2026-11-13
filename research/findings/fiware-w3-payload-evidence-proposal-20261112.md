@@ -200,6 +200,6 @@ entities with a 1,024-char value if the path works end to end.
 
 - `research/findings/w1-fiware-fails-at-50s-20261111.md` — FIWARE's rate-bound finding (unchanged)
 - `research/findings/w2-2000-devices-measured-20261112.md` — FIWARE passes at 25/s with 2,000 devices
-- `workloads/campaigns/fixed-points-20261108/qualification-gates.json` — the frozen W3 gates quoted in §1
+- `workloads/campaigns/fixed-points-w1-w4/qualification-gates.json` — the frozen W3 gates quoted in §1
 - `scripts/history-payload.sh` — the FIWARE export that fails closed until a typed column exists
 - `cmd/benchctl/payload.go` — the independent stored-payload check that would consume it

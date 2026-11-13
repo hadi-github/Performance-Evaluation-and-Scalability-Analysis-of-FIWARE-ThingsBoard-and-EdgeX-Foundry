@@ -207,4 +207,4 @@ No proposed attempt is consumed while these are open.
 - `research/findings/w1-vu-pool-headroom-risk.md` — the advance prediction and tree
 - `research/findings/w1-headroom-gate-is-unresolvable.md` — the structural argument
 - `research/findings/edgex-w-batch-blocker.md` — EdgeX gates and options
-- `workloads/campaigns/fixed-points-20261108/qualification/index.json` — consumed IDs
+- `workloads/campaigns/fixed-points-w1-w4/qualification/index.json` — consumed IDs

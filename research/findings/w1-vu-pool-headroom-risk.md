@@ -118,7 +118,7 @@ window in which ThingsBoard is slowest.
 except identity, including the 150/150 pool:
 
 ```
-workloads/campaigns/fixed-points-20261108/qualification/
+workloads/campaigns/fixed-points-w1-w4/qualification/
   index.json                          # NOT_LAUNCH_CLEARED, execution_authorized:false
   w1-qual-tb-20261110.json
   w1-qual-fw-20261110.json
@@ -236,6 +236,6 @@ grep -n 'frozen VU allocation' scripts/dispatch-integrity.py
 
 - `research/findings/w1-readiness-after-b0.md` — prerequisite list this refines.
 - `research/findings/edgex-w-batch-blocker.md` — the EdgeX gate that binds earlier.
-- `workloads/campaigns/fixed-points-20261108/qualification-gates.json` — the W1 gate text.
+- `workloads/campaigns/fixed-points-w1-w4/qualification-gates.json` — the W1 gate text.
 - `scripts/dispatch-integrity.py:20` — the 150/150 policy lock.
 - `workloads/k6/gen.js:7-8` — `dropped_iterations > 0` ⇒ INVALID.

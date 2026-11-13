@@ -169,8 +169,8 @@ reported as unavailable rather than estimated into a number.
 - `.../payload-validation.json` — the independent check, 22,500/22,500
 - `.../stored-payload.ndjson` — 22,500 rows exported from the platform's own store (27 MB)
 - `.../w3-qual-tb-20261110/k6-summary.json` — `sample_request` byte accounting
-- `workloads/campaigns/fixed-points-20261108/qualification/w3/index.json` — ledger row
-- `workloads/campaigns/fixed-points-20261108/authorization/owner-w3-qual-tb-20261112c2.json`
+- `workloads/campaigns/fixed-points-w1-w4/qualification/w3/index.json` — ledger row
+- `workloads/campaigns/fixed-points-w1-w4/authorization/owner-w3-qual-tb-20261112c2.json`
 
 Reproduce the payload check:
 

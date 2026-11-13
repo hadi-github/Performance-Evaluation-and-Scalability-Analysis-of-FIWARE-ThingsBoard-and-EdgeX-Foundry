@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pool_policy  # noqa: E402  (single source of truth for the VU pool)
 
 REPO = Path(__file__).resolve().parents[1]
-W_ROOT = REPO / 'workloads' / 'campaigns' / 'fixed-points-20261108'
+W_ROOT = REPO / 'workloads' / 'campaigns' / 'fixed-points-w1-w4'
 DEFAULT_OUT = W_ROOT / 'authorization'
 
 

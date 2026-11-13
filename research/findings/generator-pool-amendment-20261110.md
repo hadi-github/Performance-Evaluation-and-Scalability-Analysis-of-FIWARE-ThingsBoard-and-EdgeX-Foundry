@@ -162,7 +162,7 @@ remains consumed and is never retried.
   (still accurate as measurements; its "not qualifiable" conclusion is superseded)
 - `research/findings/w1-headroom-gate-is-unresolvable.md` — the structural
   argument (superseded on the remedy, correct on the arithmetic)
-- `workloads/campaigns/fixed-points-20261108/run-matrix.json` —
+- `workloads/campaigns/fixed-points-w1-w4/run-matrix.json` —
   `pool_policy_revision`, the machine-readable revision record
 - `scripts/pool_policy.py` — the rule
 - `tests/pool_policy_test.py` — 20 tests pinning the two safety properties

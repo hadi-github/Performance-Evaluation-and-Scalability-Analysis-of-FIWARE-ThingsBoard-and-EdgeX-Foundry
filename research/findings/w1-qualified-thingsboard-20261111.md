@@ -102,4 +102,4 @@ subscription omits `padding`), W4 N=1 replicas with k=2 effective cpusets.
 - `v1-only-constants-broke-v2-runs.md` — the ledger/label defect class and its four fixes
 - `generator-pool-amendment-20261110.md` — the rate-derived pool decision
 - `edgex-w-batch-blocker.md` — the open EdgeX decision
-- `workloads/campaigns/fixed-points-20261108/qualification/index.json` — consumed IDs
+- `workloads/campaigns/fixed-points-w1-w4/qualification/index.json` — consumed IDs
