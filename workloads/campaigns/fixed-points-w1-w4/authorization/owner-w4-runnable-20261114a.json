@@ -1,0 +1,75 @@
+{
+  "schema_version": 2,
+  "receipt_id": "owner-w4-runnable-20261114a",
+  "scope_label": "w4-n1-replica-experiment-12-of-15",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "make it ready and launch every 15 runs",
+  "authorized_run_ids": [
+    "w4dp-ex-r01-20261108",
+    "w4dp-ex-r02-20261108",
+    "w4dp-fw-r01-20261108",
+    "w4dp-fw-r02-20261108",
+    "w4dp-fw-r03-20261108",
+    "w4dp-fw-r04-20261108",
+    "w4dp-fw-r05-20261108",
+    "w4dp-tb-r01-20261108",
+    "w4dp-tb-r02-20261108",
+    "w4dp-tb-r03-20261108",
+    "w4dp-tb-r04-20261108",
+    "w4dp-tb-r05-20261108"
+  ],
+  "counts_toward_proposed_attempts": true,
+  "attempt_kind": {
+    "w4dp-tb-r01-20261108": true,
+    "w4dp-fw-r01-20261108": true,
+    "w4dp-ex-r01-20261108": true,
+    "w4dp-fw-r02-20261108": true,
+    "w4dp-ex-r02-20261108": true,
+    "w4dp-tb-r02-20261108": true,
+    "w4dp-tb-r03-20261108": true,
+    "w4dp-fw-r03-20261108": true,
+    "w4dp-tb-r04-20261108": true,
+    "w4dp-fw-r04-20261108": true,
+    "w4dp-fw-r05-20261108": true,
+    "w4dp-tb-r05-20261108": true
+  },
+  "bindings_sha256": {
+    "scope": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
+    "run_matrix": "312a68fdf423588397be7cf592d0c6d29636c4e3239e64fb5701707ee49b1d8a",
+    "launcher": "3d63591e0ac0256dbc5d43832fa90c4489af8a488c49c86dbb1e4c241b2edc4a",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "c453526a709e2d48686f8683707c057f44083e3407dd3f9ac53eacf1343fe25d",
+    "variant_stager": "3985836616d033f22430b337aa2012dffe50366d5df81d5738168829f4c39a46",
+    "integrity": "32f26d2bb75249c2fe24b9bc44cc34db26ec4dce0dd5f955b33b0e749ae85a14",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "1944b9bf550b6ba91567ec6304650928347a22d3b5b35c236673051f0c5ad1b3",
+    "qualification_index_w1": "685c55022c81277eb979f94c2268ce89534914a14c3432a15859065f39423372",
+    "qualification_index_w2": "f671e0a41ddf3318fe7f59e9130961e028178c6c41f65cc5ac3730e610e5d645",
+    "qualification_index_w3": "590520dfb589391e3682846a3c7bdfc7e02a0624946d5f47270c07a4954c8035",
+    "qualification_index_w4": "f60402fa625dba32368e43f38edf0c37dadfafdde98667437bef230e0dfbcc32"
+  },
+  "authorized_plan_sha256": {
+    "w4dp-tb-r01-20261108": "17426bb67e67b100da91604cb93f78f72557d9ef24a878a10bb93dcf331a8f55",
+    "w4dp-fw-r01-20261108": "bf8de16897c18359f892cd64ec472af03c112e764f64aa7ed68cdcf0c8767706",
+    "w4dp-ex-r01-20261108": "04760a635aaca81f71e60ccdb15108c7805398d3a7009a9b690204f142d45567",
+    "w4dp-fw-r02-20261108": "250fba84311e99ab853f340c3f9d9714d7cf351f099875be3afd4d58f912f7ff",
+    "w4dp-ex-r02-20261108": "a4a62e49dd62ad4af297ac7bcf400727f37d19f8a2372e37065903fec3002eea",
+    "w4dp-tb-r02-20261108": "773db36d9479284fe380b5dcead8bbe9a6f1bd5f664effb91c47298ccda2d2b0",
+    "w4dp-tb-r03-20261108": "ba121773d998b3fa6b900e248445687cf6d86807063e91a9586a16304bde0b6b",
+    "w4dp-fw-r03-20261108": "e034fd7b6ba24a7dd7fe3787bcf02322264ee2a617f1558e2bb57da2c03d75e9",
+    "w4dp-tb-r04-20261108": "e515393dd65f93a2cd67810995e1e435f73f4bbc0270c6d2a77da8c4c1a9ab8d",
+    "w4dp-fw-r04-20261108": "487c0dcbd0adff77a96e38ead8d2375787d5e41f6a54e44d81bc351c64c90417",
+    "w4dp-fw-r05-20261108": "cbf6543943060e5eac9a3e35e6886b4465bde0de83e067fb48d9bddec7c0bbf2",
+    "w4dp-tb-r05-20261108": "791483917885382c5f96ccec66b58a88df3ddbfc27a93744606794afe4a8117d"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.11-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}
