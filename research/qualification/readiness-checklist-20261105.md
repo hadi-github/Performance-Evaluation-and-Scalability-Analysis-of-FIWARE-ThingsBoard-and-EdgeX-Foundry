@@ -3,8 +3,8 @@
 > **Historical checkpoint.** The table below retains the original broad-scope
 > requirements and findings. The later 2026-11-06 owner amendment and conditional
 > release apply only to the bounded N=2, 25/s ordinary comparison; see
-> [current status](../status.md), [dispatch contract](../methodology/dispatch-contract-20261106.md)
-> and [runbook](../operations/ordinary-campaign.md). Do not use the old 10 ms
+> [current status](../../docs/status.md), [dispatch contract](../../docs/methodology/dispatch-contract-20261106.md)
+> and [runbook](../../docs/operations/ordinary-campaign.md). Do not use the old 10 ms
 > rejection rule for explicitly amended runs or relabel historical failures.
 
 **Disposition: NO-GO.** This is the single open-gate checklist for the revised campaign. M0a–M2d and M1f are complete within their approved offline scopes; M2e is self-tested only, with no independent review. The pilot protocol remains preliminary and is not campaign-eligible. Owner decision (2026-11-05): cross-host latency claims are deferred; no `U≤P/10` or alternative numeric clock bound is adopted. This is conditional: it blocks only claims needing cross-host timestamps.
