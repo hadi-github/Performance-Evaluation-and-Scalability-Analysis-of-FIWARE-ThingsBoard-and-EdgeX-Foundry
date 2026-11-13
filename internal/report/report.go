@@ -375,7 +375,7 @@ func EvaluateInputs(r *plan.Resolved, s *Summary, recs []Record, cpu []CPUSample
 		add("ticks_complete", sh.TicksExecuted == st.Ticks, true, "%d of %d planned ticks executed", sh.TicksExecuted, st.Ticks)
 		add("achieved_rate", sh.AchievedRatio >= r.Health.MinAchievedRatio, true,
 			"%d of %d planned sends (%.4f, limit %.2f)", sh.Sends, sh.PlannedSends, sh.AchievedRatio, r.Health.MinAchievedRatio)
-		add("send_lag_p99", float64(sh.SendLagMs.P99) <= r.Health.SendLagP99Ms, r.Health.WorkloadPolicy != "dispatch-integrity-v1", "p99 %.2f ms (limit %v ms; p50 %.2f, max %.2f)",
+		add("send_lag_p99", float64(sh.SendLagMs.P99) <= r.Health.SendLagP99Ms, !plan.IsDispatchIntegrity(r.Health.WorkloadPolicy), "p99 %.2f ms (limit %v ms; p50 %.2f, max %.2f)",
 			float64(sh.SendLagMs.P99), r.Health.SendLagP99Ms, float64(sh.SendLagMs.P50), float64(sh.SendLagMs.Max))
 		add("no_early_sends", ss.Early == 0, true, "%.0f sends more than %v ms before their scheduled time", ss.Early, r.Health.EarlyToleranceMs)
 		outSum := ss.AckSuccess + ss.ExplicitFailure + ss.Unknown

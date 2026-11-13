@@ -112,11 +112,22 @@ type PhaseSpec struct {
 }
 
 type Health struct {
-	WorkloadPolicy   string  `json:"workload_policy,omitempty"` // empty = historical gates; dispatch-integrity-v1 makes lag diagnostic only
+	// WorkloadPolicy empty = historical gates. dispatch-integrity-v1 makes lag
+	// diagnostic only and was frozen against the 150-VU pool. dispatch-integrity-v2
+	// adds the rate-derived pool (see scripts/pool_policy.py) and is otherwise
+	// gate-identical to v1.
+	WorkloadPolicy   string  `json:"workload_policy,omitempty"`
 	MinAchievedRatio float64 `json:"min_achieved_ratio"`        // per step, attempted / planned sends (>= 0.99)
 	SendLagP99Ms     float64 `json:"send_lag_p99_ms"`           // per step, p99 send lag limit (10)
 	EarlyToleranceMs float64 `json:"early_tolerance_ms"`        // a send this much before its scheduled time is a violation
 	MaxCoreBusy      float64 `json:"max_core_busy"`             // per generator core, 0 = report only
+}
+
+// IsDispatchIntegrity reports whether a policy label opts into the dispatch
+// integrity contract (either revision). Only the VU pool rule differs between
+// revisions; every ledger and gating behaviour is shared.
+func IsDispatchIntegrity(policy string) bool {
+	return policy == "dispatch-integrity-v1" || policy == "dispatch-integrity-v2"
 }
 
 // TestFaults inject generator-side faults for the automated tests. Never set in experiment plans.
@@ -218,8 +229,8 @@ func (p *Plan) validate() error {
 			bad("payload.size_offset_bytes must be even: one ASCII-hex padding byte is two body bytes")
 		}
 	}
-	if p.ProtocolBinding != nil && p.ProtocolPilot == nil || p.ProtocolPilot != nil && p.ProtocolBinding == nil && p.Health.WorkloadPolicy != "dispatch-integrity-v1" {
-		bad("protocol pilot parameters require protocol_binding, except for explicit dispatch-integrity-v1 capture/drain metadata")
+	if p.ProtocolBinding != nil && p.ProtocolPilot == nil || p.ProtocolPilot != nil && p.ProtocolBinding == nil && !IsDispatchIntegrity(p.Health.WorkloadPolicy) {
+		bad("protocol pilot parameters require protocol_binding, except for explicit dispatch-integrity capture/drain metadata")
 	}
 	if p.ProtocolBinding != nil {
 		b := p.ProtocolBinding
@@ -251,7 +262,7 @@ func (p *Plan) validate() error {
 		bad("vus: need 1 <= pre_allocated <= max")
 	}
 	h := p.Health
-	if h.MinAchievedRatio <= 0 || h.MinAchievedRatio > 1 || h.SendLagP99Ms < 0 || (h.WorkloadPolicy != "dispatch-integrity-v1" && h.SendLagP99Ms == 0) || (h.WorkloadPolicy != "" && h.WorkloadPolicy != "dispatch-integrity-v1") || h.EarlyToleranceMs < 0 {
+	if h.MinAchievedRatio <= 0 || h.MinAchievedRatio > 1 || h.SendLagP99Ms < 0 || (!IsDispatchIntegrity(h.WorkloadPolicy) && h.SendLagP99Ms == 0) || (h.WorkloadPolicy != "" && !IsDispatchIntegrity(h.WorkloadPolicy)) || h.EarlyToleranceMs < 0 {
 		bad("health: min_achieved_ratio in (0,1], send_lag_p99_ms > 0 and early_tolerance_ms >= 0 are required")
 	}
 	if len(errs) > 0 {
@@ -355,7 +366,7 @@ func validatePayloadSize(r *Resolved, runID string) error {
 }
 
 func validateProtocolSchedule(r *Resolved) error {
-	if r.ProtocolBinding == nil && (r.ProtocolPilot == nil || r.Health.WorkloadPolicy != "dispatch-integrity-v1") {
+	if r.ProtocolBinding == nil && (r.ProtocolPilot == nil || !IsDispatchIntegrity(r.Health.WorkloadPolicy)) {
 		return nil
 	}
 	measurement, warmup := 0, 0

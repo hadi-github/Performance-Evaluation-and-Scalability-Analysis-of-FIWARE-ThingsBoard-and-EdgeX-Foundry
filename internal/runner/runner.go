@@ -475,7 +475,7 @@ func Run(o Options) (string, *Manifest, error) {
 	// than introducing per-request progress work or changing k6's frozen script.
 	var progressExit chan int
 	var progressDone chan struct{}
-	if prep.resolved.ProtocolBinding != nil || prep.resolved.Health.WorkloadPolicy == "dispatch-integrity-v1" {
+	if prep.resolved.ProtocolBinding != nil || plan.IsDispatchIntegrity(prep.resolved.Health.WorkloadPolicy) {
 		progressExit, progressDone = make(chan int, 1), make(chan struct{})
 		out := o.Stdout
 		if out == nil {

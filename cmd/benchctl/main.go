@@ -16,6 +16,8 @@
 //	                   EdgeX per-run host disk and PostgreSQL WAL report, informational only (internal/diskmetrics, D29a)
 //	benchctl deployment-validate -descriptor FILE -inventory FILE [-observer-fake FILE] [-evidence-manifest FILE] -out NEWDIR
 //	                   offline versioned dry-run deployment attestation; no Docker/SUT/lifecycle (internal/deployment)
+//	benchctl payload-validate -plan P -run-id ID -ledger records.ndjson -stored stored-payload.ndjson [-out FILE]
+//	                   independent W3 stored-payload check: rebuild (seed, seq) and compare stored bytes
 //
 // Exit status: 0 = VALID / clean, 1 = INVALID / not clean, 2 = usage or I/O error.
 package main
@@ -92,6 +94,10 @@ func main() {
 	cmd, args := os.Args[1], os.Args[2:]
 	if cmd == "deployment-validate" {
 		deploymentCommand(args)
+		return
+	}
+	if cmd == "payload-validate" {
+		payloadValidateCommand(args)
 		return
 	}
 	if cmd == "analyze" || cmd == "compare" || cmd == "analyze-demo" || cmd == "fault-capacity" {
