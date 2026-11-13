@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "amendment_id": "B0-TB-R04-ADDITIONAL-ATTEMPT-20261109",
+  "status": "MULTIPLE_OWNER_AUTHORIZED_SUPPLEMENTAL_ATTEMPTS; ORIGINAL_B0_MATRIX_UNCHANGED",
+  "original_matrix_preserved": "run-matrix.json",
+  "attempts": [
+    {
+      "attempt_id": "TB-R04-A1",
+      "run_id": "disp-tb-r04a-20261109",
+      "ordinal_relation": "supplemental to original ordinal 10; does not replace it",
+      "platform": "thingsboard",
+      "repetition": 4,
+      "seed": 202611064,
+      "baseline_run_id": "disp-tb-r04-20261106",
+      "plan": "plans/disp-tb-r04a-20261109.json",
+      "plan_sha256": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
+      "reason": "Owner authorized a new uniquely identified attempt after the prior attempt failed before traffic because the read-only inventory helper was unavailable. Original pretraffic failure remains preserved and is not counted as measurement data.",
+      "configuration_change": false,
+      "created_utc": "2026-11-09T07:30:46.480561+00:00"
+    },
+    {
+      "attempt_id": "TB-R04-A2",
+      "run_id": "disp-tb-r04b-20261109",
+      "ordinal_relation": "second supplemental attempt for original ordinal 10 after A1 failed before traffic; does not replace original or A1",
+      "platform": "thingsboard",
+      "repetition": 4,
+      "seed": 202611064,
+      "baseline_run_id": "disp-tb-r04-20261106",
+      "plan": "plans/disp-tb-r04b-20261109.json",
+      "plan_sha256": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
+      "reason": "Owner explicitly authorized a new uniquely identified attempt after A1 failed before traffic. A1 and original ordinal-10 setup failure remain preserved and are not measurement data.",
+      "configuration_change": false,
+      "created_utc": "2026-11-09T08:59:54.589576+00:00"
+    }
+  ]
+}

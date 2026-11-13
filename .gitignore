@@ -16,6 +16,10 @@ results/feasible-campaign-20261106/*
 !results/feasible-campaign-20261106/qualify-endpoint.py
 !results/feasible-campaign-20261106/qualification*-plan.json
 !results/feasible-campaign-20261106/*-final-short-plan.json
+# Owner-amended supplemental attempts: the B0 launcher reads this to authorise
+# r04a/r04b, so a clone without it cannot validate those cells (found 2026-11-14
+# when a fresh clone failed 2 tests that pass on the authoring machine).
+!results/feasible-campaign-20261106/supplemental-attempts-*.json
 !results/feasible-campaign-20261106/plans/
 results/feasible-campaign-20261106/plans/*
 !results/feasible-campaign-20261106/plans/*.json
