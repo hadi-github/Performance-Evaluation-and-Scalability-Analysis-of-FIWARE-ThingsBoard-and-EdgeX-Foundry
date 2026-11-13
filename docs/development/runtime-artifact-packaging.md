@@ -55,7 +55,7 @@ reused.
 |---|---|---|
 | Run identifier | `{tag}-{YYYYMMDD}-{HHMMSS}+0330` | `m2b-blueprint-20261105-032542+0330` |
 | Run directory | `results/{run_id}/` | `results/m2b-blueprint-20261105-032542+0330/` |
-| Packet document | `docs/archive/sessions/{tag}-{YYYYMMDD}.md` | `docs/archive/sessions/m2b-blueprint-20261105.md` |
+| Packet document | `research/archive/sessions/{tag}-{YYYYMMDD}.md` | `research/archive/sessions/m2b-blueprint-20261105.md` |
 | Manifest | `results/{run_id}/artifact-manifest.json` | — |
 | Checksums | `results/{run_id}/SHA256SUMS` | — |
 
@@ -70,7 +70,7 @@ Path rules:
 1. Paths are repository-relative and use `/`.
 2. Absolute paths, `..`, `.` elements, empty elements, backslashes, whitespace and control
    characters are rejected.
-3. A `this_run` artifact is under `results/{run_id}/` or `docs/archive/sessions/`.
+3. A `this_run` artifact is under `results/{run_id}/` or `research/archive/sessions/`.
 4. A `preserved_prior` artifact is under `results/` or `docs/` and must **not** be under the current
    run directory.
 5. A path may appear at most once. Path reuse is a hard failure, not a warning.
@@ -167,7 +167,7 @@ results/{run_id}/
   patch-roundtrip.log
   patch-roundtrip-verify.log
   cli-smoke/                    # only if the CLI is exercised read-only
-docs/archive/sessions/{tag}-{YYYYMMDD}.md
+research/archive/sessions/{tag}-{YYYYMMDD}.md
 ```
 
 The packaging command writes only into a **new** run directory and the agreed packet path. It must

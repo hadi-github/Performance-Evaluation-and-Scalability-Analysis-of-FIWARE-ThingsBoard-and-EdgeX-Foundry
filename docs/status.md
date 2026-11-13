@@ -6,9 +6,9 @@ The owner has changed the future primary latency endpoint to **application dispa
 
 The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. After the controller paused at TB repetition 2, independent review accepted its valid platform failure and cleared a **new persistent controller at original entry 7, EdgeX repetition 3**. Older gates/authorization text below remain dated historical context, not an override of this narrowed release.
 
-**Last reconciled: 2026-11-08 handoff**; actual recorded UTC timestamps govern run timing.
+**Last reconciled: 2026-11-12** (W1–W4 qualification state); actual recorded UTC timestamps govern run timing.
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
-preserved verbatim — and may contradict each other — under [`docs/archive/sessions/`](archive/sessions/).
+preserved verbatim — and may contradict each other — under [`research/archive/sessions/`](../research/archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
 (or re-derived from the raw evidence), never re-litigated from the narratives.
 
@@ -153,7 +153,6 @@ The owner approved four one-factor fixed-point configurations for all three
 platforms: W1 rate 50/s, W2 2,000 devices, W3 1,024 extra logical padding bytes,
 and W4 one replica per replicated service on the **same CPU pool 4–5/k=2**.
 The active B0 controller, frozen settings and existing attempt IDs are unchanged.
-No variant has been launched.
 Independent review accepted staging/documentation only, not runtime execution.
 
 The new [batch controls](../workloads/campaigns/fixed-points-20261108/README.md)
@@ -163,17 +162,66 @@ plans resolve offline; one-factor/count/interleaving/preservation tests and the
 three-adapter logical-padding test pass. These are source/engineering checks,
 not live deployment, qualification or experimental results.
 
-All variants still need workload-aware execution/report grouping and separate
-release. W1 needs full-duration 50/s capture validation and resolution of its
-applicable 100/s headroom-policy gap. W2 needs all-device replica readiness and
-live retained EdgeX inventory/discovery checks; projected B0+new experimental
-cohorts reach 36,192 devices before new qualification cohorts, above the current
-16,384 discovery setting. W3 needs live padding preservation, capture/headroom
-and an actual transport/wire measurement method; current FIWARE sink/history
-subscriptions and sink records do not retain padding. Any evidence-path change
-requires common-batch/comparability review, not an undisclosed W3-only change.
-Computed header bytes are not measured wire bytes. W4 needs verified N=1/k=2 resources and the same HAProxy path.
-These blocked prerequisites do not establish infeasibility. Do not modify active
+#### Measured qualification state — updated 2026-11-12
+
+The staging text above describes the batch as it was reviewed. Since then the
+**release qualifications** for W1, W2 and most of W3 have run. These are
+qualifications: they use their own run IDs and seeds, and **none of them counts
+toward the 60 proposed attempts**. `execution_authorized` remains `false` and the
+matrix remains `PROPOSED_NOT_LAUNCH_CLEARED`.
+
+| Workload | ThingsBoard | FIWARE | EdgeX |
+|---|---|---|---|
+| W1 (50/s, 1,000 devices) | `VALID` — 45,000/45,000, p99 347 ms | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` — 13,481/30,000 over the 5 s timeout, p99 ~35.3 s, harness clean | `VALID` — 45,000/45,000, p99 8.5 ms |
+| W2 (25/s, 2,000 devices) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` | `VALID` | `VALID` (retained inventory 13,192 confirmed) |
+| W3 (25/s, 1,000 devices, +1,024 B) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` (warm-up only; measurement 15,000/15,000 clean, p99 257.7 ms); payload gate **PASS** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 407.3 ms; stored-payload gate **UNAVAILABLE** | **not launched** |
+| W4 (25/s, 1,000 devices, N=1) | not launched | not launched | not launched |
+
+Reading this table:
+
+- **A platform failure is a result, not a defect to repair.** FIWARE failing W1 at
+  50/s is an accepted finding. It is not to be re-run to obtain a better number.
+- **W3's two platforms disagree legitimately.** ThingsBoard preserved the padding
+  end to end but its delivery verdict is a warm-up cold-start artifact; FIWARE
+  delivered perfectly but its frozen subscriptions never forward `padding`, so the
+  stored payload is unobservable. A single pass/fail column would misstate both.
+- **The W3 FIWARE stored-payload gate stays explicitly unavailable.** It must never
+  be read as passed. Making it observable requires the documented subscription
+  change, a new receipt and a comparability note.
+- **W4 has not been measured anywhere.** No qualification plan is staged for it and
+  no attempt is authorized. See the W4 row of the gates below.
+
+The detailed per-run narratives, including every superseded intermediate
+qualification and the harness defects found along the way, are in the internal
+record under [`research/findings/`](../research/README.md), not here.
+
+#### What each workload still needs
+
+W1 and W2 have run their qualifications on all three platforms. W3 has run on two
+platforms and is unlaunched on EdgeX. W4 is unstarted.
+
+- **W1** — measured on all three. ThingsBoard and EdgeX `VALID`; FIWARE
+  `INVALID_PLATFORM_FAILURE_OR_BACKLOG`, accepted as a platform finding. Its former
+  50/s headroom-policy gap was resolved by the rate-derived generator pool (300 VUs
+  at 50/s), applied 2026-11-10.
+- **W2** — measured on all three. FIWARE and EdgeX `VALID`; ThingsBoard
+  `INVALID_PLATFORM_FAILURE_OR_BACKLOG`. The live retained EdgeX inventory check was
+  satisfied by making the inventory gate reserve the actual cohort rather than a
+  projection.
+- **W3** — measured on two, **not launched on EdgeX**. The FIWARE stored-payload gate
+  and the transport/wire measurement remain unavailable by design: current FIWARE
+  sink/history subscriptions do not retain padding, and no on-wire capture exists in
+  this harness. Computed header bytes are not measured wire bytes.
+- **W4** — **not measured on any platform.** It needs a verified N=1 deployment that
+  keeps the two-core pool `4-5`, one UP backend per tier including the ThingsBoard
+  rule-engine container count, and a reported aggregate-memory change. A default
+  `make up N=1` maps to a **single core** and does not produce this configuration.
+
+"Measured" does not mean "cleared". No workload is released for the 60 proposed
+attempts, and a `VALID` qualification on one platform does not qualify the workload
+across platforms.
+
+These remaining prerequisites do not establish infeasibility. Do not modify active
 B0 to clear them, delete history/devices or count qualification as repetitions.
 
 For the configuration table, rationale, evidence boundaries and comparison
@@ -185,7 +233,7 @@ limits, see [workload methodology](methodology.md#8-workload-configurations-b0-a
 
 ## 1. Qualification state (blocks B1–B17)
 
-Reconciled from `docs/qualification/qualification-blockers.md` (the row-level record of truth), the 2026-10-29 interpretation
+Reconciled from `research/qualification/qualification-blockers.md` (the row-level record of truth), the 2026-10-29 interpretation
 correction (`docs/methodology/interpretation-correction-20261029.md`) and the raw evidence under `results/`.
 Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evidence, agreed limitation.
 
@@ -200,7 +248,7 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 | B7 | Deploy (TB) | CLOSED (except probe) | Config/entrypoint/JVM/log isolation live-verified 2026-10-27. Remaining: intentional isolated OOM probe on a disposable container (needs authorization). |
 | B8 | Claim/Run (FIWARE index) | CLOSED (populated read-only audit) | D27 export plus file audit on the populated baseline IoT Agent registry: **100 rows, 0 incomplete keys, 0 duplicate groups**. Evidence: `results/verification-20261031/d27/`. No index created and no devices deleted. This is a snapshot audit, not a guarantee of future uniqueness. |
 | B9 | Claim (EdgeX disk+WAL) | CLOSED | Disk 2026-10-28, **WAL 2026-10-29**: benchctl vs independent recomputation match to 4+ decimals via the DIAG-only postgres overlay (`results/auto-20261029/wal/`, commit `a51fcc1`). Benchmark config stays the plain compose. |
-| B10 | Run | PARTIAL | Approved initial ceiling remains **200/s conditional on the actual configuration qualifying at 400/s**. Earlier loopback and 100-device fixture results retain their limited scope. New 1,000-device ThingsBoard-adapter immediate-response run is generator-VALID at 400/s, but its independent receiver ledger is not yet retrieved; delayed and remaining adapter attempts were interrupted by SUT network loss. No common campaign ceiling is newly qualified. See `docs/archive/sessions/qualification-next-20261031.md`. |
+| B10 | Run | PARTIAL | Approved initial ceiling remains **200/s conditional on the actual configuration qualifying at 400/s**. Earlier loopback and 100-device fixture results retain their limited scope. New 1,000-device ThingsBoard-adapter immediate-response run is generator-VALID at 400/s, but its independent receiver ledger is not yet retrieved; delayed and remaining adapter attempts were interrupted by SUT network loss. No common campaign ceiling is newly qualified. See `research/archive/sessions/qualification-next-20261031.md`. |
 | B11 | Claim (cross-host timing) | OPEN | Corrected probe: load↔SUT offset ∈ [−63, +50] ms. No SLO exists yet; U ≤ P/10 unadopted. Cross-host timing claims remain unqualified. |
 | B12 | Run (sink capacity) | PARTIAL | Sink qualified AT 3200 r/s (0 unparsed/overflow, 240k msgs). Own envelope stress beyond the ceiling steps not yet run. |
 | B13 | Run (monitoring cost) | OPEN | SUT-side exporters installed (cpuset 0, 128m limits); their cost inside a 2× check not isolated. |
@@ -209,13 +257,13 @@ Columns: **State** (CLOSED / CLAIM-READY / OPEN / PENDING-OWNER), one-line evide
 | B16 | Claim (reproducibility) | MAINTAINED | 758/758 historical manifest files re-verify (`sha256sum -c evidence/evidence-integrity.sha256`); newer sessions carry separate SHA256SUMS. Publication of the inventory happens at report time (see §5). |
 | B17 | Scaling claims | OPEN | S1–S5 amendments recorded (D35–D39), not yet experimentally validated. |
 
-The per-row blocker text, evidence and history remain in `docs/qualification/qualification-blockers.md` (2026-10-27 basis,
+The per-row blocker text, evidence and history remain in `research/qualification/qualification-blockers.md` (2026-10-27 basis,
 maintained through 2026-10-29). This section reconciles it against the 2026-10-29 correction; rows above carry
 the reconciled wording. **2026-10-29 addition:** the D33 measurement-integrity components (identity/audit chain,
 D33 items 1–7) were live-validated for the first time in the bounded rehearsals on all three platforms —
 `results/rehearsals-20261029/` (TS `REH-TB-V2`, `REH-EDGEX-V1`, `REH-FIWARE-V4`, each 3,300/3,300 identities
 ack → sink → history with 0 duplicates/orphans/malformed; session close-out
-`docs/archive/sessions/verify-20261029.md`).
+`research/archive/sessions/verify-20261029.md`).
 
 ---
 
@@ -241,7 +289,7 @@ lives on the benchctl path only.
 ## 3. Reconciled contradictions
 
 ### 3.1 D29a WAL verification — handoff stale, blocker table correct
-`docs/archive/sessions/autonomous-handoff-20261029.md` line 19 lists “D29a WAL live verification (pg-counters
+`research/archive/sessions/autonomous-handoff-20261029.md` line 19 lists “D29a WAL live verification (pg-counters
 overlay) still pending”. **Stale.** The WAL block was live-verified later the same session (commit `a51fcc1`,
 B9 row above): benchctl values match an independent recomputation from the raw pg-counters to 4+ decimals.
 Status: **CLOSED**. Sanity note: the handoff was written before the WAL run; its evidence map has no `wal/` entry
@@ -355,12 +403,12 @@ Updated **2026-10-31**, follow-up evidence: `results/verification-20261031/`.
    sensitivities are reconciled in `research/protocols/slo-profile-reconciliation-20261029.md`;
    external 3GPP attribution remains unverified. No SLO verdicts are introduced.
 
-Full follow-up handoff: `docs/archive/sessions/verify-followup-20261031.md`.
+Full follow-up handoff: `research/archive/sessions/verify-followup-20261031.md`.
 
 ## 9. Current blocker: SUT network loss during 1,000-device qualification
 
 The continuation from `9c7fc5f` is retained in `results/qualification-next-20261031/` and
-`docs/archive/sessions/qualification-next-20261031.md`. All unrelated benchmark stacks were
+`research/archive/sessions/qualification-next-20261031.md`. All unrelated benchmark stacks were
 stopped before the controlled-receiver performance tests; required monitoring stayed up.
 
 The TB adapter immediate-response run delivered 48,000 measured requests at 400/s with zero
@@ -380,7 +428,7 @@ then resume the gates. Main campaign remains **NO-GO**; no rate or SLO decision 
 2026-10-31 23:03 UTC show healthy load-host services, a timed-out SUT receiver probe and all SUT
 scrape targets down. No tests, restoration or network changes were attempted. SUT identity/state,
 ledger recovery and reconciliation remain unavailable. Evidence: `results/recovery-20261101/`;
-handoff: `docs/archive/sessions/recovery-check-20261101.md`.
+handoff: `research/archive/sessions/recovery-check-20261101.md`.
 
 ## 10. Owner profile mappings approved — 2026-11-01 (offline only)
 
@@ -399,7 +447,7 @@ This update authorizes no runtime action. **Campaign remains NO-GO.**
 
 ## 11. M0a baseline preservation and receiver recovery — 2026-11-03
 
-Scoped recovery and review packet: [`docs/archive/sessions/m0a-baseline-recovery-20261103.md`](archive/sessions/m0a-baseline-recovery-20261103.md);
+Scoped recovery and review packet: [`research/archive/sessions/m0a-baseline-recovery-20261103.md`](../research/archive/sessions/m0a-baseline-recovery-20261103.md);
 raw evidence: [`results/m0a-20261103-020828+0330/`](../results/m0a-20261103-020828+0330/).
 Before recovery, the dirty baseline on `chore/ci-and-release` at `36f8348e5f6a8cf286cbe93b7e2a8358bcb20d51`
 was snapshotted (tracked diff SHA-256 `f0da0d534b343c0db6e8f1d8389becdc828b69de136f78935338f5464e2680c2`,
@@ -436,7 +484,7 @@ only then scope the next milestone. Main campaign remains **NO-GO**.
 M0a is **APPROVED for recovery scope only** by the separate Astra review session
 `ses_e6193170affeUiLBF5ROkzdEfP` (requested `openai/gpt-6-astra#high`; harness identified
 GPT-6 Astra, effort routing not independently exposed). Review record:
-[`m0a-independent-review-20261103.md`](archive/sessions/m0a-independent-review-20261103.md).
+[`m0a-independent-review-20261103.md`](../research/archive/sessions/m0a-independent-review-20261103.md).
 The preceding recovery narrative is retained as originally reported. Its 22:38:39 timestamp,
 memory observation, failed guard, bounded wait and original test results are session-reported;
 not every underlying transcript was retained. The retained pre-stop transcript begins at
@@ -447,18 +495,18 @@ closure, hashes or identity reconciliation. Do not regenerate historical transcr
 | Task | Dependency | Owner / requested model | State | Evidence / last check | Next action |
 |---|---|---|---|---|---|
 | M0a recovery | Current-state inventory | Luna `openai/gpt-6-luna#high`; independent Astra `openai/gpt-6-astra#high` | APPROVED, scoped | Recovery bundle above; independent review 2026-11-03 | Preserve evidence; no repeat recovery needed |
-| M0b preliminary contract | Initial Astra design review; preserved baseline | Luna `openai/gpt-6-luna#high`; independent Astra `openai/gpt-6-astra#high` | APPROVED, offline foundation only | [Final independent review](archive/sessions/m0b-independent-review-20261103.md#final-r4-re-review--2026-11-03); all R1–R7 closed, 2026-11-03 | Preserve approved foundation; integrate explicit consumers next |
-| M1a protocol-bound cohort analysis | Approved M0b | Implementation: Luna sessions, requested `openai/gpt-6-luna#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1a-approval-20261104.md); fix packet `results/m1a-fix-packet-20261104-005644+0330/`; review `ses_e5ca28f17ffezpYAWTi38I5QWO`, 2026-11-04 | Preserve; runtime receipt/clock qualification remain outstanding |
-| M1b offline end-to-end path | Approved M1a | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1b-approval-20261104.md); packet `results/m1b-pipeline-20261104-013816+0330/`; review `ses_e5c831c28ffeZ2P8S8xUfbkZkA`, 2026-11-04 | Preserve; live qualification remains outstanding |
-| M1c payload golden fixture | Approved M1b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1c-approval-20261104.md); packet `results/m1c-payload-fixture-20261104-020102+0330/`; review `ses_e5c73aa2fffeCZJFCdsIesIv8s`, 2026-11-04 | Preserve; live payload-storage qualification remains outstanding |
-| M1d complete-body receiver | Approved M1c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1d-approval-20261104.md); packet `results/m1d-complete-body-20261104-024117+0330/`; review `ses_e5c40004cffeqr4BbZeigwIZ1w`, 2026-11-04 | Preserve; no deployment or clock qualification |
-| M1e adapter payload controls | Approved M1d | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m1e-approval-20261104.md); packets `results/m1e-*`; review sessions `ses_e5bf776acffewIermuL5GrjYPw`, `ses_e5bda0110ffezYcVouts5ruYrK`, `ses_e5bc73feaffes8ZYvVRg1HmbVl`, 2026-11-04 | Preserve; no deployment or runtime evidence |
-| M1f manual fault/capacity reducers | Approved M1e | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](archive/sessions/m1f-approval-20261105.md); packets and review under `docs/archive/sessions/` and `results/m1f-*`, 2026-11-05 | Preserve; live fault/deployment qualification outstanding |
-| M2 deployment/instrumentation foundation | Approved M1f | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](archive/sessions/m2-approval-20261105.md); fix packet `docs/archive/sessions/m2-fix-20261105.md`; review sessions under [`m2-independent-review-20261105.md`](archive/sessions/m2-independent-review-20261105.md), 2026-11-05 | Preserve; live/deployment qualification outstanding |
-| M2b deployment orchestration blueprint | Approved M2 | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2b-approval-20261105.md); packets `docs/archive/sessions/m2b-*`; review `ses_e55da6cd4ffeV6C6UiZxuwBTLJ`, 2026-11-05 | Preserve; no lifecycle/live claim |
-| M2c offline render/verify validation | Approved M2b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2c-approval-20261105.md); packet `docs/archive/sessions/m2c-render-verify-20261105.md`; review `ses_e557e06aefferRFlsPQc9HpYVD`, 2026-11-05 | Preserve; nonblocking F1/F2/F3 noted; no live claim |
-| M2d offline execution-plan render | Approved M2c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](archive/sessions/m2d-approval-20261105.md); packet `docs/archive/sessions/m2d-execution-plan-20261105.md`; review `ses_e55615fd5ffeRiVCyh2iO9Qs1i`, 2026-11-05 | Preserve; no lifecycle/live claim |
-| M2e health/evidence dry-run | Plan by Kimi; implementation by DeepSeek Flash | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review intentionally waived by owner | COMPLETE, SELF-TESTED, NO INDEPENDENT REVIEW | Packet `docs/archive/sessions/m2e-health-evidence-20261105.md`; evidence `results/m2e-health-evidence-20261105-113210+0330/`; 2026-11-05 | Synthetic offline only; independently unverified by owner choice; no live claim |
+| M0b preliminary contract | Initial Astra design review; preserved baseline | Luna `openai/gpt-6-luna#high`; independent Astra `openai/gpt-6-astra#high` | APPROVED, offline foundation only | [Final independent review](../research/archive/sessions/m0b-independent-review-20261103.md#final-r4-re-review--2026-11-03); all R1–R7 closed, 2026-11-03 | Preserve approved foundation; integrate explicit consumers next |
+| M1a protocol-bound cohort analysis | Approved M0b | Implementation: Luna sessions, requested `openai/gpt-6-luna#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1a-approval-20261104.md); fix packet `results/m1a-fix-packet-20261104-005644+0330/`; review `ses_e5ca28f17ffezpYAWTi38I5QWO`, 2026-11-04 | Preserve; runtime receipt/clock qualification remain outstanding |
+| M1b offline end-to-end path | Approved M1a | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1b-approval-20261104.md); packet `results/m1b-pipeline-20261104-013816+0330/`; review `ses_e5c831c28ffeZ2P8S8xUfbkZkA`, 2026-11-04 | Preserve; live qualification remains outstanding |
+| M1c payload golden fixture | Approved M1b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1c-approval-20261104.md); packet `results/m1c-payload-fixture-20261104-020102+0330/`; review `ses_e5c73aa2fffeCZJFCdsIesIv8s`, 2026-11-04 | Preserve; live payload-storage qualification remains outstanding |
+| M1d complete-body receiver | Approved M1c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1d-approval-20261104.md); packet `results/m1d-complete-body-20261104-024117+0330/`; review `ses_e5c40004cffeqr4BbZeigwIZ1w`, 2026-11-04 | Preserve; no deployment or clock qualification |
+| M1e adapter payload controls | Approved M1d | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1e-approval-20261104.md); packets `results/m1e-*`; review sessions `ses_e5bf776acffewIermuL5GrjYPw`, `ses_e5bda0110ffezYcVouts5ruYrK`, `ses_e5bc73feaffes8ZYvVRg1HmbVl`, 2026-11-04 | Preserve; no deployment or runtime evidence |
+| M1f manual fault/capacity reducers | Approved M1e | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m1f-approval-20261105.md); packets and review under `research/archive/sessions/` and `results/m1f-*`, 2026-11-05 | Preserve; live fault/deployment qualification outstanding |
+| M2 deployment/instrumentation foundation | Approved M1f | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/kimi-k3.1-pro#low` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m2-approval-20261105.md); fix packet `research/archive/sessions/m2-fix-20261105.md`; review sessions under [`m2-independent-review-20261105.md`](../research/archive/sessions/m2-independent-review-20261105.md), 2026-11-05 | Preserve; live/deployment qualification outstanding |
+| M2b deployment orchestration blueprint | Approved M2 | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m2b-approval-20261105.md); packets `research/archive/sessions/m2b-*`; review `ses_e55da6cd4ffeV6C6UiZxuwBTLJ`, 2026-11-05 | Preserve; no lifecycle/live claim |
+| M2c offline render/verify validation | Approved M2b | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m2c-approval-20261105.md); packet `research/archive/sessions/m2c-render-verify-20261105.md`; review `ses_e557e06aefferRFlsPQc9HpYVD`, 2026-11-05 | Preserve; nonblocking F1/F2/F3 noted; no live claim |
+| M2d offline execution-plan render | Approved M2c | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review: `opencode-go/deepseek-v4-pro#high` | APPROVED, scoped offline | [Approval record](../research/archive/sessions/m2d-approval-20261105.md); packet `research/archive/sessions/m2d-execution-plan-20261105.md`; review `ses_e55615fd5ffeRiVCyh2iO9Qs1i`, 2026-11-05 | Preserve; no lifecycle/live claim |
+| M2e health/evidence dry-run | Plan by Kimi; implementation by DeepSeek Flash | Implementation: `opencode-go/deepseek-v4.1-flash#high`; review intentionally waived by owner | COMPLETE, SELF-TESTED, NO INDEPENDENT REVIEW | Packet `research/archive/sessions/m2e-health-evidence-20261105.md`; evidence `results/m2e-health-evidence-20261105-113210+0330/`; 2026-11-05 | Synthetic offline only; independently unverified by owner choice; no live claim |
 | M3 live preflight | M2e self-test; approved offline foundations | Orchestrator session | COMPLETE READ-ONLY (pre-deployment snapshot) | `results/live-preflight-20261105T080836Z/` with Gate A/B/C captures and SHA256SUMS, 2026-11-05 | Host state now superseded by the bounded live smoke; clock offset still unmeasured |
 | M3 live smoke | M2e self-test; preflight; source checkpoint `29f5dead` | Orchestrator session | PARTIAL — N1 VALID; N2 INVALID generator gate | `results/live-tb-20261105/README.md`; N1 sink 3300/3300 unique, N2 isolated sink 3300/3300 but warm-up send-lag 13 ms, 2026-11-05 | Preserve runs; rerun N2 with qualified generator configuration before any scaling claim; no capacity claim |
 | M3–M7 live qualification/campaign | Approved offline foundations; deployed producers; calibrated clock/drain/recovery policies | Not started | BLOCKED at session checkpoint | No live revised-scope evidence; both hosts were reachable in a bounded read-only check at 2026-11-05 07:37 UTC, with only exporters/monitoring running; no deployment or load was performed | Resume live preflight and deployment preparation; campaign remains NO-GO |
@@ -471,8 +519,8 @@ Revised-scope status: **SOFTWARE_VERIFIED=false**, **LIVE_QUALIFICATION_COMPLETE
 ### Session checkpoint — 2026-11-04
 
 Offline milestones M0a–M1e completed with independent review (approval records under
-`docs/archive/sessions/`). No live qualification or campaign run was performed. Resumable handoff:
-[`session-checkpoint-20261104.md`](archive/sessions/session-checkpoint-20261104.md). The next
+`research/archive/sessions/`). No live qualification or campaign run was performed. Resumable handoff:
+[`session-checkpoint-20261104.md`](../research/archive/sessions/session-checkpoint-20261104.md). The next
 bounded work is M1f (offline fault/capacity reducers), then deployment and calibration before
 qualification. Host state noted at session start must be re-verified; do not assume it persists.
 
@@ -522,7 +570,7 @@ freeze, artifact digests, clock/capture procedure, output paths and rollback pla
 ### Current qualification continuation — 2026-11-05
 
 The concise, evidence-linked open-gate ledger is
-[`docs/qualification/readiness-checklist-20261105.md`](qualification/readiness-checklist-20261105.md).
+[`research/qualification/readiness-checklist-20261105.md`](../research/qualification/readiness-checklist-20261105.md).
 M1f remains **complete/approved for offline reducers and manual-operator attestations**; live fault
 execution is outstanding. The existing N=2 failure has not been attributed to CPU or VU
 starvation. First-attempt UNKNOWN seq 0–17 are each 5 s transport timeouts and all 18 later appear

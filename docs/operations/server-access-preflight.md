@@ -52,7 +52,7 @@ Any of the following is a change and requires explicit owner authorization after
 One transcript per host: the full Gate A/B/C output, clearly labelled with command and timestamp, stored under
 the run-evidence tree of the first authorized session (not in this repo's committed results without the owner's
 instruction), plus a one-line summary per gate. The transcript is the input for resetting B1 in
-`docs/qualification/qualification-blockers.md` and for the pre-deployment verification of D28.
+`research/qualification/qualification-blockers.md` and for the pre-deployment verification of D28.
 
 ## Rules
 

@@ -72,6 +72,31 @@ command above.
 | `internal/plan/plan_test.go` | Explicit supported dispatch policy permits diagnostic-only lag; unsupported policy rejected; positive relative cutoff preserved; dual absolute/relative cutoffs rejected. |
 | `internal/protocol/protocol_test.go` | Declared pilot relative drain/quiet/late eligibility; rejects dual/nonpositive cutoffs; no implicit campaign eligibility. |
 | `internal/sink/sink_test.go` | Native EdgeX/Orion envelopes retain per-identity device/schedule metadata; malformed timestamp handling and actual sink-record output using local HTTP test requests. |
+| `cmd/benchctl/payload_validate_test.go` | The W3 stored-payload gate. `benchctl payload-validate` compares the platform's own stored payload against an expectation rebuilt from the plan seed — never from the store — so a faithful store validates (including the exact 1,024-byte padding) while identity-correct rows with damaged or truncated padding fail. An empty store is a failure, not a vacuous pass. Tests also hold the exit-status contract: 0 all rows validated, 1 any row failed or nothing validated, 2 usage/I/O error. |
+
+### Stored-payload validation (`benchctl payload-validate`)
+
+The sink retains identity and timing only, so a sink row count cannot establish that a
+platform preserved the payload. This subcommand is the independent check the W3 gate
+requires:
+
+```sh
+benchctl payload-validate -plan P -run-id ID \
+    -ledger RUN/records.ndjson -stored stored-payload.ndjson [-out FILE]
+```
+
+- `-ledger` is the **generator's** complete ledger, and `-stored` is the platform's own
+  exported store (`scripts/history-payload.sh`). Taking identity and timing from the
+  generator and payload bytes from the platform keeps the comparison non-circular.
+- The expectation is rebuilt from the plan's `seed` and the message's `seq` through the
+  same contract the generator uses. Padding is never copied out of the store into the
+  expectation.
+- A run where the store cannot be exported at all yields **unavailable**, not a pass.
+  FIWARE's frozen subscriptions are exactly this case; do not present it as validated.
+
+This validator proves *stored payload fidelity*. It does not measure wire bytes —
+nothing in this harness captures the network — so it cannot be cited as a transport-byte
+result.
 
 Existing Go suites in `tests/offline/` also cover adapter payload golden vectors,
 cohort arithmetic and CLI synthetic pipelines. Those fixtures are not live

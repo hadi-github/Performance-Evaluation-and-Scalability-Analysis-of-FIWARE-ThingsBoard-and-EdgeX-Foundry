@@ -8,7 +8,7 @@ contracts. It is not an M3 fragility/fault campaign and makes no M3 readiness cl
 orchestration remain future milestones requiring separate review and explicit authorization.
 
 - Baseline: branch `chore/ci-and-release`, HEAD `36f8348e5f6a8cf286cbe93b7e2a8358bcb20d51`.
-- Approved predecessor: M2 foundation, `docs/archive/sessions/m2-approval-20261105.md`.
+- Approved predecessor: M2 foundation, `research/archive/sessions/m2-approval-20261105.md`.
 - No Docker client call, SUT access, deployment, lifecycle action, load or campaign action is
   performed by M2b.
 

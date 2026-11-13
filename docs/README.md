@@ -7,6 +7,35 @@ source of truth whenever a summary disagrees with it.
 **New to the project? Start with [`quickstart.md`](quickstart.md)** for the short
 safe orientation, then come back here for the detailed tree.
 
+## Two groups of documents
+
+The repository keeps its documentation in two deliberately separate trees:
+
+| Tree | For | Contains |
+|---|---|---|
+| **`docs/`** (this page) | Reviewers and operators | What the system is, how to run, verify and re-run it, and the authoritative current status |
+| **[`../research/`](../research/README.md)** | The project team and paper authors | Findings, decisions, per-platform observations, frozen protocols, qualification records and historical session packets |
+
+**`docs/` is the reviewer entry point.** Everything a reviewer needs to understand
+the code, the protocol, the measurement method and how to reproduce a run belongs
+here and is indexed below.
+
+**`research/` is the internal record.** It holds the material the paper is written
+from: what each platform did and why, which blockers were real and which were
+measurement artifacts, and the frozen bytes of the preregistration. It is dated,
+self-critical and sometimes superseded. Read it with
+[its own index](../research/README.md), which marks supersessions explicitly.
+
+The practical rule:
+
+- If a document tells someone **how to use, run, verify or reproduce** the benchmark,
+  or states **what is currently true**, it belongs in `docs/`.
+- If a document records **what was observed, decided or discovered** during the work,
+  it belongs in `research/` — even when it is the most interesting material.
+
+Both trees are permanent. Findings are never deleted or rewritten to agree with a
+newer view; corrections are added and the old document is marked superseded.
+
 ## New engineer path
 
 For a compact route through the repository, read:
@@ -24,15 +53,16 @@ For a compact route through the repository, read:
 8. [Evidence index](../evidence/README.md) — how raw evidence, manifests and
    checksums relate to the tracked repository.
 
-Do not start with `archive/sessions/`, qualification decision packets or frozen
-protocols. Those are historical and paper/proposal material, not onboarding.
+Do not start with `research/`, the qualification decision packets or the frozen
+protocols. Those are internal and paper/proposal material, not onboarding.
 
 ## Material retained for the paper
 
 The research guide, methodology, architecture references, frozen protocols,
 qualification records, status history and archived sessions are retained
 deliberately. They support the experimental record and later paper writing; do
-not delete or rewrite them merely to shorten the onboarding path.
+not delete or rewrite them merely to shorten the onboarding path. The paper-facing
+material now lives under [`../research/`](../research/README.md).
 
 ## Understand the design
 
@@ -70,6 +100,8 @@ documents must be read with their dates and later amendments in mind.
    tmux controller, state files and continuation rules.
 8. [Troubleshooting](operations/troubleshooting.md): known failure classes and
    the safe next action for each.
+9. [Fresh-host deployment](operations/fresh-host-deployment.md): standing the SUT
+   and load generator up on new hosts, and what a redeploy must not do.
 
 The dated 2026-11-05 readiness checklist and old NO-GO statements document earlier
 scopes. They do not override the later bounded release, and that release does not
@@ -82,11 +114,10 @@ explains the source/evidence boundary.
 |---|---|
 | `architecture/` | design decisions, the FIWARE history (QuantumLeap/TimescaleDB) design |
 | `methodology/` | measurement methodology and its reconciliation, metrics dictionary, calibration, feasibility analyses, generator docs, the 2026-10-29 interpretation correction |
-| `qualification/` | qualification blockers (B1–B17), ThingsBoard D28 verification, EdgeX disk/WAL (D29a), Step-5 decision packet and owner sign-off |
-| `operations/` | ordinary-campaign execution, persistent controller, troubleshooting, publication handoff, diagnostics, review/export and server-access preflight |
+| `operations/` | ordinary-campaign execution, persistent controller, troubleshooting, publication handoff, diagnostics, review/export, server-access preflight and fresh-host deployment |
 | `development/` | tooling interfaces, offline analysis, test catalogue, generator progress and deployment notes |
-| `archive/sessions/` | verbatim session narratives (progress logs, handoffs, state snapshots). May contradict each other; `status.md` wins. |
 
-Related roots: [`../evidence/`](../evidence/) (integrity manifests), [`../research/`](../research/)
-(preregistration archive — original bytes preserved, protocols, findings), legacy-run policy in
-[`../workloads/README.md`](../workloads/README.md).
+Related roots: [`../research/`](../research/README.md) (internal record: findings,
+frozen protocols, preregistration archive, qualification record and historical
+session packets), [`../evidence/`](../evidence/) (integrity manifests), legacy-run
+policy in [`../workloads/README.md`](../workloads/README.md).

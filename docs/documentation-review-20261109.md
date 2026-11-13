@@ -27,8 +27,8 @@ documents. The archive accounts for a large part of that volume.
 | `docs/operations/` | Ordinary-campaign runbook, persistent execution, diagnostics, publication handoff, review/export and server access |
 | `docs/development/` | Tooling interfaces, offline analysis, test catalogue, deployment foundation, packaging and generator progress |
 | `docs/methodology/` | Detailed contracts and reconciliation records, including the dispatch contract and metrics dictionary |
-| `docs/qualification/` | Blockers, D28/D29a checks, readiness checklist, Step-5 decision packet and owner sign-off |
-| `docs/archive/sessions/` | Verbatim historical session narratives and state snapshots |
+| `research/qualification/` | Blockers, D28/D29a checks, readiness checklist, Step-5 decision packet and owner sign-off |
+| `research/archive/sessions/` | Verbatim historical session narratives and state snapshots |
 
 The material is technically strong where it exists. It preserves distinctions
 between dispatch, wire transmission, HTTP acknowledgement, sink receipt and

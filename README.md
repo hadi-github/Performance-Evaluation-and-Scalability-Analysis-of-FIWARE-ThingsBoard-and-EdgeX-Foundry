@@ -17,7 +17,7 @@ The current owner-approved comparison is deliberately fixed at **N=2/k=2, pool
 > Runtime work is paused for repository handoff. No completed campaign, capacity or scalability
 > claim is made. Current evidence, limitations and the exact continuation gate live in
 > [`docs/status.md`](docs/status.md). Per-session narratives are archived under
-> `docs/archive/sessions/` and may contradict each other; `docs/status.md` wins.
+> `research/archive/sessions/` and may contradict each other; `docs/status.md` wins.
 
 Start with the [quickstart](docs/quickstart.md) if you are new, then the
 [documentation index](docs/README.md),
@@ -131,7 +131,7 @@ for the narrowed release, preserved failures and remaining official attempts.
   recommended campaign max ≤ 1600), the FIWARE history pairing (Orion 4.5.0 → QL 1.0.0, 2048 MiB adopted) and the
   EdgeX disk+WAL method are live-verified — all as **qualification**, not campaign, evidence.
 - The main benchmark campaign is **not** executed; per-claim state, evidence and limitations:
-  [`docs/status.md`](docs/status.md) (authoritative), `docs/qualification/qualification-blockers.md` (row-level record).
+  [`docs/status.md`](docs/status.md) (authoritative), `research/qualification/qualification-blockers.md` (row-level record).
 
 ## Known limitations / open decisions
 

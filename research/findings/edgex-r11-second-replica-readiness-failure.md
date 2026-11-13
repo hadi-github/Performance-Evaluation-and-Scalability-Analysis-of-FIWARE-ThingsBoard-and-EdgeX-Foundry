@@ -97,6 +97,18 @@ Correct sequence:
    as a reviewed amendment, re-hash, and record the new binding.
 3. **Never** silently retry `disp-ex-r04-20261106`.
 
+> **Update 2026-11-10 — the sequence above was not followed, and that is now
+> recorded as a defect.** The patch was landed *before* ordinal 15, which an
+> independent review then rejected for exactly the reason stated here: the
+> released receipt still bound `77c4ba8e…`, so the controller would have refused
+> at `continue-ordinary-campaign.py:96`. The patch has since been hardened
+> (helper `540d60b4…`, revision 2) and all review conditions are addressed, but
+> **ordinal 15 remains unstarted and unauthorised** until a fresh receipt is
+> issued against the executing tree. See
+> `edgex-discovery-limit-and-inventory-scaling.md` §8. The guidance in this
+> section — bind before you run — stands; what changed is that the change is now
+> reviewed and the binding still has to be re-issued.
+
 Recommended patch (post-campaign):
 
 - **Preserve diagnostics on gate failure.** In `wait_driver_ready`, before

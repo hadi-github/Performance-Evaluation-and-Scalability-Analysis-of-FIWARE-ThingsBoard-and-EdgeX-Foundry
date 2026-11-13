@@ -38,5 +38,5 @@ Historical manifests and the preregistration archive were recorded with the pre-
 | `docs/evidence-reproducibility.md` | `evidence/reproducibility.md` |
 | `docs/protocol-20261028-generator-ceiling.md` | `research/protocols/generator-ceiling-20261028.md` |
 | `docs/findings/`, root `MONITORING_FINDINGS.md` | `research/findings/` |
-| `docs/autonomous-*.md`, `docs/autonomous-state*.json` etc. | `docs/archive/sessions/` (verbatim) |
+| `docs/autonomous-*.md`, `docs/autonomous-state*.json` etc. | `research/archive/sessions/` (verbatim) |
 | legacy `workloads/*.js`, `run.sh`, `sink.js`, `lib/` | `workloads/legacy/` |
