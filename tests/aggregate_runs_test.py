@@ -121,6 +121,38 @@ class AggregateTests(unittest.TestCase):
             self.assertEqual([r["dispatch_p99_ms"] for r in tb_measurements], ["10", "30"])
             self.assertTrue(any(r["phase"] == "no-analysis" for r in rows))
 
+    def test_workload_ids_are_identified_and_never_pooled_across_workloads(self):
+        """W1 and W2 on one platform are distinct fixed points, never one group."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('agg_w', ROOT / 'scripts/aggregate-runs.py')
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        self.assertEqual(m.platform_of('w1dp-tb-r01-20261108', {}), 'thingsboard')
+        self.assertEqual(m.platform_of('w2dp-fw-r03-20261108', {}), 'fiware')
+        self.assertEqual(m.platform_of('w4dp-ex-r05-20261108', {}), 'edgex')
+        self.assertEqual(m.workload_of('w3dp-tb-r02-20261108'), 'W3')
+        self.assertEqual(m.run_kind('w1dp-tb-r01-20261108'), 'workload')
+        self.assertIsNone(m.workload_of('disp-tb-r01-20261106'))
+        self.assertEqual(m.run_kind('disp-tb-r01-20261106'), 'ordinary')
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            self.write_run(root, 'w1dp-tb-r01-20261108', analysis('w1dp-tb-r01-20261108', 11),
+                           {'platform': 'thingsboard', 'run_id': 'w1dp-tb-r01-20261108', 'finish': 'stopped'})
+            self.write_run(root, 'w2dp-tb-r01-20261108', analysis('w2dp-tb-r01-20261108', 99),
+                           {'platform': 'thingsboard', 'run_id': 'w2dp-tb-r01-20261108', 'finish': 'stopped'})
+            p = self.run_tool(root)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            text = (root / 'summary.md').read_text()
+            self.assertIn('thingsboard — W1', text)
+            self.assertIn('thingsboard — W2', text)
+            # Each section's replicate statistic must reflect only its own workload.
+            w1 = text.split('thingsboard — W1', 1)[1].split('thingsboard — W2', 1)[0]
+            self.assertIn('min 11.000 ms, median 11.000 ms, max 11.000 ms', w1)
+            self.assertNotIn('99.000', w1)
+            with (root / 'runs.csv').open() as f:
+                ids = {(r['run_id'], r['workload_id']) for r in csv.DictReader(f)}
+            self.assertIn(('w1dp-tb-r01-20261108', 'W1'), ids)
+            self.assertIn(('w2dp-tb-r01-20261108', 'W2'), ids)
+
     def test_refuses_to_overwrite_without_force(self):
         with tempfile.TemporaryDirectory() as d:
             self.build(d)

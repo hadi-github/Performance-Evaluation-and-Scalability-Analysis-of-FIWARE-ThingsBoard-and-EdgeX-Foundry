@@ -226,8 +226,22 @@ def stop_owned_stacks():
         remote(SUT, compose(project, file, {}, "stop", '--profile export' if project == 'edgex' else ''))
 
 
-def check_effective_containers(expected, containers, image_ids):
-    """Compare live Docker state with the reviewed rendered resource contract."""
+def check_effective_containers(expected, containers, image_ids, restart_baseline=None):
+    """Compare live Docker state with the reviewed rendered resource contract.
+
+    ``RestartCount`` is cumulative for a container's whole lifetime; it is NOT
+    reset by ``docker compose stop`` / ``up`` and the campaign's volumes and
+    containers persist across ordinals. Demanding an absolute zero therefore
+    rejects a container that merely carries a historical restart from an earlier
+    ordinal while being perfectly healthy now.
+
+    ``restart_baseline`` maps ``(project, service) -> RestartCount`` observed
+    when the container was first admitted. A current count equal to the baseline
+    means no restart happened since admission; a count *above* baseline means the
+    container restarted during this run, which is still a failure. When no
+    baseline is supplied (fresh container, or a caller that has none) an absolute
+    zero is still required, so the check never becomes less strict by default.
+    """
     grouped = {}
     for c in containers:
         labels = c.get('Config', {}).get('Labels', {})
@@ -244,9 +258,15 @@ def check_effective_containers(expected, containers, image_ids):
             healthcheck = svc.get('healthcheck') or {}
             if healthcheck and not healthcheck.get('disable') and healthcheck.get('test') != ['NONE'] and state.get('Health',{}).get('Status') != 'healthy':
                 raise RuntimeError(f'missing/unhealthy configured healthcheck: {key}')
+            allowed = (restart_baseline or {}).get(key, 0)
             if (state.get('Running') is not True or state.get('OOMKilled') is not False or
-                    c.get('RestartCount') != 0 or state.get('Health', {}).get('Status', 'healthy') != 'healthy'):
-                raise RuntimeError(f'effective lifecycle/health mismatch: {key}')
+                    c.get('RestartCount', 0) > allowed or
+                    state.get('Health', {}).get('Status', 'healthy') != 'healthy'):
+                raise RuntimeError(
+                    f'effective lifecycle/health mismatch: {key} '
+                    f'(running={state.get("Running")} oom={state.get("OOMKilled")} '
+                    f'restarts={c.get("RestartCount", 0)} allowed<={allowed} '
+                    f'health={state.get("Health", {}).get("Status", "healthy")})')
             if (host.get('CpusetCpus') != svc.get('cpuset') or
                     host.get('Memory') != int(svc.get('mem_limit', 0)) or
                     host.get('MemorySwap') != int(svc.get('memswap_limit', 0)) or
@@ -271,7 +291,15 @@ def check_effective_containers(expected, containers, image_ids):
                     raise RuntimeError(f'restrictive/missing effective CPU quota: {key}')
 
 
-def verify_effective_resources(platform):
+def verify_effective_resources(platform, restart_baseline=None, admit_restarts=False):
+    """Snapshot and verify live resources.
+
+    ``admit_restarts=True`` records each container's current ``RestartCount`` as
+    its baseline instead of enforcing it. Use this for the pre-traffic snapshot:
+    persisted containers legitimately carry historical restarts. The post-run
+    snapshot then verifies against that baseline, so a restart *during* the run
+    is still caught.
+    """
     env = {'POOL_CPUSET':'4-5', 'INFRA_CPUSET':'2-3'}
     if platform == 'fiware':
         env['FIWARE_REPLICAS'] = '2'
@@ -331,7 +359,16 @@ print(json.dumps(out))
     tags = sorted({s['image'] for s in expected.values()})
     images = json.loads(ssh(SUT,'docker image inspect '+' '.join(shlex.quote(x) for x in tags)).stdout)
     image_ids = {tag:c['Id'] for tag,c in zip(tags,images)}
-    check_effective_containers(expected,actual,image_ids)
+    if admit_restarts:
+        # Pre-traffic snapshot: persisted containers may carry historical
+        # restarts from earlier ordinals, so adopt the current counts as the
+        # baseline rather than rejecting a healthy stack.
+        restart_baseline = {}
+        for c in actual:
+            labels = c.get('Config', {}).get('Labels', {})
+            key = labels.get('com.docker.compose.project'), labels.get('com.docker.compose.service')
+            restart_baseline[key] = max(restart_baseline.get(key, 0), c.get('RestartCount', 0))
+    check_effective_containers(expected,actual,image_ids,restart_baseline)
     fields = ('image','cpuset','mem_limit','memswap_limit','deploy','healthcheck')
     return {'expected':{p+'/'+s:{k:cfg[k] for k in fields if k in cfg} for (p,s),cfg in expected.items()},
             'containers':actual,'image_ids':image_ids}
@@ -366,8 +403,9 @@ def stage_edgex_discovery_override():
     return target
 
 
-def activate(platform, run_id):
+def activate(platform, run_id, resolved=None):
     assert_no_other_platform(platform)
+    devices = (resolved or {}).get('devices')
     if platform == "thingsboard":
         # Existing project; only bring up its declared services. No compose down/up recreation.
         remote(SUT, f"cd /root/iot-qual-tb-20261105/deploy/thingsboard; docker compose -p tbq20261105 -f {TB} start")
@@ -424,18 +462,43 @@ PY'''
         env = {"EDGEX_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3",
                "SINK_URL": "http://87.107.191.32:18091"}
         # Helper's plain `up` is wrapped so Compose cannot pull/build even if its source has build stanzas.
+        # Setup-wait budget, measured 2026-11-11 on this host: at 10,192 retained
+        # devices the device-rest ingest route registers in 224 s, and a freshly
+        # scaled replica gated at ~216 s. The historical 180 s default therefore
+        # failed by ~40 s even though the route does appear. These are SETUP waits
+        # only -- no device, rate, duration, payload, VU, replica or cpuset value
+        # changes. They do NOT fix the underlying O(N) per-device profile fetch;
+        # they only stop it from being reported as a readiness timeout inside the
+        # traffic window's shadow. See research/findings/edgex-readiness-measured-20261111.md.
+        # Device count comes from the resolved plan, not a constant: W2 provisions
+        # 2,000 devices, W1 provisioned 1,000. Hardcoding 1,000 here would build a
+        # cohort that does not match the plan the generator will drive.
+        if not isinstance(devices, int) or devices <= 0:
+            raise RuntimeError(f'EdgeX activation needs a positive device count, got {devices!r}')
+        # The inventory gate's invariant is "retained + cohort <= discovery_limit".
+        # It must reserve what this run will actually CREATE, so the reserve is the
+        # plan's device count. A fixed 6,000 was a whole-batch projection applied to
+        # every attempt: it over-reserved 3x W2's cohort and 6x W3/W4's, and blocked
+        # runs that fit. The discovery limit (16,384) is NOT changed and no inventory
+        # is deleted, so B0 comparability is preserved. Inventory is retained across
+        # runs, so this unblocks W2/W3/W4 -- not an unlimited sequence.
+        # See research/findings/edgex-inventory-reserve-cohort-sized-20261112.md.
         cmd = (f"test -f {EDGEX}/.env; mkdir -p {REMOTE_RESULTS}/gates; "
                 f"cd {EDGEX}; export EDGEX_REPLICAS=2 POOL_CPUSET=4-5 INFRA_CPUSET=2-3 "
-                "EDGEX_INVENTORY_RESERVE=6000 "
+                f"EDGEX_INVENTORY_RESERVE={devices} "
+                "EDGEX_DRIVER_READY_TIMEOUT=600 EDGEX_SCALE_TIMEOUT=600 EDGEX_PING_TIMEOUT=180 "
                 f"COMPOSE_FILE={shlex.quote(EDGEX+'/compose.yaml:'+discovery_override)} "
                "SINK_URL=http://87.107.191.32:18091; "
                 "docker() { if [[ \"$1\" == compose ]]; then shift; local -a args=(); local arg; "
                 "for arg in \"$@\"; do case \"$arg\" in down|rm|pull|build|--remove-orphans) return 2;; "
                 "up) args+=(up --no-build --pull never);; *) args+=(\"$arg\");; esac; done; "
                 "command docker compose \"${args[@]}\"; else command docker \"$@\"; fi; }; export -f docker; "
-                f"bash {shlex.quote(helper)} prepare 2 1000 {shlex.quote(run_id)} "
-               f"/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106/gates/{run_id}.json")
-        remote(SUT, cmd, timeout=2400)
+                f"bash {shlex.quote(helper)} prepare 2 {devices} {shlex.quote(run_id)} "
+               f"{REMOTE_RESULTS}/gates/{run_id}.json")
+        # Bounded internally (every loop has a deadline); the outer guard only
+        # needs to exceed the sum of those deadlines plus device POST waves and
+        # SSH/compose overhead. Was 2400 s, which left ~10 s of margin.
+        remote(SUT, cmd, timeout=5400)
     else:
         raise ValueError(platform)
     verify_live(platform)
@@ -492,8 +555,8 @@ def finish(platform, run_id):
         # Preserve the provision gate as a baseline for detecting core-metadata panic/restart.
         helper = stage_edgex_helper()
         remote(SUT, f"cd {EDGEX}; bash {shlex.quote(helper)} check {shlex.quote(run_id)} "
-               f"/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106/gates/{run_id}.json "
-               f"/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106/gates/{run_id}.check.json")
+               f"{REMOTE_RESULTS}/gates/{run_id}.json "
+               f"{REMOTE_RESULTS}/gates/{run_id}.check.json")
     files = {
         "thingsboard": [("tbq20261105", TB)],
         "fiware": [("fiware", FW + "/fiware-baseline/compose.yaml"),
@@ -547,6 +610,10 @@ STAGED_SCRIPTS = [
     "scripts/post-run-analysis.sh",
     "scripts/analyze-dispatch-run.py",
     "scripts/dispatch-integrity.py",
+    # dispatch-integrity imports pool_policy at module scope; staging the importer
+    # without its module made remote analysis die with ModuleNotFoundError after a
+    # completed run (observed 2026-11-11, w1-qual-tb-20261110e).
+    "scripts/pool_policy.py",
     "scripts/generator-diagnostic-sampler.py",
     "scripts/sink.sh",
     "scripts/history-ids.sh",
@@ -757,9 +824,9 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
         resolved = json.loads(ssh(LOAD, f"cat {REMOTE_SOURCE}/resolved.json").stdout)
         (out_dir / "resolved.json").write_text(json.dumps(resolved, indent=2) + "\n")
         print(validate_cell_plan(platform, run_id, plan_path, resolved))
-        activate(platform, run_id)
+        activate(platform, run_id, resolved)
         read_only_check(platform)
-        effective = verify_effective_resources(platform)
+        effective = verify_effective_resources(platform, admit_restarts=True)
         (out_dir/'effective-resources-before.json').write_text(json.dumps(effective,indent=2)+'\n')
         print(verify_live(platform))
         if platform == 'thingsboard':
@@ -835,21 +902,37 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
         sut_resources_ok = False
         if launch_attempted and clean:
             try:
-                effective = verify_effective_resources(platform)
-                check_resource_continuity(json.loads((out_dir/'effective-resources-before.json').read_text()),effective)
+                before = json.loads((out_dir/'effective-resources-before.json').read_text())
+                # Enforce the admitted baseline: a restart during the run still
+                # fails, but a historical count adopted pre-traffic does not.
+                baseline = {}
+                for c in before.get('containers', []):
+                    labels = c.get('Config', {}).get('Labels', {})
+                    key = labels.get('com.docker.compose.project'), labels.get('com.docker.compose.service')
+                    baseline[key] = max(baseline.get(key, 0), c.get('RestartCount', 0))
+                effective = verify_effective_resources(platform, restart_baseline=baseline)
+                check_resource_continuity(before,effective)
                 (out_dir/'effective-resources-after.json').write_text(json.dumps(effective,indent=2)+'\n')
                 sut_resources_ok = (out_dir/'effective-resources-before.json').is_file()
             except Exception as e:
                 (out_dir/'effective-resources.error').write_text(str(e))
+        # Label the run from its own resolved plan, not from the B0 frozen scope.
+        # SCOPE["workload_policy"] is v1 by construction; a v2 run labelled v1 is a
+        # false record that the aggregator would then treat as a B0-era policy.
+        try:
+            _resolved = json.loads((out_dir / "resolved.json").read_text())
+        except Exception:
+            _resolved = {}
         result = {
             "schema_version": 1,
             "platform": platform,
             "run_id": run_id,
             "run_kind": ('short-verification' if '-finalshort' in run_id else
-                         'qualification' if run_id in qualification_run_ids(platform) else 'ordinary'),
+                         'qualification' if (run_id in qualification_run_ids(platform)
+                                             or run_id.startswith('w1-qual-')) else 'ordinary'),
             "plan": str(plan_path),
             "plan_sha256": sha256_file(plan_path),
-            "workload_policy": SCOPE["workload_policy"],
+            "workload_policy": (_resolved.get("health") or {}).get("workload_policy") or SCOPE["workload_policy"],
             "staged_source_manifest": str(out_dir / "staged-source.json"),
             "history_retrieved": history_ok,
             "reanalysis_with_history": reanalysis_ok,
@@ -947,7 +1030,8 @@ def fetch_edgex_gate(run_id, out_dir):
     """Provision/check gates live on the SUT, not on the load host."""
     status = []
     for suffix in ('.json','.check.json','.json.retained-inventory.json',
-                   '.json.metadata-discovery.json','.json.driver-discovery.json'):
+                   '.json.metadata-discovery.json','.json.driver-discovery.json',
+                   '.json.failure.txt'):
         target = out_dir / ('edgex-gate'+suffix)
         try:
             p = subprocess.run(scp_command(f'{SUT}:{REMOTE_RESULTS}/gates/{run_id}{suffix}',target),

@@ -207,7 +207,7 @@ def analyze(run,sink_path,window_path,history_path,clock_path,hosts_path,resourc
     history_failure=hist is not None and any(p['history_missing']>0 or p['history_duplicate_extra']>0 for p in phases)
     platform_failure=(any(p["missing_by_cutoff"]>0 or p["outcomes"]["failure"]>0 or p["outcomes"]["unknown"]>0 for p in phases)
                       or duplicate>0 or bool(late) or window.get("quiet_interval_passed") is False or platform_anomaly_count>0 or history_failure)
-    return {"schema_version":1,"policy":"dispatch-integrity-v1","run_id":rid,"endpoint":"application_dispatch_to_response_complete_body_read",
+    return {"schema_version":1,"policy":plan.get("health",{}).get("workload_policy") or "dispatch-integrity-v1","run_id":rid,"endpoint":"application_dispatch_to_response_complete_body_read",
       "clock_evidence":{"status":"VALID" if clock_ok else "NOT_ASSESSED","errors":clock_errors,"sample_count":len(stamps),"host_identity":host_ok},"host_evidence":hosts,"capture_window":window,"workload_integrity":load,"phases":phases,
       "sink":{"rows":len(sink),"unique_identities":len(identity),"duplicate_extra_receipts":duplicate,"late_rows_after_cutoff":len(late),"missing_by_cutoff_total":sum(p["missing_by_cutoff"] for p in phases),"platform_anomalies":platform_anomalies},
       "history_status":history_status,"history_assessed":hist is not None,

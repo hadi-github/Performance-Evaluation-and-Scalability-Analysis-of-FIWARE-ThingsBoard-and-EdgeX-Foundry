@@ -19,7 +19,7 @@ import sys
 
 PLATFORM_BY_PREFIX = {"tb": "thingsboard", "fw": "fiware", "ex": "edgex"}
 FIELDS = [
-    "platform", "run_id", "run_kind", "phase", "scheduled", "received_by_cutoff", "missing_by_cutoff",
+    "platform", "run_id", "workload_id", "run_kind", "phase", "scheduled", "received_by_cutoff", "missing_by_cutoff",
     "dispatch_p50_ms", "dispatch_p95_ms", "dispatch_p99_ms", "scheduled_p99_ms",
     "duplicates_extra", "late_rows", "outcome_unknown", "outcome_failure",
     "unknown_but_delivered", "acked_but_history_missing",
@@ -32,11 +32,34 @@ FIELDS = [
 ]
 
 
+WORKLOAD_BY_PREFIX = {"w1dp": "W1", "w2dp": "W2", "w3dp": "W3", "w4dp": "W4"}
+
+
+def workload_of(run_id):
+    """W fixed-point attempts are named w{N}dp-{tb|fw|ex}-r{NN}-YYYYMMDD.
+
+    Never inferred from the platform prefix alone: a W1 ThingsBoard attempt and
+    the W2 ThingsBoard attempt share a platform but must never be pooled.
+
+    Qualifications are their own workload bucket. They reproduce a W shape but
+    are not one of the 60 proposed attempts, so pooling them with W1 would both
+    inflate the attempt count and contaminate the fixed-point statistics.
+    """
+    parts = (run_id or "").split("-")
+    if len(parts) >= 2 and parts[0] in WORKLOAD_BY_PREFIX:
+        return WORKLOAD_BY_PREFIX[parts[0]]
+    if parts and parts[0] == "w1" and len(parts) > 1 and parts[1] == "qual":
+        return "W1-QUALIFICATION"
+    return None
+
+
 def platform_of(run_id, result):
     if result.get("platform"):
         return result["platform"]
     parts = (run_id or "").split("-")
     if len(parts) >= 2 and parts[0] == "disp":
+        return PLATFORM_BY_PREFIX.get(parts[1])
+    if len(parts) >= 2 and parts[0] in WORKLOAD_BY_PREFIX:
         return PLATFORM_BY_PREFIX.get(parts[1])
     if '-dispatch-endpoint-qual-' in (run_id or ''):
         return PLATFORM_BY_PREFIX.get(parts[0])
@@ -45,7 +68,13 @@ def platform_of(run_id, result):
 def run_kind(run_id):
     if '-finalshort' in (run_id or ''):
         return 'short-verification'
-    return 'qualification' if '-dispatch-endpoint-qual-' in (run_id or '') else 'ordinary'
+    if '-dispatch-endpoint-qual-' in (run_id or ''):
+        return 'qualification'
+    if workload_of(run_id) == 'W1-QUALIFICATION':
+        return 'qualification'
+    if workload_of(run_id):
+        return 'workload'
+    return 'ordinary'
 
 
 def discover(paths):
@@ -95,6 +124,7 @@ def load_run(analysis_path):
     base = {
         "platform": platform_of(run_id, result),
         "run_id": run_id,
+        "workload_id": workload_of(run_id),
         "run_kind": run_kind(run_id),
         "measurement_valid": a.get("measurement_valid"),
         "capture_valid": a.get("capture_valid"),
@@ -153,6 +183,7 @@ def load_results_only(root):
         row.update({
             "platform": result.get("platform"),
             "run_id": result.get("run_id"),
+            "workload_id": workload_of(result.get("run_id")),
             "run_kind": run_kind(result.get('run_id')),
             "phase": "no-analysis",
             "measurement_valid": result.get("measurement_valid"),
@@ -193,13 +224,16 @@ def summarize(rows):
              "Authoritative values come from the offline per-message join. Percentiles are per run; "
              "they are never pooled across runs or messages. Invalid and not-assessed attempts remain "
              "in the matrix.", ""]
-    platforms = sorted({r["platform"] for r in rows if r["platform"]})
-    for platform in platforms:
+    # Group by (workload, platform). A W1 and a W2 attempt on the same platform are
+    # different fixed points and must never share a section or a pooled statistic.
+    groups = sorted({(r.get("workload_id"), r["platform"]) for r in rows if r["platform"]},
+                    key=lambda g: (g[1], g[0] or ""))
+    for workload, platform in groups:
         runs = {}
         for row in rows:
-            if row["platform"] == platform:
+            if row["platform"] == platform and row.get("workload_id") == workload:
                 runs.setdefault(row["run_id"], []).append(row)
-        lines.append(f"## {platform}")
+        lines.append(f"## {platform}" + (f" — {workload}" if workload else ""))
         lines.append("")
         lines.append("| Run | Kind | Phase | Valid | Latency assessed | Campaign qualified | Platform result | p99 ms | Received/Scheduled | Missing | Unknown | History missing |")
         lines.append("|---|---|---|---|---|---|---|---:|---|---:|---:|---:|")
@@ -212,8 +246,9 @@ def summarize(rows):
                     f"{fmt(row['missing_by_cutoff'])} | {fmt(row['outcome_unknown'])} | "
                     f"{'not assessed' if row['history_missing'] is None else row['history_missing']} |")
         measured = sorted(row["dispatch_p99_ms"] for row in rows
-                          if row["platform"] == platform and row["phase"] == "measurement"
-                          and row['run_kind'] == 'ordinary'
+                          if row["platform"] == platform and row.get("workload_id") == workload
+                          and row["phase"] == "measurement"
+                          and row['run_kind'] in ('ordinary', 'workload')
                           and row['campaign_qualified'] is True
                           and row["latency_assessed"] is True and isinstance(row["dispatch_p99_ms"], (int, float)))
         lines.append("")

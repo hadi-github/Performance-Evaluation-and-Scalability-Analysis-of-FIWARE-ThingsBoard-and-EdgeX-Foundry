@@ -49,4 +49,13 @@ class DriverReadyTests(unittest.TestCase):
     def test_driver_wait_precedes_any_provisioning(self):
         text = SOURCE.read_text()
         prepare = text[text.index('  prepare)'):text.index('  check)')]
-        self.assertLess(prepare.index('wait_driver_ready'), prepare.index('-X POST $META/deviceprofile'))
+        # The readiness gate now runs through ensure_replica_ready (bounded wait +
+        # at most one repair restart); the invariant is that it still precedes
+        # every device POST.
+        self.assertIn('ensure_replica_ready', prepare)
+        self.assertLess(prepare.index('ensure_replica_ready'), prepare.index('-X POST $META/deviceprofile'))
+        # ...and that the readiness gate itself reaches wait_driver_ready.
+        repair = text[text.index('ensure_replica_ready() {'):text.index('case "${1:-}" in')]
+        self.assertIn('wait_driver_ready', repair)
+        # No unbounded wait loop may be reintroduced into the setup path.
+        self.assertNotIn('until ', prepare)

@@ -168,6 +168,39 @@ class EvidenceTests(unittest.TestCase):
         _,c,_=self.effective_fixture();other=copy.deepcopy(c);other['State']['StartedAt']='new-start'
         with self.assertRaises(RuntimeError):mod.check_resource_continuity({'containers':[c]},{'containers':[other]})
 
+    def test_historical_restart_is_admitted_only_with_a_baseline(self):
+        """RestartCount is lifetime-cumulative, so a persisted container carrying a
+        restart from an earlier ordinal is healthy. It is admitted only when a
+        baseline records that count, and a restart DURING the run still fails."""
+        expected,c,images=self.effective_fixture()
+        c['RestartCount']=1
+        # no baseline -> absolute zero still required, so the check is not weakened
+        with self.assertRaises(RuntimeError):
+            mod.check_effective_containers(expected,[c],images)
+        # baseline records the pre-existing count -> admitted
+        mod.check_effective_containers(expected,[c],images,{('p','app'):1})
+        # a restart during the run (count above baseline) still fails
+        c['RestartCount']=2
+        with self.assertRaises(RuntimeError):
+            mod.check_effective_containers(expected,[c],images,{('p','app'):1})
+
+    def test_restart_baseline_uses_max_count_per_service(self):
+        """Replicated services collapse to one baseline entry: the highest count."""
+        expected,c,images=self.effective_fixture()
+        svc=expected[('p','app')]
+        second=copy.deepcopy(c);second['Name']='app2';second['Id']='container2'
+        second['RestartCount']=2
+        c['RestartCount']=1
+        baseline={}
+        for row in [c,second]:
+            labels=row.get('Config',{}).get('Labels',{})
+            key=(labels.get('com.docker.compose.project'),labels.get('com.docker.compose.service'))
+            baseline[key]=max(baseline.get(key,0),row.get('RestartCount',0))
+        self.assertEqual(baseline,{('p','app'):2})
+        # With replicas=2 both must be admitted at the shared baseline.
+        expected[('p','app')]=dict(svc,deploy={'replicas':2})
+        mod.check_effective_containers(expected,[c,second],images,baseline)
+
     def test_resume_is_disabled_before_remote_access(self):
         with mock.patch.object(mod,'ssh') as ssh:
             with self.assertRaises(SystemExit):mod.launch('edgex','anything','missing','',4000,True)

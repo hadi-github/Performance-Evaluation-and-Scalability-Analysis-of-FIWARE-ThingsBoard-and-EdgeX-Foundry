@@ -1,24 +1,55 @@
 #!/usr/bin/env python3
-"""Evaluate explicit dispatch-integrity-v1 run ledgers without rewriting legacy verdicts."""
-import argparse, json, math
+"""Evaluate explicit dispatch-integrity-v1/-v2 run ledgers without rewriting legacy verdicts."""
+import argparse, json, math, sys
 from pathlib import Path
 
-POLICY = "dispatch-integrity-v1"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import pool_policy  # noqa: E402  (single source of truth for the VU pool)
+
+POLICY_V1 = pool_policy.POLICY_V1
+POLICY_V2 = pool_policy.POLICY_V2
+POLICIES = (POLICY_V1, POLICY_V2)
+POLICY = POLICY_V1  # historical default; W runs declare v2 in their own plans
 # Conservative 100/s extension for prospective generator headroom evidence.
 # Existing 25/s and 50/s bins remain unchanged; rate-specific thresholds are
 # explicit so this does not silently infer or relax a gate.
 RATE_BIN_LIMITS = {25: (23, 27, 7), 50: (48, 52, 11), 100: (98, 102, 21)}
 
+FROZEN_POOLS = pool_policy.FROZEN_POOLS
+required_pool = pool_policy.required_pool
+
+
+def _check_pool(plan, policy):
+    """Reject a plan whose generator pool cannot cover its own timeout budget."""
+    rates = sorted({int(s.get("tick_rate", 0)) for s in plan.get("steps", [])})
+    if policy == POLICY_V1:
+        want = pool_policy.FROZEN_POOLS[pool_policy.B0_RATE_PER_S]
+        why = "historical B0 allocation"
+    else:
+        if not rates or rates[0] <= 0:
+            raise ValueError(f"{policy} requires at least one positive-rate step")
+        unknown = [r for r in rates if r not in pool_policy.QUALIFIED_RATES]
+        if unknown:
+            raise ValueError(f"{policy} has no frozen pool for rate(s) {unknown}")
+        want = pool_policy.pool_for_rate(max(rates), policy)
+        why = f"rate x timeout x {pool_policy.HEADROOM:g} headroom at {max(rates)}/s"
+    got = plan.get("vus") or {}
+    if got.get("pre_allocated") != want or got.get("max") != want:
+        raise ValueError(f"{policy} frozen VU allocation for this plan is {want}/{want} ({why})")
+    for step in plan.get("steps", []):
+        if "vus" in step and step["vus"] != want:
+            raise ValueError(f"{policy} step {step.get('name')!r} pool is {step['vus']}, expected {want}")
+
 def evaluate(run):
     run = Path(run)
     plan = json.loads((run / "resolved.json").read_text())
     summary = json.loads((run / "k6-summary.json").read_text())
-    if plan.get("health", {}).get("workload_policy") != POLICY:
-        raise ValueError("resolved plan is not explicitly bound to dispatch-integrity-v1")
+    policy = plan.get("health", {}).get("workload_policy")
+    if policy not in POLICIES:
+        raise ValueError(f"resolved plan is not explicitly bound to a known dispatch-integrity policy: {policy!r}")
     if plan.get("arrivals", {}).get("model") != "constant" or plan.get("test_faults", {}).get("duplicate_seqs") or plan.get("test_faults", {}).get("early_every"):
-        raise ValueError("dispatch-integrity-v1 requires constant arrivals and no injected faults")
-    if plan.get("vus", {}).get("pre_allocated") != 150 or plan.get("vus", {}).get("max") != 150:
-        raise ValueError("dispatch-integrity-v1 frozen VU allocation is 150/150")
+        raise ValueError("dispatch-integrity requires constant arrivals and no injected faults")
+    _check_pool(plan, policy)
     steps = {s["index"]: s for s in plan["steps"]}
     sums = {s["index"]: s for s in summary["steps"]}
     rows = [json.loads(x) for x in (run / "records.ndjson").read_text().splitlines() if x.strip()]
@@ -90,7 +121,7 @@ def evaluate(run):
           "cohort_dispatches":len(selected),"dispatch_spill":len(selected)-sum(start<=r["actual_send_ms"]<end for r in selected),
           "bins_1s":one_s,"bins_100ms":hundred,"max_gap_ms":max(edge_gaps,default=None),"lag_growth_ms":growth,
           "send_lag_ms":{"p50":median(sorted(lags)) if lags else None,"p99":sorted(lags)[math.ceil(.99*n)-1] if n else None,"max":max(lags) if lags else None},"checks":checks})
-    return {"policy":POLICY,"run_id":plan["run_id"],"valid":not findings,"findings":findings,"phases":phases,
+    return {"policy":policy,"run_id":plan["run_id"],"valid":not findings,"findings":findings,"phases":phases,
       "resource_qualification":"not assessed by dispatch ledger; requires retained CPU/memory/swap/OOM/sampler evidence"}
 
 def main():

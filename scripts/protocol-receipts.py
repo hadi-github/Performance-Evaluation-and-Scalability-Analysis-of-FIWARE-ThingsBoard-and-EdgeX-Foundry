@@ -57,7 +57,8 @@ def assemble(run_dir, sink_path, window_path):
     window = read_json(window_path)
     binding = manifest.get("protocol_binding")
     pilot = manifest.get("protocol_pilot_parameters")
-    dispatch_policy = resolved.get("health", {}).get("workload_policy") == "dispatch-integrity-v1"
+    dispatch_policy = resolved.get("health", {}).get("workload_policy") in (
+        "dispatch-integrity-v1", "dispatch-integrity-v2")
     if not dispatch_policy and resolved.get("health", {}).get("workload_policy") not in (None, ""):
         raise ValueError("unsupported workload policy")
     if dispatch_policy and not binding:

@@ -39,4 +39,4 @@ cd deploy/thingsboard/tb-node/conf && sha256sum -c SHA256SUMS
 ```
 
 `scripts/check-thingsboard-config.sh` checks the hashes and the compose wiring statically. Effective JVM flags and
-log behaviour are **not** verified until a running deployment is inspected (see `docs/qualification/thingsboard-d28-verification.md`).
+log behaviour are **not** verified until a running deployment is inspected (see `research/qualification/thingsboard-d28-verification.md`).

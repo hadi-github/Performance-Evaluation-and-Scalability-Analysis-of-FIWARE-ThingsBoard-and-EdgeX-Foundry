@@ -145,7 +145,7 @@ end_ms=$(date +%s%3N)
 "$python" - "$run_id" "$start_ms" "$end_ms" "$cutoff_ms" "$quiet_seconds" "$late_seconds" "$stop_rc" "$run_rc" "$sink_file" "$sink_file.log" "$results/$run_id.capture-window.json" "$run_dir/resolved.json" <<'PY'
 import json,re,sys
 _,rid,start,end,cutoff,quiet_seconds,late_seconds,stop_rc,run_rc,sink_path,log_path,out,resolved_path=sys.argv
-dispatch_policy=json.load(open(resolved_path)).get('health',{}).get('workload_policy')=='dispatch-integrity-v1'
+dispatch_policy=json.load(open(resolved_path)).get('health',{}).get('workload_policy') in ('dispatch-integrity-v1','dispatch-integrity-v2')
 text=open(log_path).read()
 names=('received','duplicates','unparsed','overflow','incomplete_body','body_read_error','oversized_body')
 metrics={}

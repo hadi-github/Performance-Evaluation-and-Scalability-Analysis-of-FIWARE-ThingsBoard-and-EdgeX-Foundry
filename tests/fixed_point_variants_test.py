@@ -33,8 +33,20 @@ class FixedPointVariantsTests(unittest.TestCase):
                     plan=files[row['plan']]
                     self.assertEqual(plan['seed'],baseline['seed'])
                     self.assertEqual(len(row['run_id']),len(f"disp-{mod.PREFIX[platform]}-r01-20261106"))
-                    for key in ('target','vus','health','connection','request_timeout_ms','cleanup','test_faults'):
+                    for key in ('target','connection','request_timeout_ms','cleanup','test_faults'):
                         self.assertEqual(plan[key],baseline[key],key)
+                    # vus and health are B0-identical everywhere except W1, which runs at 50/s and
+                    # therefore carries the 2026-11-10 rate-derived pool (v2). Both deviations are
+                    # recorded in scope.json; W2/W3/W4 stay byte-identical to B0 on these keys.
+                    if wid=='W1':
+                        self.assertEqual(plan['vus'],{'pre_allocated':300,'max':300})
+                        self.assertEqual(plan['health']['workload_policy'],'dispatch-integrity-v2')
+                        self.assertEqual(baseline['vus'],{'pre_allocated':150,'max':150})
+                        self.assertEqual(baseline['health']['workload_policy'],'dispatch-integrity-v1')
+                        self.assertEqual({k for k in plan['health'] if plan['health'][k]!=baseline['health'].get(k)},{'workload_policy'})
+                    else:
+                        for key in ('vus','health'):
+                            self.assertEqual(plan[key],baseline[key],key)
                     self.assertEqual(row['deployment']['application_cpu_pool'],'4-5')
                     self.assertEqual(row['deployment']['application_cpu_budget_k'],2)
                     self.assertEqual(row['deployment']['replicas_per_replicated_service'],1 if wid=='W4' else 2)
