@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "batch_id": "w1-qualification-20261110f",
+  "status": "NOT_LAUNCH_CLEARED",
+  "execution_authorized": false,
+  "qualification_policy": "Separate IDs/evidence for diagnostics and qualifications; no such runs count toward the proposed 60 experimental attempts.",
+  "why_needed": "W1 gate requires full-duration 50/s 300/600 s validation; the only B0 50/s evidence is 30/120 s (tb-dispatch-endpoint-qual-20261106) and does not transfer.",
+  "vu_headroom_note": "The pool is rate-derived under the 2026-11-10 owner amendment. At 50/s: 50 x 5000 ms = 250 worst-case in-flight, enlarged by 10% headroom and rounded to 300 VUs. Two v1 qualifications at the old fixed 150 both returned INVALID_VU_POOL_BOUND; those are preserved negatives measuring generator starvation, not platform limits. This generation tests the platform at a pool that can actually sustain the rate.",
+  "runs": [
+    {
+      "run_id": "w1-qual-fw-20261110f",
+      "platform": "fiware",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-fw-20261110f.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_PLATFORM_FAILURE_OR_BACKLOG",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch"
+    },
+    {
+      "run_id": "w1-qual-tb-20261110e",
+      "platform": "thingsboard",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-tb-20261110e.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "VALID",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-fw-20261110e",
+      "platform": "fiware",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-fw-20261110e.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_ASSESSED_PREFLIGHT_REFUSAL",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": "w1-qual-fw-20261110f"
+    },
+    {
+      "run_id": "w1-qual-ex-20261110e",
+      "platform": "edgex",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-ex-20261110e.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "VALID",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null,
+      "offered_workload_messages": 45000
+    },
+    {
+      "run_id": "w1-qual-tb-20261110d",
+      "platform": "thingsboard",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-tb-20261110d.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_HARNESS_LEDGER_MODE",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": null,
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-fw-20261110d",
+      "platform": "fiware",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-fw-20261110d.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": "w1-qual-fw-20261110f"
+    },
+    {
+      "run_id": "w1-qual-ex-20261110d",
+      "platform": "edgex",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-ex-20261110d.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-tb-20261110c",
+      "platform": "thingsboard",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-tb-20261110c.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_VU_POOL_BOUND",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-fw-20261110c",
+      "platform": "fiware",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-fw-20261110c.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_VU_POOL_BOUND",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": "w1-qual-fw-20261110f"
+    },
+    {
+      "run_id": "w1-qual-ex-20261110c",
+      "platform": "edgex",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-ex-20261110c.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-tb-20261110",
+      "platform": "thingsboard",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-tb-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_ASSESSED_PREFLIGHT_REFUSAL",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null,
+      "offered_workload_messages": 0
+    },
+    {
+      "run_id": "w1-qual-fw-20261110",
+      "platform": "fiware",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-fw-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": "w1-qual-fw-20261110f"
+    },
+    {
+      "run_id": "w1-qual-ex-20261110",
+      "platform": "edgex",
+      "purpose": "w1-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W1: full-duration 50/s, 300/600-second generator/capture validation",
+      "plan": "w1-qual-ex-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 15000,
+      "expected_measurement_messages": 30000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-ex-20261110b",
+      "platform": "edgex",
+      "plan": "w1-qual-ex-20261110b.json",
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "superseded_by": null
+    },
+    {
+      "run_id": "w1-qual-fw-20261110b",
+      "platform": "fiware",
+      "plan": "w1-qual-fw-20261110b.json",
+      "execution_status": "NOT_LAUNCH_CLEARED_SUPERSEDED_UNUSED",
+      "superseded_by": "w1-qual-fw-20261110f"
+    },
+    {
+      "run_id": "w1-qual-tb-20261110b",
+      "platform": "thingsboard",
+      "plan": "w1-qual-tb-20261110b.json",
+      "execution_status": "NOT_ASSESSED_HARNESS_TRANSPORT_TIMEOUT",
+      "offered_workload_messages": 0,
+      "superseded_by": null
+    }
+  ],
+  "supersedes": [
+    "w1-qual-fw-20261110",
+    "w1-qual-fw-20261110b",
+    "w1-qual-fw-20261110c",
+    "w1-qual-fw-20261110d",
+    "w1-qual-fw-20261110e"
+  ],
+  "supersede_reason": [
+    "Prior generation is preserved and not retried. The 2026-11-10 owner pool amendment raised the generator pool to a rate-derived value (300 VUs at 50/s); earlier generations ran at the old fixed 150 and returned INVALID_VU_POOL_BOUND, which measured generator starvation rather than a platform limit. Consumed IDs that produced evidence keep that evidence."
+  ]
+}

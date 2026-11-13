@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "receipt_id": "owner-w3-qual-fw-20261112d3",
+  "scope_label": "w3-1024-byte-payload-qualification-fiware-partial-metrics",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "you can also continue with fiware and leave the unsupported metrics as unavailable and try to measure the most important parts as you can",
+  "authorized_run_ids": [
+    "w3-qual-fw-20261110"
+  ],
+  "counts_toward_proposed_attempts": false,
+  "bindings_sha256": {
+    "scope": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
+    "run_matrix": "312a68fdf423588397be7cf592d0c6d29636c4e3239e64fb5701707ee49b1d8a",
+    "launcher": "f1348e43978cfbbc76e13b1b88fca848aee342425c93230fee99bebd073cbffb",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "8edc86aaddd6d2570f5797698ab11da31170b9431fd39e7e99de38ecf4283d96",
+    "variant_stager": "9d82b7c52aba799e9af4029b915ad2ed92da572b1801e7e1e4cfff07112d4608",
+    "integrity": "32f26d2bb75249c2fe24b9bc44cc34db26ec4dce0dd5f955b33b0e749ae85a14",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "f1126fadd17ff1d4c5470e24027d479b2d217b8d229adbbd32d62cfd68372338",
+    "qualification_index_w1": "685c55022c81277eb979f94c2268ce89534914a14c3432a15859065f39423372",
+    "qualification_index_w2": "f671e0a41ddf3318fe7f59e9130961e028178c6c41f65cc5ac3730e610e5d645",
+    "qualification_index_w3": "8e3352f0c67e030b41df9f6c1b94dcb8c82934d2d145ade545c2da23b7f5b0e5"
+  },
+  "authorized_plan_sha256": {
+    "w3-qual-fw-20261110": "7998bfe6123c4003f136169264ed0921e86f11fb16086b1b11867ff547b1eaa1"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.11-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}

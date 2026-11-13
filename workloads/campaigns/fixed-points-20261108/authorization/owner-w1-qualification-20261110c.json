@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "receipt_id": "owner-w1-qualification-20261110c",
+  "scope_label": "w1-50s-full-duration-qualification",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "just dont wait for my command yourself plan approve verify test and continue untill all Ws done / ok continue, just craeet a report or doc about the edgex problem and leave it undone til the last decision, then continue your work",
+  "authorized_run_ids": [
+    "w1-qual-ex-20261110c",
+    "w1-qual-fw-20261110c",
+    "w1-qual-tb-20261110c"
+  ],
+  "counts_toward_proposed_attempts": false,
+  "bindings_sha256": {
+    "scope": "6d300a80406f59ae18e92d0c65f1688f369d70c5fed08cce4030353781a416ce",
+    "run_matrix": "11d0ea57ea9832fa79c9fdc590f36ab794791608f0cba7fc3966f98a45cec3b0",
+    "qualification_index": "5d8ce2e4fa4f904d874f9249fdbafc818e860ed125d7f4b5459bd12e22bc2089",
+    "launcher": "3ce5fc1228f6042a46b492e89065380dc50e25ed758911e68ca033a64b22fa38",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "94a231c3047a2a196950d0d5b64072e7c19bd92ba7c041e7dcba7fccffaecda6",
+    "variant_stager": "09f8c2d0345847480b9f816dbbb9fa4404eab553a4fe446e9fd3f9c4e9d61360",
+    "integrity": "335e84513b7b0fe8d5ceb6e122635378e03d9a0f2fca3576e4030f321572d801",
+    "b0_launcher": "23608664e4839a13d756fbaf893b66de657db575487bc455168f3c0120a4c184"
+  },
+  "authorized_plan_sha256": {
+    "w1-qual-tb-20261110c": "2914be42de2a1dd4ca4d7ad67a85f8267673d37b8443ab74ecfee5959f13d04a",
+    "w1-qual-fw-20261110c": "cf16fb38d6a690fd0a22124b70e66b0c299e3e8d9ca591c832eb8bbf115b7569",
+    "w1-qual-ex-20261110c": "92fbf33218a23afa8c3a6f5a2717946ab5a2cf4ea35d54e0735bd5cd66650722"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.11-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "Does not authorize raising the frozen 150/150 VU pool."
+  ]
+}

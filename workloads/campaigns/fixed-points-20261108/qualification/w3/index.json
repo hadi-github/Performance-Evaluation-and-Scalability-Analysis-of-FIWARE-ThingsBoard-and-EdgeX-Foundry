@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "batch_id": "w3-qualification-20261110",
+  "workload_id": "W3",
+  "status": "NOT_LAUNCH_CLEARED",
+  "execution_authorized": false,
+  "qualification_policy": "Separate IDs/evidence for diagnostics and qualifications; no such runs count toward the proposed 60 experimental attempts.",
+  "why_needed": "W3 gate requires exactly 1024 extra ASCII logical padding bytes on every adapter, with live sink/history preservation and an independent stored-payload check. The sink retains identity/timing only and FIWARE subscriptions select identity fields, so the payload-preserving evidence path must be shown to work rather than assumed.",
+  "vu_headroom_note": "The pool is rate-derived. At 25/s: 25 x 5000 ms = 125 worst-case in-flight, plus 10% headroom, rounded to 150 VUs. That is exactly the B0 value, so this cell stays pool-identical to B0.",
+  "runs": [
+    {
+      "run_id": "w3-qual-tb-20261110",
+      "workload_id": "W3",
+      "platform": "thingsboard",
+      "purpose": "w3-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W3: exactly 1024 extra ASCII logical padding bytes via size_offset_bytes=1024 on every adapter, with live sink/history preservation and independent stored-payload validation, then 25/s for 300/600 s",
+      "plan": "w3-qual-tb-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_PLATFORM_FAILURE_OR_BACKLOG",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
+    },
+    {
+      "run_id": "w3-qual-fw-20261110",
+      "workload_id": "W3",
+      "platform": "fiware",
+      "purpose": "w3-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W3: exactly 1024 extra ASCII logical padding bytes via size_offset_bytes=1024 on every adapter, with live sink/history preservation and independent stored-payload validation, then 25/s for 300/600 s",
+      "plan": "w3-qual-fw-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "VALID_PLATFORM_SUCCESS",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
+    },
+    {
+      "run_id": "w3-qual-ex-20261110",
+      "workload_id": "W3",
+      "platform": "edgex",
+      "purpose": "w3-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W3: exactly 1024 extra ASCII logical padding bytes via size_offset_bytes=1024 on every adapter, with live sink/history preservation and independent stored-payload validation, then 25/s for 300/600 s",
+      "plan": "w3-qual-ex-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "NOT_LAUNCH_CLEARED",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "receipt_id": "owner-w1-fiware-20261111i",
+  "scope_label": "w1-50s-fiware-qualification-after-pool-and-ledger-fixes",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "continue without edgex this time",
+  "authorized_run_ids": [
+    "w1-qual-fw-20261110f"
+  ],
+  "counts_toward_proposed_attempts": false,
+  "bindings_sha256": {
+    "scope": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
+    "run_matrix": "312a68fdf423588397be7cf592d0c6d29636c4e3239e64fb5701707ee49b1d8a",
+    "qualification_index": "cd0f97ab95d5a72244a255852b951d698234a71db32052dcfa0e1fd45b343e1f",
+    "launcher": "7f50fbac4767c7f2bca3dfd4ee8337f6062a07294a102d92b6f88520ecb8ea04",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "706fd83954db23e5fd6bb053ea7c61c571253b0969575b366a578928aab4230b",
+    "variant_stager": "9d82b7c52aba799e9af4029b915ad2ed92da572b1801e7e1e4cfff07112d4608",
+    "integrity": "32f26d2bb75249c2fe24b9bc44cc34db26ec4dce0dd5f955b33b0e749ae85a14",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "d5c4f948d2f46db31c156830d0b8d21d83b535aec9529820f36d5a09580c7b70"
+  },
+  "authorized_plan_sha256": {
+    "w1-qual-fw-20261110f": "c37ab5d84a597835f8d7ed53735e0118d610da0fe7de1d825dbbfa9bc7a84f58"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.11-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}

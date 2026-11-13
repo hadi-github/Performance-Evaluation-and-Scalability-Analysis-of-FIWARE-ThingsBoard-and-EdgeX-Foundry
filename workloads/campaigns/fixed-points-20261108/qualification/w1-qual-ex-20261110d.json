@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "plan_id": "w1-qualification-50s-edgex-20261110d",
+  "purpose": "W1 release qualification: full-duration 50/s generator/capture validation at the exact W1 shape. Separate ID; not one of the 60 proposed attempts. NOT a fixed-point result and never reported as one.",
+  "pilot_only": true,
+  "seed": 202611060,
+  "adapter": "edgex",
+  "payload": {
+    "encoding_id": "logical-json-ascii-v1",
+    "size_offset_bytes": 0
+  },
+  "target": {
+    "base_url": "http://87.107.191.107:59986",
+    "metadata_url": "http://87.107.191.107:59881",
+    "ingress_url": "http://87.107.191.107:59986"
+  },
+  "devices": 1000,
+  "request_timeout_ms": 5000,
+  "connection": {
+    "keep_alive": true
+  },
+  "arrivals": {
+    "model": "constant"
+  },
+  "vus": {
+    "pre_allocated": 300,
+    "max": 300
+  },
+  "schedule": {
+    "type": "steps",
+    "steps": [
+      {
+        "phase": "warmup",
+        "rate": 50,
+        "duration_s": 300,
+        "vus": 300
+      },
+      {
+        "phase": "measurement",
+        "rate": 50,
+        "duration_s": 600,
+        "vus": 300
+      }
+    ]
+  },
+  "health": {
+    "workload_policy": "dispatch-integrity-v2",
+    "min_achieved_ratio": 0.99,
+    "send_lag_p99_ms": 0,
+    "early_tolerance_ms": 2,
+    "max_core_busy": 0
+  },
+  "cleanup": false,
+  "test_faults": {},
+  "protocol_pilot_parameters": {
+    "rate_per_second": 50,
+    "measurement_seconds": 600,
+    "warmup_seconds": 300,
+    "drain_seconds_after_measurement": 900,
+    "quiet_interval_seconds": 30,
+    "late_observation_seconds": 30
+  },
+  "deviations": [
+    "Qualification only: separate run ID and seed; never counted as a proposed W attempt.",
+    "Reproduces the W1 attempt shape exactly (adapter, devices, rate, 300/600 s, 300/300 VU pool, 5000 ms timeout).",
+    "VU pool is rate-derived under the 2026-11-10 owner amendment: 300 VUs at 50/s (rate x timeout = 250, plus 10% headroom). The pool is generator concurrency, not a platform capacity claim; v1 qualifications at a fixed 150 are preserved negatives and are not retried.",
+    "Existing deployed state, device cohorts and history are retained; not a cold-start repetition."
+  ]
+}

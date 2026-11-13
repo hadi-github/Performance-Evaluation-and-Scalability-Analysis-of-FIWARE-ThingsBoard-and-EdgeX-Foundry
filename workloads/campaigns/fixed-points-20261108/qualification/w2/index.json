@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "batch_id": "w2-qualification-20261110",
+  "workload_id": "W2",
+  "status": "NOT_LAUNCH_CLEARED",
+  "execution_authorized": false,
+  "qualification_policy": "Separate IDs/evidence for diagnostics and qualifications; no such runs count toward the proposed 60 experimental attempts.",
+  "why_needed": "W2 gate requires 2000-device provisioning, with every active replica recognizing the entire intended cohort before traffic, and 25/s for the full 300/600 s window. No existing evidence covers a 2000-device cohort at this shape.",
+  "vu_headroom_note": "The pool is rate-derived. At 25/s: 25 x 5000 ms = 125 worst-case in-flight, plus 10% headroom, rounded to 150 VUs. That is exactly the B0 value, so this cell stays pool-identical to B0.",
+  "runs": [
+    {
+      "run_id": "w2-qual-tb-20261110",
+      "workload_id": "W2",
+      "platform": "thingsboard",
+      "purpose": "w2-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:8080"
+      },
+      "gate": "W2: 2000-device provisioning + every replica recognizing the full cohort, then 25/s for 300/600 s",
+      "plan": "w2-qual-tb-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "INVALID_PLATFORM_FAILURE_OR_BACKLOG",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
+    },
+    {
+      "run_id": "w2-qual-fw-20261110",
+      "workload_id": "W2",
+      "platform": "fiware",
+      "purpose": "w2-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:1026",
+        "north_url": "http://87.107.191.107:4041",
+        "south_url": "http://87.107.191.107:7896"
+      },
+      "gate": "W2: 2000-device provisioning + every replica recognizing the full cohort, then 25/s for 300/600 s",
+      "plan": "w2-qual-fw-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "VALID",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
+    },
+    {
+      "run_id": "w2-qual-ex-20261110",
+      "workload_id": "W2",
+      "platform": "edgex",
+      "purpose": "w2-release-qualification",
+      "target": {
+        "base_url": "http://87.107.191.107:59986",
+        "metadata_url": "http://87.107.191.107:59881",
+        "ingress_url": "http://87.107.191.107:59986"
+      },
+      "gate": "W2: 2000-device provisioning + every replica recognizing the full cohort, then 25/s for 300/600 s",
+      "plan": "w2-qual-ex-20261110.json",
+      "seed": 202611060,
+      "expected_warmup_messages": 7500,
+      "expected_measurement_messages": 15000,
+      "counts_toward_proposed_attempts": false,
+      "execution_status": "VALID",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
+    }
+  ]
+}
