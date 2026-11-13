@@ -1,6 +1,6 @@
 {
   "status": "OFFLINE_RESOLUTION_ONLY_NO_TRAFFIC",
-  "benchctl_sha256": "64f6638545ec21cf6d4d6352732879ed8f9e46a8f626984b520b53a52ae471d8",
+  "benchctl_sha256": "a537f88c47541b92434d7b085f50a8e287406ba2e333478134a1422f7f0feb9f",
   "deployment_verified_live": false,
   "execution_authorized": false,
   "runs": [
@@ -28,8 +28,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -38,18 +38,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -61,7 +61,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -88,7 +89,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -100,7 +101,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -147,8 +148,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -157,18 +158,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -180,7 +181,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -207,7 +209,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -219,7 +221,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -265,8 +267,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -275,18 +277,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -298,7 +300,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -325,7 +328,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -337,7 +340,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -416,7 +419,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -534,7 +538,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -650,7 +655,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -769,7 +775,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -885,7 +892,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1004,7 +1012,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1120,7 +1129,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1239,7 +1249,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1357,7 +1368,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1475,7 +1487,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1591,7 +1604,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1710,7 +1724,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1826,7 +1841,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -1945,7 +1961,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -2063,7 +2080,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -2181,7 +2199,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -2299,7 +2318,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -2415,7 +2435,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -2501,8 +2522,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -2511,18 +2532,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -2534,7 +2555,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -2561,7 +2583,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -2573,7 +2595,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -2619,8 +2641,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -2629,18 +2651,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -2652,7 +2674,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -2679,7 +2702,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -2691,7 +2714,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -2735,8 +2758,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -2745,18 +2768,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -2768,7 +2791,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -2795,7 +2819,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -2807,7 +2831,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -2887,7 +2911,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3005,7 +3030,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3121,7 +3147,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3240,7 +3267,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3356,7 +3384,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3475,7 +3504,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -3560,8 +3590,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -3570,18 +3600,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -3593,7 +3623,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -3620,7 +3651,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -3632,7 +3663,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -3676,8 +3707,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -3686,18 +3717,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -3709,7 +3740,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -3736,7 +3768,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -3748,7 +3780,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -3795,8 +3827,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -3805,18 +3837,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -3828,7 +3860,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -3855,7 +3888,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -3867,7 +3900,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -3944,7 +3977,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4063,7 +4097,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4181,7 +4216,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4297,7 +4333,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4416,7 +4453,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4534,7 +4572,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -4617,8 +4656,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -4627,18 +4666,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -4650,7 +4689,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -4677,7 +4717,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -4689,7 +4729,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -4736,8 +4776,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -4746,18 +4786,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -4769,7 +4809,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -4796,7 +4837,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -4808,7 +4849,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -4854,8 +4895,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -4864,18 +4905,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -4887,7 +4928,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -4914,7 +4956,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -4926,7 +4968,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -5005,7 +5047,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5123,7 +5166,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5239,7 +5283,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5358,7 +5403,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5474,7 +5520,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5593,7 +5640,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -5678,8 +5726,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -5688,18 +5736,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -5711,7 +5759,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -5738,7 +5787,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -5750,7 +5799,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -5796,8 +5845,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -5806,18 +5855,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -5829,7 +5878,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -5856,7 +5906,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -5868,7 +5918,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -5912,8 +5962,8 @@
           "tick_factor": 0
         },
         "vus": {
-          "pre_allocated": 150,
-          "max": 150
+          "pre_allocated": 300,
+          "max": 300
         },
         "schedule": {
           "type": "steps",
@@ -5922,18 +5972,18 @@
               "phase": "warmup",
               "rate": 50,
               "duration_s": 300,
-              "vus": 150
+              "vus": 300
             },
             {
               "phase": "measurement",
               "rate": 50,
               "duration_s": 600,
-              "vus": 150
+              "vus": 300
             }
           ]
         },
         "health": {
-          "workload_policy": "dispatch-integrity-v1",
+          "workload_policy": "dispatch-integrity-v2",
           "min_achieved_ratio": 0.99,
           "send_lag_p99_ms": 0,
           "early_tolerance_ms": 2,
@@ -5945,7 +5995,8 @@
           "Workload W1: only total_messages_per_second changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (300 at 50/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 50,
@@ -5972,7 +6023,7 @@
             "start_s": 0,
             "ticks": 15000,
             "seq_offset": 0,
-            "vus": 150
+            "vus": 300
           },
           {
             "index": 1,
@@ -5984,7 +6035,7 @@
             "start_s": 300,
             "ticks": 30000,
             "seq_offset": 15000,
-            "vus": 150
+            "vus": 300
           }
         ],
         "total_ticks": 45000,
@@ -6064,7 +6115,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6180,7 +6232,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6299,7 +6352,8 @@
           "Workload W2: only devices changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6415,7 +6469,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6534,7 +6589,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6652,7 +6708,8 @@
           "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6770,7 +6827,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -6888,7 +6946,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,
@@ -7004,7 +7063,8 @@
           "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
           "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
           "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+          "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+          "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
         ],
         "protocol_pilot_parameters": {
           "rate_per_second": 25,

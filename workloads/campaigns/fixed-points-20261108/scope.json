@@ -21,6 +21,8 @@
     "results/feasible-campaign-20261106/plans/disp-tb-r02-20261106.json": "6418389a723b069c271ea22cab07bb1f4521cbd94b31047646174065663c2253",
     "results/feasible-campaign-20261106/plans/disp-tb-r03-20261106.json": "ddc927cad20cf718e8c8465d1fc45bbf275df7718ff182e276f2354a4ec77462",
     "results/feasible-campaign-20261106/plans/disp-tb-r04-20261106.json": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
+    "results/feasible-campaign-20261106/plans/disp-tb-r04a-20261109.json": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
+    "results/feasible-campaign-20261106/plans/disp-tb-r04b-20261109.json": "874545f6e88ec35952035dcf5a09420df9763ffef131a4bb0ca62896b431596d",
     "results/feasible-campaign-20261106/plans/disp-tb-r05-20261106.json": "1c488bd74120dc7f46d8289cfdae782dc685c29ff3475bd27cf9ff4c3b1130b1"
   },
   "baseline_configuration": {
@@ -71,8 +73,6 @@
     "GOGC": "400",
     "keep_alive": true,
     "request_timeout_ms": 5000,
-    "vus_preallocated_per_scenario": 150,
-    "vus_max_per_scenario": 150,
     "open_loop": true,
     "complete_local_request_ledger": true,
     "remote_write": "http://127.0.0.1:9090/api/v1/write",
@@ -88,7 +88,17 @@
     "device_selection": "round-robin seq modulo devices",
     "same_haproxy_ingress": true,
     "preserve_devices_and_history": true,
-    "warmup_rate_rule": "same as each workload total_messages_per_second"
+    "warmup_rate_rule": "same as each workload total_messages_per_second",
+    "generator_pool_policy": "rate-derived: ceil(rate_s * 5000ms/1000 * 1.10 / 50) * 50",
+    "generator_pool_headroom_factor": 1.1,
+    "generator_pool_quantum": 50,
+    "generator_pool_by_rate": {
+      "25": 150,
+      "50": 300,
+      "100": 550
+    },
+    "generator_pool_rationale": "The VU pool is generator-side concurrency, not a platform capacity claim. A pool smaller than rate x timeout starves the open-loop executor and is reported as dropped_iterations, which is indistinguishable from platform loss. The original fixed 150 satisfied this only at 25/s; at 50/s it demanded 250. 10% headroom is evidence-based: B0 25/s cells peaked at 126 against a theoretical 125.",
+    "generator_pool_comparability": "At 25/s the rule yields exactly the B0 value (150), so every W2/W3/W4 cell and every B0 cell remains pool-identical. Only W1 (50/s, 300) differs from B0, and W1 differs from B0 in arrival rate anyway, so no fixed-point comparison is broken."
   },
   "endpoint": "application_dispatch_to_first_complete_body_sink_receipt",
   "latency_method": "offline per-message first-receipt join; nearest-rank conditional percentiles plus missing denominators",

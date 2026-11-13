@@ -42,7 +42,13 @@ const EARLY_EVERY = cfg.test_faults.early_every || 0;
 const FULL_JSON = __ENV.FULL_JSON === '1';
 // Explicit dispatch-integrity plans and protocol-bound runs need a full per-message
 // ledger. Historical unbound plans retain the compact error-only log.
-const COMPLETE_LEDGER = !!cfg.protocol_binding || cfg.health.workload_policy === 'dispatch-integrity-v1';
+//
+// Both policy revisions require the complete ledger. This must track the Go validator
+// (internal/plan.IsDispatchIntegrity); pinning it to v1 alone silently produced the
+// compact error-only log for v2 runs, which dispatch-integrity then rejects as an
+// incomplete ledger.
+const DISPATCH_POLICIES = ['dispatch-integrity-v1', 'dispatch-integrity-v2'];
+const COMPLETE_LEDGER = !!cfg.protocol_binding || DISPATCH_POLICIES.includes(cfg.health.workload_policy);
 
 // ---- metrics, declared in the init context of every VU. Keep the number of metric objects small: k6 creates them
 // per VU, and per-(step, bucket) Counters reached 5.2 GB at 200 VUs x 30 steps (docs/methodology/calibration.md).

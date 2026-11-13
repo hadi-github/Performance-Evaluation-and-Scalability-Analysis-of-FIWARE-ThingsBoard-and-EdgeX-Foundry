@@ -8,7 +8,8 @@
   "W1": [
     "Full-duration 50/s, 300/600-second generator/capture validation under actual adapter/recording/monitoring: 15000 warm-up and 30000 measurement identities.",
     "Existing 50/s 30/120-second B0 qualification is not full-duration W1 clearance.",
-    "The dispatch-integrity-v1 evaluator now has an explicit 100/s profile with unchanged identity, timing, loss, bin, gap and lag-integrity checks. This is source support only: qualify 100/s generator/capture capability under matching HTTP/recording conditions before release; do not edit active B0 gates."
+    "Re-qualify under pool policy v2 (300 VUs at 50/s). The two v1 qualifications (w1-qual-tb-20261110c, w1-qual-fw-20261110c) are preserved negatives that measured generator starvation, not platform limits; they are not retried and not reinterpreted. A v2 generation is required.",
+    "The dispatch-integrity evaluator has an explicit 100/s profile with unchanged identity, timing, loss, bin, gap and lag-integrity checks. This is source support only: qualify 100/s generator/capture capability under matching HTTP/recording conditions before release; do not edit active B0 gates."
   ],
   "W2": [
     "Validate 2000-device provisioning and every active replica recognizing the entire intended cohort before traffic.",

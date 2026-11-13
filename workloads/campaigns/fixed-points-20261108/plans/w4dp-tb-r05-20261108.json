@@ -62,6 +62,7 @@
     "Workload W4: only replicas_per_replicated_service changes relative to B0; identities/plan labels differ by design.",
     "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
     "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
-    "Application dispatch is not wire transmission. Logical padding is not actual wire byte count."
+    "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+    "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
   ]
 }
