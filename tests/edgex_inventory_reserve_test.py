@@ -87,7 +87,9 @@ class GatePathTests(unittest.TestCase):
 
     def test_prepare_and_check_use_remote_results(self):
         text = LAUNCHER.read_text()
-        start = text.index('bash {shlex.quote(helper)} prepare 2')
+        # The replica count is a variable, not the literal 2: W4 runs N=1 on the
+        # same pool, so the helper must be invoked with the cell's N.
+        start = text.index('bash {shlex.quote(helper)} prepare {REPLICAS}')
         prepare = text[start:start + 400]
         self.assertIn('{REMOTE_RESULTS}/gates/', prepare)
         start = text.index('bash {shlex.quote(helper)} check')

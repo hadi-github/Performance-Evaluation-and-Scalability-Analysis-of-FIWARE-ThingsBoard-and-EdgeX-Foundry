@@ -62,8 +62,9 @@
       "expected_warmup_messages": 7500,
       "expected_measurement_messages": 15000,
       "counts_toward_proposed_attempts": false,
-      "execution_status": "NOT_LAUNCH_CLEARED",
-      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch"
+      "execution_status": "VALID_PLATFORM_SUCCESS",
+      "invalid_if": "dropped_iterations > 0 (VU pool binds) or identity/capture mismatch",
+      "offered_workload_messages": 22500
     }
   ]
 }

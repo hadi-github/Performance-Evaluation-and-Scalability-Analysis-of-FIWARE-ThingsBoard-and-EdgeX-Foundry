@@ -48,6 +48,16 @@ SUT_IP = os.environ.get("IOTBENCH_SUT_IP", "87.107.191.107")
 LOAD_IP = os.environ.get("IOTBENCH_LOAD_IP", "87.107.191.32")
 SINK_URL_BASE = f"http://{LOAD_IP}:18091"
 
+# Replica count of each replicated application service. B0 and W1-W3 run N=2; W4
+# runs N=1 *on the same two-core pool 4-5*, so replica count is a deployment
+# parameter and never a proxy for the CPU budget. Set by the campaign launcher
+# from the workload variant before any read-only check or launch, and readable
+# from the environment so a hand-run reproduces a cell exactly.
+REPLICAS = int(os.environ.get("IOTBENCH_REPLICAS", "2"))
+# Pool is fixed for every cell in this campaign: N is the replica axis, not CPU.
+POOL_CPUSET = os.environ.get("IOTBENCH_POOL_CPUSET", "4-5")
+INFRA_CPUSET = os.environ.get("IOTBENCH_INFRA_CPUSET", "2-3")
+
 REMOTE_LOCK = "/run/iot-bench-workload.lock"
 EVIDENCE = HERE / "evidence"
 COMPOSE = "docker compose"
@@ -171,21 +181,21 @@ def read_only_check(platform):
         rows = json.loads(inv)
         for svc, mem in (("tb-core", 1342177280), ("tb-rule-engine", 1342177280), ("tb-http-transport", 805306368)):
             rs = [r for r in rows if r.get("project") == "tbq20261105" and r.get("service") == svc]
-            if len(rs) != 2 or any(r.get("cpuset") != "4-5" or r.get("memory_bytes") != mem or
+            if len(rs) != REPLICAS or any(r.get("cpuset") != POOL_CPUSET or r.get("memory_bytes") != mem or
                                    r.get("restarts") != 0 or r.get("oom_killed") for r in rs):
                 raise RuntimeError(f"TB effective inventory failed for {svc}: {rs}")
-        return "TB tbq20261105 N=2 resource inventory matches frozen cell"
+        return f"TB tbq20261105 N={REPLICAS} resource inventory matches frozen cell"
     if platform == "fiware":
         baseline = FW + "/fiware-baseline/compose.yaml"
         history = FW + "/fiware-history-candidate/compose.yaml"
-        env = {"FIWARE_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3"}
+        env = {"FIWARE_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET, "INFRA_CPUSET": INFRA_CPUSET}
         fwcfg = json.loads(remote(SUT, compose("fiware", baseline, env, "config --format json")).stdout)
         hccfg = json.loads(remote(SUT, compose("fiwhc", history, env, "config --format json")).stdout)
         for name in ("iot-agent", "orion"):
             svc = fwcfg["services"][name]
-            expected_n = 2
-            if svc.get("deploy", {}).get("replicas") != expected_n or svc.get("cpuset") != "4-5" or int(svc["mem_limit"]) != 536870912:
-                raise RuntimeError(f"FIWARE N=2 app resources mismatch: {name}")
+            expected_n = REPLICAS
+            if svc.get("deploy", {}).get("replicas") != expected_n or svc.get("cpuset") != POOL_CPUSET or int(svc["mem_limit"]) != 536870912:
+                raise RuntimeError(f"FIWARE N={REPLICAS} app resources mismatch: {name}")
         for name, image, memory in (("timescale", "timescale/timescaledb-postgis:2.3.0-pg13", 1610612736),
                                     ("quantumleap", "orchestracities/quantumleap:1.0.0", 536870912)):
             svc = hccfg["services"].get(name)
@@ -193,9 +203,9 @@ def read_only_check(platform):
                 raise RuntimeError(f"FIWARE history tier mismatch: {name}")
         if fwcfg["services"]["mongo"].get("image") != "mongo:8.0":
             raise RuntimeError("FIWARE baseline image mismatch")
-        return "FIWARE live rendered config confirms baseline N=2 plus pinned QL/Timescale 2 GiB history tier"
+        return (f"FIWARE live rendered config confirms baseline N={REPLICAS} plus pinned QL/Timescale 2 GiB history tier")
     if platform == "edgex":
-        env = {"EDGEX_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3",
+        env = {"EDGEX_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET, "INFRA_CPUSET": INFRA_CPUSET,
                "SINK_URL": SINK_URL_BASE}
         cfg = remote(SUT, compose("edgex", EDGEX + "/compose.yaml", env, "config --format json", "--profile export")).stdout
         obj = json.loads(cfg)
@@ -218,9 +228,9 @@ def read_only_check(platform):
                 raise RuntimeError(f"EdgeX image mismatch for {name}: {obj['services'][name].get('image')}")
         for name in ("core-data", "device-rest"):
             svc = obj["services"][name]
-            if svc.get("deploy", {}).get("replicas") != 2 or svc.get("cpuset") != "4-5":
+            if svc.get("deploy", {}).get("replicas") != REPLICAS or svc.get("cpuset") != POOL_CPUSET:
                 raise RuntimeError(f"EdgeX actual replica mapping or app pool mismatch: {name}")
-        if (obj["services"]["app-http-export"].get("cpuset") != "4-5" or
+        if (obj["services"]["app-http-export"].get("cpuset") != POOL_CPUSET or
             not obj["services"]["app-http-export"].get("environment", {}).get("WRITABLE_PIPELINE_FUNCTIONS_HTTPEXPORT_PARAMETERS_URL", "").endswith(":18091/edgex")):
             raise RuntimeError("EdgeX app export pool or sink route mismatch")
         for svc in obj["services"].values():
@@ -229,9 +239,15 @@ def read_only_check(platform):
             if svc.get("mem_limit") is None or svc.get("memswap_limit") is None or not svc.get("cpuset"):
                 raise RuntimeError("EdgeX service lacks a hard memory/swap limit or CPU set")
             total_bytes += int(svc["mem_limit"]) * int(svc.get("deploy", {}).get("replicas", 1))
-        if total_bytes != 5248 * 1024 * 1024:
-            raise RuntimeError(f"EdgeX effective fixed allocation changed: {total_bytes} bytes, expected 5248 MiB")
-        return "EdgeX rendered config confirms N=2 core-data + N=2 device-rest + one 512 MiB exporter; service total includes infra"
+        # Fixed infra tiers are 3200 MiB; the two replicated app tiers contribute
+        # 512 MiB each per replica, so the expected total is N-dependent by
+        # construction: N=2 -> 5248 MiB (the frozen B0/W1-W3 value), N=1 -> 4224 MiB.
+        expected_bytes = (3200 + 1024 * REPLICAS) * 1024 * 1024
+        if total_bytes != expected_bytes:
+            raise RuntimeError(f"EdgeX effective fixed allocation changed: {total_bytes} bytes, "
+                               f"expected {expected_bytes} MiB-derived value for N={REPLICAS}")
+        return (f"EdgeX rendered config confirms N={REPLICAS} core-data + N={REPLICAS} device-rest + "
+                f"one 512 MiB exporter; service total includes infra")
     raise ValueError(platform)
 
 
@@ -317,21 +333,21 @@ def verify_effective_resources(platform, restart_baseline=None, admit_restarts=F
     snapshot then verifies against that baseline, so a restart *during* the run
     is still caught.
     """
-    env = {'POOL_CPUSET':'4-5', 'INFRA_CPUSET':'2-3'}
+    env = {'POOL_CPUSET': POOL_CPUSET, 'INFRA_CPUSET': INFRA_CPUSET}
     if platform == 'fiware':
-        env['FIWARE_REPLICAS'] = '2'
+        env['FIWARE_REPLICAS'] = str(REPLICAS)
         specs = [('fiware', FW+'/fiware-baseline/compose.yaml', '',
                   {'iot-agent','orion','mongo','haproxy'}),
                  ('fiwhc', FW+'/fiware-history-candidate/compose.yaml', '', {'quantumleap','timescale'})]
     elif platform == 'edgex':
-        env.update(EDGEX_REPLICAS='2', SINK_URL=SINK_URL_BASE)
+        env.update(EDGEX_REPLICAS=str(REPLICAS), SINK_URL=SINK_URL_BASE)
         override = EDGEX+'/compose.feasible-discovery-'+sha256_file(REPO/'deploy/edgex/compose.feasible-discovery.yaml')[:16]+'.yaml'
         specs = [('edgex', EDGEX+'/compose.yaml', '--profile export -f '+shlex.quote(override),
                   {'database','nats','haproxy','core-keeper','core-metadata','core-data','device-rest','app-http-export','core-common-config-bootstrapper'})]
     else:
         # TB's inventory gate already checks app allocation; inspect its actual
         # rendered project too, using the deployed qualification environment.
-        env.update(TB_REPLICAS='2')
+        env.update(TB_REPLICAS=str(REPLICAS))
         specs = [('tbq20261105', TB, '', None)]
     expected, actual = {}, []
     for project, file, extra, required in specs:
@@ -424,10 +440,18 @@ def activate(platform, run_id, resolved=None):
     assert_no_other_platform(platform)
     devices = (resolved or {}).get('devices')
     if platform == "thingsboard":
-        # Existing project; only bring up its declared services. No compose down/up recreation.
-        remote(SUT, f"cd /root/iot-qual-tb-20261105/deploy/thingsboard; docker compose -p tbq20261105 -f {TB} start")
+        # Existing project; only bring up its declared services. Never tear the
+        # project down. `start` cannot change a replica count: it starts whatever
+        # containers exist. W4 varies N, so the count must be applied by `up`, which scales
+        # the declared deploy.replicas to REPLICAS (stopping surplus replicas,
+        # never removing volumes). At the already-qualified N=2 this is a no-op
+        # that leaves every container in place, so B0/W1-W3 behaviour is
+        # unchanged. `--no-build --pull never` keeps the pinned images.
+        env = {"TB_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET,
+               "INFRA_CPUSET": INFRA_CPUSET}
+        remote(SUT, compose("tbq20261105", TB, env, "up -d --no-build --pull never"))
     elif platform == "fiware":
-        env = {"FIWARE_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3"}
+        env = {"FIWARE_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET, "INFRA_CPUSET": INFRA_CPUSET}
         remote(SUT, compose("fiware", FW + "/fiware-baseline/compose.yaml", env, "up -d --no-build --pull never"))
         remote(SUT, compose("fiwhc", FW + "/fiware-history-candidate/compose.yaml", env,
                             "up -d --no-build --pull never timescale quantumleap"))
@@ -475,8 +499,8 @@ PY'''
         helper = stage_edgex_helper()
         discovery_override = stage_edgex_discovery_override()
         # Required helper avoids core-metadata panic: provision each run's device cohort at N=1,
-        # then scale to N=2 and validate every replica before workload. Runs occur serially.
-        env = {"EDGEX_REPLICAS": "2", "POOL_CPUSET": "4-5", "INFRA_CPUSET": "2-3",
+        # then scale to the cell's N and validate every replica before workload. Runs occur serially.
+        env = {"EDGEX_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET, "INFRA_CPUSET": INFRA_CPUSET,
                "SINK_URL": SINK_URL_BASE}
         # Helper's plain `up` is wrapped so Compose cannot pull/build even if its source has build stanzas.
         # Setup-wait budget, measured 2026-11-11 on this host: at 10,192 retained
@@ -501,7 +525,7 @@ PY'''
         # runs, so this unblocks W2/W3/W4 -- not an unlimited sequence.
         # See research/findings/edgex-inventory-reserve-cohort-sized-20261112.md.
         cmd = (f"test -f {EDGEX}/.env; mkdir -p {REMOTE_RESULTS}/gates; "
-                f"cd {EDGEX}; export EDGEX_REPLICAS=2 POOL_CPUSET=4-5 INFRA_CPUSET=2-3 "
+                f"cd {EDGEX}; export EDGEX_REPLICAS={REPLICAS} POOL_CPUSET={POOL_CPUSET} INFRA_CPUSET={INFRA_CPUSET} "
                 f"EDGEX_INVENTORY_RESERVE={devices} "
                 "EDGEX_DRIVER_READY_TIMEOUT=600 EDGEX_SCALE_TIMEOUT=600 EDGEX_PING_TIMEOUT=180 "
                 f"COMPOSE_FILE={shlex.quote(EDGEX+'/compose.yaml:'+discovery_override)} "
@@ -510,7 +534,7 @@ PY'''
                 "for arg in \"$@\"; do case \"$arg\" in down|rm|pull|build|--remove-orphans) return 2;; "
                 "up) args+=(up --no-build --pull never);; *) args+=(\"$arg\");; esac; done; "
                 "command docker compose \"${args[@]}\"; else command docker \"$@\"; fi; }; export -f docker; "
-                f"bash {shlex.quote(helper)} prepare 2 {devices} {shlex.quote(run_id)} "
+                f"bash {shlex.quote(helper)} prepare {REPLICAS} {devices} {shlex.quote(run_id)} "
                f"{REMOTE_RESULTS}/gates/{run_id}.json")
         # Bounded internally (every loop has a deadline); the outer guard only
         # needs to exceed the sum of those deadlines plus device POST waves and
@@ -526,7 +550,7 @@ def tb_backends_ready(text):
         label=re.escape(proxy)
         backend=re.search(r'^haproxy_backend_status\{proxy="'+label+r'",state="UP"\} ([0-9.]+)$',text,re.M)
         servers=re.findall(r'^haproxy_server_status\{proxy="'+label+r'",server="[^"]+",state="UP"\} ([0-9.]+)$',text,re.M)
-        if not backend or float(backend.group(1))!=1 or sum(float(v)==1 for v in servers)!=2:
+        if not backend or float(backend.group(1))!=1 or sum(float(v)==1 for v in servers)!=REPLICAS:
             return False
     return True
 
@@ -538,7 +562,7 @@ def wait_tb_backends(timeout=300):
         if p.returncode==0 and tb_backends_ready(p.stdout):
             return p.stdout
         time.sleep(2)
-    raise RuntimeError('TB pretraffic readiness timed out: both N=2 HAProxy backends must be UP')
+    raise RuntimeError(f'TB pretraffic readiness timed out: all {REPLICAS} HAProxy backend(s) per proxy must be UP')
 
 
 def verify_live(platform):

@@ -132,7 +132,19 @@ ensure_replica_ready() {
 case "${1:-}" in
   prepare)
     N="${2:?N}"; D="${3:?devices}"; RUN="${4:?run_id}"; GATE="${5:-/root/expl/$RUN.gate.json}"
-    if (( N == 1 )); then pool=4; else pool="4-$((3 + N))"; fi   # as scripts/resources.mk
+    # The pool is decided by the caller, not by N. scripts/resources.mk maps N=1 to
+    # a single core, which is correct for the legacy 1:1 core-per-instance default
+    # but is explicitly forbidden by the W4 gate: W4 runs one replica on the same
+    # two-core pool 4-5 that N=2 uses, so the workload isolates replica count and
+    # not CPU. An explicit POOL_CPUSET therefore wins; only an unset one falls back
+    # to the make arithmetic.
+    if [[ -n "${POOL_CPUSET:-}" ]]; then
+      pool="$POOL_CPUSET"
+    elif (( N == 1 )); then
+      pool=4                                        # as scripts/resources.mk
+    else
+      pool="4-$((3 + N))"
+    fi
     mkdir -p "$(dirname "$GATE")"
     export POOL_CPUSET="$pool"
     make -s check N="$N" >/dev/null

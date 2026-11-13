@@ -255,7 +255,7 @@ class WBound:
             'REMOTE_RESULTS': b0.REMOTE_RESULTS, 'REMOTE_SOURCE': b0.REMOTE_SOURCE,
             'REMOTE_RUNS': b0.REMOTE_RUNS, 'EVIDENCE': b0.EVIDENCE,
             'frozen_plan_path': b0.frozen_plan_path, 'validate_cell_plan': b0.validate_cell_plan,
-            'wait_tb_backends': b0.wait_tb_backends,
+            'wait_tb_backends': b0.wait_tb_backends, 'REPLICAS': b0.REPLICAS,
         }
         b0.REMOTE_RESULTS = W_REMOTE_RESULTS
         b0.REMOTE_SOURCE = W_REMOTE_RESULTS + '/source'
@@ -293,8 +293,30 @@ class WBound:
 
         b0.wait_tb_backends = wait_tb_backends
 
+        def apply_replicas(row):
+            """Set the replica count this cell is defined to run at.
+
+            The count comes from ``scope.json``'s frozen variant for the row's
+            workload, never from a flag or an environment default. W4 is the
+            only variant whose N differs from the qualified N=2, so applying it
+            here is what makes W4 a one-factor replica experiment; B0/W1-W3 get
+            their own variant value (2) and are unchanged.
+            """
+            wid = row.get('workload_id', 'W1')
+            try:
+                want = self.scope['variants'][wid]['replicas_per_replicated_service']
+            except KeyError:
+                raise SystemExit(f'no frozen replica count for workload {wid!r}')
+            declared = (row.get('deployment') or {}).get('replicas_per_replicated_service')
+            if declared is not None and declared != want:
+                raise SystemExit(f'row {row["run_id"]} deployment N={declared} contradicts '
+                                 f'scope variant {wid} N={want}')
+            b0.REPLICAS = int(want)
+            return int(want)
+
         def validate_cell_plan(platform, run_id, plan_path, resolved):
             expected, (kind, row) = self._plan_for(platform, run_id)
+            apply_replicas(row)
             if Path(plan_path).resolve() != Path(expected).resolve():
                 raise SystemExit(f'launched plan is not the reviewed {kind} plan')
             if kind == 'qualification':

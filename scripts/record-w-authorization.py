@@ -58,6 +58,18 @@ def qual_root_for(row):
     return W_ROOT / 'qualification' if wid == 'W1' else W_ROOT / 'qualification' / wid.lower()
 
 
+def qualification_counts(run_ids):
+    """Map each authorized run ID to whether it consumes a proposed attempt.
+
+    A W-matrix row is one of the 60 proposed experimental attempts. A
+    qualification row exists precisely so diagnostics and release checks do not
+    spend one. Resolved from the control files, never assumed.
+    """
+    matrix = json.loads((W_ROOT / 'run-matrix.json').read_text())
+    proposed = {r['run_id'] for r in matrix['experimental_runs']}
+    return {rid: rid in proposed for rid in run_ids}
+
+
 def bindings():
     """Every artefact whose change would invalidate the approval."""
     files = {
@@ -138,14 +150,20 @@ def main():
         print(f'{target}: receipt verified, {len(stored["authorized_run_ids"])} run ID(s), no drift')
         return 0
 
+    # Whether an authorized run consumes the proposed 60 depends on what it is,
+    # not on this script's convenience. A qualification is explicitly outside the
+    # 60; a proposed experimental attempt is one of them. Recording the wrong
+    # value would let a real attempt look like free qualification traffic.
+    attempts = qualification_counts(args.authorize)
     payload = {
-        'schema_version': 1,
+        'schema_version': 2,
         'receipt_id': args.receipt_id,
         'scope_label': args.scope,
         'recorded_by': 'agent',
         'owner_instruction_verbatim': args.instruction,
         'authorized_run_ids': sorted(set(args.authorize)),
-        'counts_toward_proposed_attempts': False,
+        'counts_toward_proposed_attempts': any(attempts.values()),
+        'attempt_kind': attempts,
         'bindings_sha256': bindings(),
         'authorized_plan_sha256': plan_bindings(args.authorize),
         'environment': {'hostname_platform': pyplatform.platform()},
