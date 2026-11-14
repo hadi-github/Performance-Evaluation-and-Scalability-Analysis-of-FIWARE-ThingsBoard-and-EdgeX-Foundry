@@ -11,7 +11,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck source=scripts/iotbench-env.sh
 source scripts/iotbench-env.sh
-HOST="${SSH_USER}@${LOAD_IP}" JUMP="" ALLOW=0
+# Address the host by its SSH alias, not its IP: the alias is what the generated
+# config keys on (`Host ramonavm1`), and that block carries the port. Passing the
+# IP directly silently bypassed it and connected to port 22 instead.
+HOST="${SSH_USER}@${LOAD_ALIAS}" JUMP="" ALLOW=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --jump) JUMP="$2"; shift 2 ;;
