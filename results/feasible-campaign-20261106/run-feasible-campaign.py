@@ -702,6 +702,13 @@ STAGED_SCRIPTS = [
     "scripts/generator-diagnostic-sampler.py",
     "scripts/sink.sh",
     "scripts/history-ids.sh",
+    # The staged scripts source the deployment loader, which imports the config
+    # module. Both must travel with them: `set -e` turns a missing source into an
+    # immediate failure, so shipping one without the other breaks every run at
+    # sink start. tests/launch_campaign_test.py::StagedSourceTest enforces that any
+    # file a staged script references is either staged or created by the run.
+    "scripts/iotbench-env.sh",
+    "scripts/iotbench_config.py",
 ]
 
 

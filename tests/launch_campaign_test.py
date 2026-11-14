@@ -276,6 +276,73 @@ class ShellLoaderTest(unittest.TestCase):
             self.assertEqual(p.stdout, '~/.ssh/some key|user@host:2222')
 
 
+class StagedSourceTest(unittest.TestCase):
+    """Everything a staged script runs must itself be staged.
+
+    `stage_reviewed_source` copies a fixed list to the load host and runs it under
+    `set -e`. A staged script that sources a file missing from that list dies on
+    the first run, after the stack has already been switched — the worst possible
+    moment. This test walks the staged scripts' own references instead of trusting
+    a list to stay complete.
+    """
+
+    STAGED = mod.STAGED_SCRIPTS
+
+    def test_staged_scripts_exist(self):
+        for rel in self.STAGED:
+            self.assertTrue((ROOT / rel).is_file(), f'staged file is missing: {rel}')
+
+    def test_no_staged_script_sources_an_unstaged_file(self):
+        import re
+        problems = []
+        for rel in self.STAGED:
+            path = ROOT / rel
+            if path.suffix not in ('.sh', '.bash'):
+                continue
+            for line in path.read_text().splitlines():
+                if 'source ' not in line or line.lstrip().startswith('#'):
+                    continue
+                # Only literal paths can be checked; a variable is resolved at
+                # runtime and is the caller's business.
+                for m in re.finditer(r'source\s+"([^"$]+)"|source\s+([^\s"$;]+)', line):
+                    target = m.group(1) or m.group(2)
+                    if not target or '$' in target:
+                        continue
+                    candidates = [(path.parent / target), (path.parent.parent / target),
+                                  (ROOT / target), (ROOT / 'scripts' / target)]
+                    resolved = next((c for c in candidates if c.is_file()), None)
+                    if resolved is None:
+                        continue  # deliberately optional (guarded by `|| true`)
+                    if not (resolved.resolve().is_relative_to(ROOT)):
+                        continue
+                    rel_target = str(resolved.resolve().relative_to(ROOT))
+                    if rel_target not in self.STAGED:
+                        problems.append(f'{rel} sources {rel_target}, which is not staged')
+        self.assertEqual(problems, [])
+
+    def test_python_staged_scripts_import_nothing_unstaged(self):
+        """A staged Python file may only import modules that are staged or stdlib."""
+        import ast
+        allowed = {pathlib.Path(r).stem for r in self.STAGED}
+        local = {p.stem for p in (ROOT / 'scripts').glob('*.py')}
+        problems = []
+        for rel in self.STAGED:
+            path = ROOT / rel
+            if path.suffix != '.py':
+                continue
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                names = []
+                if isinstance(node, ast.Import):
+                    names = [a.name.split('.')[0] for a in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    names = [node.module.split('.')[0]]
+                for name in names:
+                    if name in local and name not in allowed:
+                        problems.append(f'{rel} imports {name}, which is not staged')
+        self.assertEqual(problems, [])
+
+
 class EvidenceTests(unittest.TestCase):
     def test_tb_backend_gate_requires_both_exact_n2_backends(self):
         lines=[]
