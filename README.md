@@ -39,7 +39,9 @@ replicas through Docker DNS (`server-template`, up to 16 per tier) within ~5 s.
 
 ## Build and verify locally (no benchmark servers)
 
-The load generator and the monitoring stack run on **ramonavm1**, the platforms on **ramonavm2** (the SUT).
+The load generator and the monitoring stack run on **the load host**, the platforms on
+**the SUT** (the system under test). Both are named in `.env`; see
+[Fresh-host deployment](docs/operations/fresh-host-deployment.md).
 
 Requires the Go toolchain specified in `go.mod`, Python 3 and Node.js for offline
 adapter tests. Docker/Compose is needed for deployment; cloning is not permission
@@ -53,6 +55,26 @@ python3 -B -m unittest discover -s tests/offline -p 'test_*.py'
 node --test tests/offline/*.test.mjs
 bash scripts/check-preregistration.sh
 ```
+
+### Pointing it at a deployment
+
+Every host, address, port, key and path comes from one file, `.env`. It is
+git-ignored; `.env.example` documents every variable and its qualified default.
+
+```bash
+cp .env.example .env          # then set the two addresses and ports
+scripts/configure-from-env.sh --trust   # validates, writes the shared SSH config, trusts host keys
+```
+
+With no `.env` at all the tooling reproduces the qualified testbed exactly, so an
+unconfigured checkout cannot silently point a run somewhere new. Frozen campaign
+plans are never rewritten: if the configured address differs from a plan's
+`target`, the launcher writes a recorded target-only overlay that proves no
+workload field changed.
+
+`scripts/bootstrap-host.sh load` (or `sut`) installs the package baseline on a new
+host. It stops at packages on purpose — kernel, Docker version and sysctls are
+measurement inputs.
 
 Official execution uses the [frozen ordinary matrix](results/feasible-campaign-20261106/run-matrix.json)
 and reviewed launcher, with the [dispatch contract](docs/methodology/dispatch-contract-20261106.md),
