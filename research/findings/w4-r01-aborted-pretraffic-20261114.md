@@ -104,6 +104,26 @@ virtualisation control surface on the SUT (`virsh`/`qm`/`pvesh` all absent), so 
 cannot be started from here. With it down, no W4 workload can run — and the leaked
 lock cannot even be verified or released.
 
+### The host is unstable, not merely off
+
+At 11:47 UTC the host briefly returned: ICMP answered and tcp/22 accepted the
+connection. An SSH session then **authenticated successfully** with
+`id_ed25519_vps` and opened a channel — and produced no output for any command,
+including `/bin/echo`, and no output on the `sftp` subsystem. Within a few minutes
+it was fully down again (100 % ICMP loss, tcp/22 closed), and it has stayed down on
+every subsequent poll.
+
+That sequence rules out "the machine is simply switched off, someone will power it
+on": sshd came up far enough to complete key exchange, but the session never served
+a command. It is a **crash or boot loop**, and the benchmark cannot treat a host
+that authenticates and then dies as usable. Any launch attempted during such a
+window would die mid-setup and, per the SIGKILL defect above, leak the load lock
+again.
+
+The monitor in `/tmp/opencode/load-host-watch.log` records every transition; the
+launch is deferred until the host is continuously reachable rather than briefly
+pingable.
+
 ## What was preserved
 
 - Staging for the aborted attempt, hash-verified byte-identical before the
