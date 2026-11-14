@@ -10,10 +10,23 @@ import unittest
 from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location(
-    "run_feasible_campaign", ROOT / "results" / "feasible-campaign-20261106" / "run-feasible-campaign.py")
-mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mod)
+# Load the launcher against *no* `.env`. Without this, a developer who has run
+# `scripts/configure-from-env.sh` (or copied `.env.example`) silently changes
+# what these tests assert: `iotbench_config` caches the file at import time, so a
+# configured checkout and a bare clone exercised different code paths. Tests must
+# see the documented defaults deterministically.
+_saved_env_file = os.environ.get('IOTBENCH_ENV_FILE')
+os.environ['IOTBENCH_ENV_FILE'] = '/nonexistent'
+try:
+    spec = importlib.util.spec_from_file_location(
+        "run_feasible_campaign", ROOT / "results" / "feasible-campaign-20261106" / "run-feasible-campaign.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+finally:
+    if _saved_env_file is None:
+        os.environ.pop('IOTBENCH_ENV_FILE', None)
+    else:
+        os.environ['IOTBENCH_ENV_FILE'] = _saved_env_file
 
 
 def clean_env(**overrides):
@@ -469,7 +482,13 @@ class EvidenceTests(unittest.TestCase):
                     (dest / f"{rid}.dispatch-analysis.json").write_text("{}\n")
                 return mock.Mock(returncode=0, stderr="")
 
-            with mock.patch.object(mod.subprocess, "run", side_effect=fake_scp):
+            # fetch_evidence is being tested for file flattening, not transport.
+            # Pin the transport so the test does not depend on whether this
+            # checkout happens to have a generated SSH config: with only
+            # `.env.example` copied, `transport_options()` correctly refuses a
+            # configured-but-absent file and the assertion below would fail.
+            with mock.patch.object(mod, "transport_options", return_value=[]), \
+                 mock.patch.object(mod.subprocess, "run", side_effect=fake_scp):
                 errors = mod.fetch_evidence("disp-tb-r01-20261106", out)
             self.assertEqual(errors, [])
             self.assertTrue((out / "disp-tb-r01-20261106" / "records.ndjson").exists())
