@@ -16,6 +16,14 @@ case "${1:-}" in
   check)
     python3 scripts/render-prometheus.py --check
     docker run --rm -v "$PWD/monitoring:/etc/prometheus" --entrypoint promtool "$PROM_IMAGE" check config /etc/prometheus/prometheus.rendered.yml
+    # Say plainly that the stack is not running rather than leaking a curl error:
+    # this command is in the runbook's verification step, where "connection
+    # refused" reads as a fault instead of as "you have not started it yet".
+    if ! curl -fsS -m 5 127.0.0.1:9090/-/ready >/dev/null 2>&1; then
+      echo "Prometheus is not answering on 127.0.0.1:9090; the config is valid but the stack is down." >&2
+      echo "  start it with: scripts/monitoring.sh up" >&2
+      exit 3
+    fi
     curl -fsS 127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | [.labels.job, .health, (.lastError // "")] | @tsv' | column -t -s $'\t' ;;
   reload) curl -fsS -X POST 127.0.0.1:9090/-/reload && echo reloaded ;;
   down) (cd monitoring && docker compose down) ;;
