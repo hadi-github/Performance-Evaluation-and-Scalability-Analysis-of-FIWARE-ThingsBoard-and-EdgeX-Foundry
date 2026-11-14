@@ -456,16 +456,16 @@ def activate(platform, run_id, resolved=None):
         remote(SUT, compose("fiwhc", FW + "/fiware-history-candidate/compose.yaml", env,
                             "up -d --no-build --pull never timescale quantumleap"))
         # Existing history route is a distinct Orion subscription; never point this at Orion latest-state.
-        ql_sub = r'''python3 - <<'PY'
+        ql_sub = rf'''python3 - <<'PY'
 import json, subprocess, sys
 base='http://127.0.0.1:1026/v2/subscriptions'
 h=['-H','fiware-service: openiot','-H','fiware-servicepath: /']
 rows=json.loads(subprocess.check_output(['curl','-fsS',*h,base]))
 if not any(x.get('description') == 'bench quantumleap' for x in rows):
- body={'description':'bench quantumleap','subject':{'entities':[{'idPattern':'.*','type':'Sensor'}],
-       'condition':{'attrs':['seq']}},'notification':{'http':{'url':f"http://{SUT_IP}:8668/v2/notify"},
-       'attrs':['seq','run_id','scheduled_send_ms'],'attrsFormat':'normalized'}}
- p=subprocess.run(['curl','-fsS','-o','/dev/null','-w','%{http_code}','-X','POST',*h,
+ body={{'description':'bench quantumleap','subject':{{'entities':[{{'idPattern':'.*','type':'Sensor'}}],
+       'condition':{{'attrs':['seq']}}}},'notification':{{'http':{{'url':f"http://{SUT_IP}:8668/v2/notify"}},
+       'attrs':['seq','run_id','scheduled_send_ms'],'attrsFormat':'normalized'}}}}
+ p=subprocess.run(['curl','-fsS','-o','/dev/null','-w','%{{http_code}}','-X','POST',*h,
    '-H','Content-Type: application/json','--data-binary',json.dumps(body),base],text=True,capture_output=True,check=True)
  if p.stdout not in ('201','204'): raise SystemExit('unexpected Orion subscription status '+p.stdout)
 rows=json.loads(subprocess.check_output(['curl','-fsS',*h,base]))
@@ -474,16 +474,16 @@ assert len(matches)==1 and matches[0]['notification']['http']['url']==f"http://{
 route=f"http://{SUT_IP}:8668/v2/notify"
 changed=False
 for x in rows:
- if x.get('notification',{}).get('http',{}).get('url') != route: continue
+ if x.get('notification',{{}}).get('http',{{}}).get('url') != route: continue
  if x['id'] == matches[0]['id']: wanted='active'
  elif x.get('description') == 'bench QL': wanted='inactive'
  else: raise SystemExit('unrecognized duplicate history route; inspect before changing '+x['id'])
  if x.get('status') != wanted:
   changed=True
   subprocess.run(['curl','-fsS','-X','PATCH',*h,'-H','Content-Type: application/json',
-    '--data-binary',json.dumps({'status':wanted}),base+'/'+x['id']],check=True)
+    '--data-binary',json.dumps({{'status':wanted}}),base+'/'+x['id']],check=True)
 rows=json.loads(subprocess.check_output(['curl','-fsS',*h,base]))
-active=[x for x in rows if x.get('notification',{}).get('http',{}).get('url')==route and x.get('status')=='active']
+active=[x for x in rows if x.get('notification',{{}}).get('http',{{}}).get('url')==route and x.get('status')=='active']
 assert len(active)==1 and active[0]['id']==matches[0]['id'], 'exactly one active history route required'
 print(json.dumps(matches[0],sort_keys=True))
 if changed: print('HISTORY_ROUTE_CHANGED')
@@ -571,7 +571,10 @@ def verify_live(platform):
         return read_only_check(platform)
     if platform == "fiware":
         # Require both project services healthy and validate Orion/IoT Agent/QL endpoints and database.
-        body = (f"docker ps --format '{{.Names}} {{.Status}}' | grep -E '^(fiware-|fiwhc-)' ; "
+        # The docker format placeholders are doubled because this is an f-string: a
+        # single {.Names} would render literally and grep would match nothing, failing
+        # the whole check under pipefail.
+        body = (f"docker ps --format '{{{{.Names}}}} {{{{.Status}}}}' | grep -E '^(fiware-|fiwhc-)' ; "
                 "curl -fsS --max-time 5 http://127.0.0.1:1026/version; "
                  "curl -fsS --retry 12 --retry-delay 2 --retry-all-errors --max-time 5 http://127.0.0.1:8668/health; "
                 "python3 -c 'import json,subprocess; h=[\"-H\",\"fiware-service: openiot\",\"-H\",\"fiware-servicepath: /\"]; "

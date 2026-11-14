@@ -1,6 +1,6 @@
-# Finding: the frozen EdgeX inventory limit admits only 2 of W4's 5 EdgeX repetitions
+# Finding: the frozen EdgeX inventory limit admits only 1 of W4's 5 EdgeX repetitions
 
-**Status:** blocker for W4-EdgeX repetitions 3–5. No run was attempted; no ID was consumed.
+**Status:** blocker for W4-EdgeX repetitions 2–5. No matrix row was consumed.
 **Date:** 2026-11-14
 
 ## What was found
@@ -32,13 +32,41 @@ consumes its cohort.
 
 | Run | Retained | + cohort | Total | vs 16,384 |
 |---|---:|---:|---:|---|
-| `w4dp-ex-r01` | 14,192 | 1,000 | 15,192 | +1,192 — fits |
-| `w4dp-ex-r02` | 15,192 | 1,000 | 16,192 | +192 — fits |
+| `w4dp-ex-r01` | 15,192 | 1,000 | 16,192 | +192 — fits |
+| `w4dp-ex-r02` | 16,192 | 1,000 | 17,192 | **−808 — blocked** |
 | `w4dp-ex-r03` | 16,192 | 1,000 | 17,192 | **−808 — blocked** |
 | `w4dp-ex-r04` | 16,192 | 1,000 | 17,192 | **−808 — blocked** |
 | `w4dp-ex-r05` | 16,192 | 1,000 | 17,192 | **−808 — blocked** |
 
-**3 of 5 EdgeX repetitions cannot run under the frozen limit.**
+**4 of 5 EdgeX repetitions cannot run under the frozen limit.**
+
+### Why retained inventory is 15,192 and not 14,192
+
+An N=1 readiness preflight of the EdgeX activation path ran with the throwaway run
+ID `preflight-w4-ex`. EdgeX's readiness gate provisions a real device cohort as
+part of proving the driver accepts it, so the preflight permanently added 1,000
+devices (14,192 → 15,192).
+
+That preflight was not free, and the cost is recorded rather than hidden:
+
+- **Cost:** one EdgeX repetition. Before the preflight, two W4-EdgeX repetitions
+  fit (15,192 and 16,192); after it, only one does (16,192).
+- **What it bought:** it found two latent launcher bugs that would each have
+  destroyed a real attempt rather than a throwaway ID —
+  1. `ql_sub` in `activate('fiware')` was not an interpolated string, so the
+     FIWARE history subscription setup would fail with `NameError: SUT_IP`.
+  2. `verify_live('fiware')` had `{{.Names}}` inside an f-string, rendering a
+     literal `{.Names}`; `grep` then matched nothing and `pipefail` failed the
+     whole readiness check.
+  Both were introduced by the earlier IP single-sourcing refactor and had never
+  been exercised because no FIWARE run followed it.
+- **Deletion is impossible:** EdgeX rejects `DELETE /api/v3/device/id/..` with
+  `405 Method Not Allowed` on this deployment, so the preflight cohort cannot be
+  reclaimed. A 1,000-device exact-name cleanup was attempted and refused; nothing
+  was deleted and no campaign inventory was touched.
+
+No matrix row was consumed by this. `preflight-w4-ex` is not in the matrix or any
+qualification ledger, produced no `run-result.json`, and drove no traffic.
 
 ## Why the cohort cannot simply be reused
 
@@ -62,9 +90,9 @@ run (the protocol-cohort check fails) or rewriting the identity rule for W4 alon
 |---|---:|---|
 | ThingsBoard | 5 | none |
 | FIWARE | 5 | none |
-| EdgeX | 5 | **2 runnable, 3 blocked** |
+| EdgeX | 5 | **1 runnable, 4 blocked** |
 
-W4 as currently proposed is **12 of 15 attempts runnable**; 3 are blocked by a
+W4 as currently proposed is **11 of 15 attempts runnable**; 4 are blocked by a
 frozen capacity limit that this campaign may not change.
 
 ## Why this is not being worked around
@@ -94,19 +122,19 @@ Every available workaround changes something frozen or fabricates evidence:
 Choose one, and the choice is recorded as an owner amendment rather than a silent
 edit:
 
-1. **Run 12 of 15 W4 attempts now** (TB 5 + FIWARE 5 + EdgeX 2), and record
-   EdgeX reps 3–5 as `BLOCKED_INVENTORY_LIMIT` with this finding as the reason.
-   The matrix stays at 60 rows; the 3 blocked rows stay unconsumed and honest.
+1. **Run 11 of 15 W4 attempts now** (TB 5 + FIWARE 5 + EdgeX 1), and record
+   EdgeX reps 2–5 as `BLOCKED_INVENTORY_LIMIT` with this finding as the reason.
+   The matrix stays at 60 rows; the 4 blocked rows stay unconsumed and honest.
 2. **Defer all W4-EdgeX** until a discovery-limit decision is made, and run the
    10 TB+FIWARE attempts now.
 3. **Authorise a discovery-limit change** as a separately recorded amendment,
    accepting that it departs from the frozen configuration and must be
    re-qualified.
 
-Recommendation: **option 1**. It produces valid W4 evidence for 12 cells, keeps
+Recommendation: **option 1**. It produces valid W4 evidence for 11 cells, keeps
 every blocked cell visible instead of quietly dropping it, and does not touch a
 frozen control file or delete retained evidence. It is also reversible: if the
-limit is later raised, the three unconsumed IDs are still available.
+limit is later raised, the four unconsumed IDs are still available.
 
 ## Verification
 

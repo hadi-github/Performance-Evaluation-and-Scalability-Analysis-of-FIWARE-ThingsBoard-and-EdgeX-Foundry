@@ -40,7 +40,12 @@ STATE = REPO / 'results/workload-batch-20261108/w4-campaign-state.json'
 
 # A cell that the frozen discovery limit cannot admit. Recorded here as data so
 # the skip is explicit and reviewable, not a silent filter on a magic number.
+# Retained inventory is 15,192 after W3 EdgeX plus the N=1 readiness preflight
+# cohort; one further 1,000-device repetition reaches 16,192 and fits, the next
+# would reach 17,192 and exceed the unchanged 16,384 limit. See
+# research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md.
 INVENTORY_BLOCKED = {
+    'w4dp-ex-r02-20261108': 'retained 16,192 + cohort 1,000 exceeds the frozen 16,384 discovery limit',
     'w4dp-ex-r03-20261108': 'retained 16,192 + cohort 1,000 exceeds the frozen 16,384 discovery limit',
     'w4dp-ex-r04-20261108': 'retained 16,192 + cohort 1,000 exceeds the frozen 16,384 discovery limit',
     'w4dp-ex-r05-20261108': 'retained 16,192 + cohort 1,000 exceeds the frozen 16,384 discovery limit',
