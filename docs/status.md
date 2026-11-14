@@ -212,12 +212,13 @@ Reading this table:
   runs the pinned k6 image and completed a fixture pilot with `achieved_ratio=1` on every
   phase, so the generator path is verified independently of any SUT. See
   [`docs/operations/fresh-host-deployment.md`](operations/fresh-host-deployment.md).
-- **The replacement load host is Ubuntu 22.04, not the pre-registered 24.04.** 4 vCPU /
-  7.75 GiB matches the pre-registered size, cgroup v2 is unified, and Docker 29.1.3 with
-  Compose 2.40.3 runs the pinned generator image. The OS and CPU model differ from the
-  qualified host. That is a comparability statement, not an operational footnote: it must
-  be recorded as a deviation before any run whose evidence will be pooled with earlier
-  cells, and it is not yet resolved.
+- **The replacement load host runs Ubuntu 22.04, while the qualified load host ran
+  24.04.** The pre-registration pins the load host's *size* (4 cores / 8 GB), and
+  7.75 GiB / 4 vCPU matches. It does not name an OS version. The deviation is
+  therefore a comparability statement rather than a directive breach: the OS and
+  CPU model differ from the host the published cells were measured on. cgroup v2 is
+  unified and the pinned generator image runs, so the measurement machinery is
+  intact. Record it before pooling a new cell's evidence with earlier cells.
 
 The detailed per-run narratives, including every superseded intermediate
 qualification and the harness defects found along the way, are in the internal

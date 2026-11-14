@@ -306,7 +306,15 @@ every Docker start by `iot-bench-firewall.service`. Re-run `exporters-install` o
 new SUT; it is not covered by `deploy/`.
 
 A target being DOWN is expected for the two platforms that are not currently running.
-It is not expected for the running one.
+It is not expected for the running one. With no SUT at all, every SUT target is DOWN;
+`scripts/monitoring.sh check` distinguishes that case (it reports the stack is down and
+exits 3) from a running stack, so a bare refusal is not mistaken for a target fault.
+
+> **Record the host's OS and CPU model in the deployment notes.** The
+> pre-registration pins the load host's *size* (4 cores / 8 GB), not its OS
+> version or CPU model. Those still matter for comparability: publish the two
+> values you actually deployed on, so a reader comparing cells knows whether the
+> generator host changed underneath them.
 
 ## 7. Verify before you call it deployed
 
