@@ -258,6 +258,24 @@ class ShellLoaderTest(unittest.TestCase):
         self.assertEqual(p.stdout, '87.107.191.107|18091|http://87.107.191.32:18091|87.107.191.32')
 
 
+    def test_values_with_spaces_and_quotes_are_not_corrupted(self):
+        """A shell-quoted value must not keep its quote characters.
+
+        `: "${K:=v}"` kept them, so SSH_KEY arrived as `'~/.ssh/key'` with the
+        quotes included and every expanded path was wrong.
+        """
+        with tempfile.TemporaryDirectory() as d:
+            env = pathlib.Path(d) / '.env'
+            env.write_text("IOTBENCH_SSH_KEY=~/.ssh/some key\n"
+                           "IOTBENCH_JUMP=user@host:2222\n")
+            prog = (f'cd "{ROOT}"; source scripts/iotbench-env.sh; '
+                    'printf "%s|%s" "$SSH_KEY" "$JUMP"')
+            p = subprocess.run(['bash', '-c', prog], capture_output=True, text=True,
+                               env=clean_env(IOTBENCH_ENV_FILE=str(env)))
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertEqual(p.stdout, '~/.ssh/some key|user@host:2222')
+
+
 class EvidenceTests(unittest.TestCase):
     def test_tb_backend_gate_requires_both_exact_n2_backends(self):
         lines=[]
