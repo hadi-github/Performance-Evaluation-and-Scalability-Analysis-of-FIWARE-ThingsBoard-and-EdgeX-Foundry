@@ -54,4 +54,43 @@ class CampaignTest(unittest.TestCase):
         out=campaign.validate(self.root/'matrix.json',self.root/'scope.json',self.root,[{'run_id':'b0-r1','workload_id':'B0','platform':'thingsboard','repetition':1,'plan_sha256':hashlib.sha256(plan.read_bytes()).hexdigest(),'run_kind':'ordinary'}],bm,bscope)
         self.assertTrue(any(g['workload_id']=='B0' for g in out['groups']))
 
-if __name__=='__main__': unittest.main()
+
+
+class TreeBindingTests(unittest.TestCase):
+    """The launch gate must enforce every binding the receipt records.
+
+    Regression: the verifier hardcoded three names and silently ignored the rest,
+    including `b0_launcher` -- the process that actually runs the workload. A
+    changed B0 launcher could therefore run under a stale receipt.
+    """
+
+    def setUp(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            'rwc', Path(__file__).resolve().parents[1] / 'scripts' / 'run-workload-campaign.py')
+        self.mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.mod)
+
+    def test_b0_launcher_drift_is_caught(self):
+        receipt = {'bindings_sha256': {'b0_launcher': '0' * 64}}
+        with self.assertRaisesRegex(SystemExit, 'b0_launcher'):
+            self.mod.verify_tree_bindings(receipt, 'r')
+
+    def test_any_recorded_binding_is_enforced_not_just_a_subset(self):
+        receipt = {'bindings_sha256': {'pool_policy': 'f' * 64, 'aggregator': 'e' * 64}}
+        with self.assertRaisesRegex(SystemExit, 'aggregator.*pool_policy|pool_policy.*aggregator'):
+            self.mod.verify_tree_bindings(receipt, 'r')
+
+    def test_receipt_with_no_bindings_fails_closed(self):
+        with self.assertRaisesRegex(SystemExit, 'no tree bindings'):
+            self.mod.verify_tree_bindings({'bindings_sha256': {}}, 'r')
+
+    def test_matching_bindings_pass(self):
+        import hashlib
+        name, path = self.mod.BOUND_ARTEFACTS[0]
+        receipt = {'bindings_sha256': {name: hashlib.sha256(path.read_bytes()).hexdigest()}}
+        self.assertIs(self.mod.verify_tree_bindings(receipt, 'r'), receipt)
+
+
+if __name__ == '__main__':
+    unittest.main()

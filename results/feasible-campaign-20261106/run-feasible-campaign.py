@@ -141,6 +141,25 @@ def ssh(host, command, timeout=180, check=True):
     return p
 
 
+def remote_absent(host, path):
+    """True only if the host positively says the path does not exist.
+
+    ``test ! -e`` is a three-valued question, not a boolean. ssh exits 0 when the
+    path is absent, 1 when it is present, and **255 when the transport itself
+    failed** (DNS, refused connection, jump-host hiccup, killed connection). The
+    launcher must not collapse those: treating a transport failure as "evidence
+    exists" refuses a run that never started, and treating "present" as absent
+    would overwrite real evidence.
+    """
+    p = ssh(host, f"test ! -e {shlex.quote(path)}", check=False)
+    if p.returncode == 0:
+        return True
+    if p.returncode == 1:
+        return False
+    raise RuntimeError(f'could not determine whether {path} exists on {host} '
+                       f'(ssh exit {p.returncode}): {p.stderr.strip()[:200]}')
+
+
 def remote(host, body, timeout=180):
     return ssh(host, "bash -lc " + shlex.quote("set -euo pipefail; " + body), timeout=timeout)
 
@@ -852,13 +871,21 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
             raise SystemExit('plan differs from the frozen ordinary-cell plan')
     except FileNotFoundError:
         raise SystemExit(f'frozen plan missing: {frozen_plan}; run make-cell-plans.py')
+    # Ask the load host before creating any local state: a refusal here must not
+    # leave behind an empty evidence directory that then poisons a later retry.
+    if not remote_absent(LOAD, f"{REMOTE_RUNS}/{run_id}.capture-window.json"):
+        raise SystemExit(f"remote evidence already exists for {run_id}; never overwrite a run")
     out_dir = ensure_evidence_dir(run_id)
     owned_workload_check()
-    if ssh(LOAD, f"test ! -e {REMOTE_RUNS}/{run_id}.capture-window.json", check=False).returncode:
-        raise SystemExit(f"remote evidence already exists for {run_id}; never overwrite a run")
-    lock = ssh(LOAD, f"set -eu; test ! -e {REMOTE_LOCK}; mkdir {REMOTE_LOCK}", check=False)
-    if lock.returncode:
+    # Acquire exclusively. `mkdir` is the atomic test-and-set: exit 1 means the
+    # lock already exists, but 255 means the transport failed, and those are not
+    # the same fact. Refuse in both cases, but say which one happened.
+    if not remote_absent(LOAD, REMOTE_LOCK):
         raise SystemExit("load-host workload lock is present; inspect pending recovery before launching")
+    lock = ssh(LOAD, f"mkdir {shlex.quote(REMOTE_LOCK)}", check=False)
+    if lock.returncode:
+        raise SystemExit(f"could not acquire the load-host workload lock "
+                         f"(ssh exit {lock.returncode}): {lock.stderr.strip()[:200]}")
     lock_owned = True
     launch_attempted = False
     try:

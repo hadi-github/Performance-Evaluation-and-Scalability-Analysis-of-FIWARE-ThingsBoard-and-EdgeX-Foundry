@@ -35,6 +35,23 @@ W_EVIDENCE = REPO / 'results/workload-batch-20261108/evidence'
 PLATFORM_PREFIX = {'thingsboard': 'tb', 'fiware': 'fw', 'edgex': 'ex'}
 SUPPORTED = ('thingsboard', 'fiware', 'edgex')
 
+# Every artefact the authorization binds, resolved exactly as the recorder does.
+# The launch gate must check the *whole* set: an approval for one launcher is not
+# an approval for another, and the B0 launcher is the process that actually
+# executes the workload. Checking only a convenient subset would let a changed
+# launcher run under a stale receipt.
+BOUND_ARTEFACTS = (
+    ('scope', W_ROOT / 'scope.json'),
+    ('run_matrix', W_ROOT / 'run-matrix.json'),
+    ('launcher', REPO / 'scripts/run-workload-campaign.py'),
+    ('aggregator', REPO / 'scripts/aggregate-runs.py'),
+    ('qualification_stager', REPO / 'scripts/stage-w1-qualification.py'),
+    ('variant_stager', REPO / 'scripts/stage-fixed-point-variants.py'),
+    ('integrity', REPO / 'scripts/dispatch-integrity.py'),
+    ('pool_policy', REPO / 'scripts/pool_policy.py'),
+    ('b0_launcher', B0_MODULE),
+)
+
 
 def load_b0():
     spec = importlib.util.spec_from_file_location('b0launcher', B0_MODULE)
@@ -480,6 +497,32 @@ def cmd_resolve(b0, run_id):
     return validate_plan_shape(row, body, load_scope())
 
 
+def verify_tree_bindings(receipt, receipt_id):
+    """Fail closed if ANY bound artefact changed since authorization.
+
+    Compares against the receipt's own recorded keys, so the check is as wide as
+    the approval was, and a binding the recorder adds is enforced automatically
+    rather than being silently ignored.
+    """
+    import hashlib
+    bound = receipt.get('bindings_sha256', {})
+    if not bound:
+        raise SystemExit(f'receipt {receipt_id} records no tree bindings')
+    current = {name: hashlib.sha256(path.read_bytes()).hexdigest()
+               for name, path in BOUND_ARTEFACTS if path.is_file()}
+    missing = sorted(set(bound) - set(current) - {
+        k for k in bound if k.startswith('qualification_index_')})
+    if missing:
+        raise SystemExit('receipt binds artefacts this launcher cannot verify: '
+                         + ', '.join(missing))
+    drift = [name for name, digest in bound.items()
+             if name in current and current[name] != digest]
+    if drift:
+        raise SystemExit('receipt has drifted from the tree: ' + ', '.join(sorted(drift))
+                         + f'; obtain a new receipt than {receipt_id}')
+    return receipt
+
+
 def verify_receipt(receipt_id, run_id):
     """Fail closed unless a recorded receipt authorizes exactly this run ID.
 
@@ -501,14 +544,7 @@ def verify_receipt(receipt_id, run_id):
     if actual != expected:
         raise SystemExit(f'plan for {run_id} changed since authorization; obtain a new receipt')
     # Bind the executing tree too: an approval for one launcher is not an approval for another.
-    bound = receipt.get('bindings_sha256', {})
-    for name, rel in (('launcher', 'scripts/run-workload-campaign.py'),
-                      ('integrity', 'scripts/dispatch-integrity.py'),
-                      ('scope', 'workloads/campaigns/fixed-points-w1-w4/scope.json')):
-        current = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
-        if bound.get(name) != current:
-            raise SystemExit(f'{name} changed since authorization ({rel}); obtain a new receipt')
-    return receipt
+    return verify_tree_bindings(receipt, receipt_id)
 
 
 def cmd_switch(b0, receipt_id, execute=False, timeout=900):
@@ -541,14 +577,7 @@ def verify_receipt_for_switch(b0, receipt_id):
     if not path.is_file():
         raise SystemExit(f'authorization receipt not found: {path}')
     receipt = json.loads(path.read_text())
-    bound = receipt.get('bindings_sha256', {})
-    for name, rel in (('launcher', 'scripts/run-workload-campaign.py'),
-                      ('integrity', 'scripts/dispatch-integrity.py'),
-                      ('scope', 'workloads/campaigns/fixed-points-w1-w4/scope.json')):
-        current = hashlib.sha256((REPO / rel).read_bytes()).hexdigest()
-        if bound.get(name) != current:
-            raise SystemExit(f'{name} changed since authorization ({rel}); obtain a new receipt')
-    return receipt
+    return verify_tree_bindings(receipt, receipt_id)
 
 
 def cmd_launch(b0, platform, run_id, sol_review=None, execute=False, timeout=5400):

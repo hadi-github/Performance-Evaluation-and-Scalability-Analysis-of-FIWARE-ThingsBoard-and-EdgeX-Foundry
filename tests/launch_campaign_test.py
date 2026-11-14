@@ -350,5 +350,30 @@ class LaunchOrderingTests(unittest.TestCase):
             self.assertTrue(result['workload_lock_retained'])
 
 
+
+class RemoteAbsentTest(unittest.TestCase):
+    """`test ! -e` over ssh is three-valued; a transport failure is not "present".
+
+    Regression: a transient 255 (jump-host hiccup) was read as "remote evidence
+    already exists", which refused a run that had never started and, because the
+    local evidence dir had already been created, poisoned the retry as well.
+    """
+
+    def test_absent_path_is_true(self):
+        with mock.patch.object(mod, 'ssh', return_value=mock.Mock(returncode=0, stdout='', stderr='')):
+            self.assertTrue(mod.remote_absent('load', '/runs/x.capture-window.json'))
+
+    def test_present_path_is_false(self):
+        with mock.patch.object(mod, 'ssh', return_value=mock.Mock(returncode=1, stdout='', stderr='')):
+            self.assertFalse(mod.remote_absent('load', '/runs/x.capture-window.json'))
+
+    def test_transport_failure_raises_instead_of_claiming_presence(self):
+        with mock.patch.object(mod, 'ssh',
+                               return_value=mock.Mock(returncode=255, stdout='',
+                                                      stderr='No route to host')):
+            with self.assertRaisesRegex(RuntimeError, 'could not determine whether'):
+                mod.remote_absent('load', '/runs/x.capture-window.json')
+
+
 if __name__ == "__main__":
     unittest.main()
