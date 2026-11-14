@@ -7,7 +7,10 @@ plan=${1:?plan JSON required}; run_id=${2:?run id required}; results=${3:?result
 port=${SINK_PORT:-18091}
 benchctl=${BENCHCTL:-bin/benchctl}
 sink_bin=${SINK_BIN:-bin/sink}
-cpu_snapshot_command=${CPU_SNAPSHOT_COMMAND:-curl -fsS http://87.107.191.107:18085/snapshot}
+# Deployment addresses come from .env; see scripts/iotbench-env.sh.
+# shellcheck source=scripts/iotbench-env.sh
+source "$(dirname "$0")/iotbench-env.sh"
+cpu_snapshot_command=${CPU_SNAPSHOT_COMMAND:-curl -fsS http://${SUT_IP}:18085/snapshot}
 python=${PYTHON:-python3}
 mkdir -p "$results"
 run_dir="$results/$run_id"

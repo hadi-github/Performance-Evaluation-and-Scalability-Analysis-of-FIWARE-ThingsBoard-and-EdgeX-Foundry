@@ -18,7 +18,15 @@ import urllib.parse
 import urllib.request
 
 PROM = os.environ.get("PROM", "http://127.0.0.1:9090")
-SUT_NODE = os.environ.get("SUT_NODE", "87.107.191.107:9100")
+# Deployment address from .env (see scripts/iotbench_config.py); the literal is
+# the qualified fallback so this still works with no configuration at all.
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[2] / 'scripts'))
+try:
+    import iotbench_config as _cfg
+    _default_node = f"{_cfg.SUT_IP}:9100"
+except Exception:  # a standalone copy of this script still runs
+    _default_node = "87.107.191.107:9100"
+SUT_NODE = os.environ.get("SUT_NODE", _default_node)
 
 
 def load(p):

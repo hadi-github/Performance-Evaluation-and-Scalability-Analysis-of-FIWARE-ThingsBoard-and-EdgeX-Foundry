@@ -23,6 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pool_policy  # noqa: E402  (single source of truth for the VU pool)
+import iotbench_config as cfg  # noqa: E402  (deployment endpoints; see .env)
+from iotbench_plan_overlay import target_matches  # noqa: E402  (target-only rebase)
 
 REPO = Path(__file__).resolve().parents[1]
 W_ROOT = REPO / 'workloads/campaigns/fixed-points-w1-w4'
@@ -142,7 +144,7 @@ def validate_qualification_shape(row, resolved, scope):
     policy = pool_policy.policy_for_rate(rate)
     checks = {
         'adapter': resolved.get('adapter') == platform,
-        'target': resolved.get('target') == canonical.get('target'),
+        'target': target_matches(resolved.get('target'), canonical.get('target'), cfg.SUT_IP),
         'devices': resolved.get('devices') == variant['devices'],
         'rate_and_steps': steps == [('warmup', rate, shared['warmup_seconds'], pool),
                                     ('measurement', rate, shared['measurement_seconds'], pool)],

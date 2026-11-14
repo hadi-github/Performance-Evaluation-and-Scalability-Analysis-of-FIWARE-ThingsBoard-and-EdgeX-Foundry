@@ -3,6 +3,10 @@
 #   scripts/sink.sh start <out.ndjson> | scripts/sink.sh stop | scripts/sink.sh status
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Deployment addresses come from .env through scripts/iotbench-env.sh; the
+# fallbacks below keep the qualified values when it is absent.
+# shellcheck source=scripts/iotbench-env.sh
+source scripts/iotbench-env.sh
 SUT_IP="${SUT_IP:-87.107.191.107}" PORT="${SINK_PORT:-18090}" CORE="${SINK_CPU:-2}"
 SINK_BIN="${SINK_BIN:-bin/sink}"
 PID_FILE="${SINK_PID_FILE:-/run/iot-bench-sink-${PORT}.pid}"

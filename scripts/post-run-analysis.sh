@@ -40,7 +40,10 @@ esac
 [[ "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$ ]] || { echo "unsafe run id" >&2; exit 2; }
 
 python=${PYTHON:-python3}
-sut=${SUT:-87.107.191.107}
+# Deployment addresses come from .env; see scripts/iotbench-env.sh.
+# shellcheck source=scripts/iotbench-env.sh
+source "$(dirname "$0")/iotbench-env.sh"
+sut=${SUT:-${SUT_IP:-87.107.191.107}}
 run_dir="$results/$run_id"
 window="$results/$run_id.capture-window.json"
 sink="$results/$run_id.sink.ndjson"

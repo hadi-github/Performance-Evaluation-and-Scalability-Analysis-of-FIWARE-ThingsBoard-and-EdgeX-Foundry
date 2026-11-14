@@ -1,4 +1,7 @@
+# local deployment configuration: `.env` is the one file a deployment edits,
+# `.iotbench-ssh-config` is generated from it by scripts/configure-from-env.sh
 .env
+.iotbench-ssh-config
 deploy/*/.env
 
 # raw results stay out of git; amendment files next to runs are versioned (never edit raw results or manifests)
@@ -47,3 +50,6 @@ __pycache__/
 
 # raw campaign evidence belongs on a separate evidence branch
 /results/feasible-campaign-20261106/evidence/
+
+# rendered from monitoring/prometheus.yml for this deployment
+monitoring/prometheus.rendered.yml

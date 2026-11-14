@@ -7,7 +7,14 @@
 # node-exporter uses the host network (INPUT chain); the other exporters and HAProxy's stats/metrics port 8404 are
 # Docker-published, and Docker's DNAT bypasses INPUT, so those go into DOCKER-USER, matched on the original port.
 set -euo pipefail
-ALLOW="${ALLOW_FROM:-87.107.191.32}"
+# The allowed source is the load host. Read it from the deployment configuration
+# so a new network does not silently leave the exporters firewalled off.
+_here="$(cd "$(dirname "$0")" && pwd)"
+if [[ -z "${ALLOW_FROM:-}" && -f "$_here/../../.env" ]]; then
+  # shellcheck source=../iotbench-env.sh
+  source "$_here/../iotbench-env.sh" 2>/dev/null || true
+fi
+ALLOW="${ALLOW_FROM:-${LOAD_IP:-87.107.191.32}}"
 HOST_PORTS="9100"
 DOCKER_PORTS="8089 9187 9216 9308 7777 8404"
 TAG="iot-bench-monitoring"

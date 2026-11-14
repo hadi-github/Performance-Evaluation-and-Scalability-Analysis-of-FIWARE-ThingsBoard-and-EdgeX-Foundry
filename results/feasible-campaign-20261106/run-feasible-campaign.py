@@ -31,22 +31,38 @@ SCOPE = json.loads((HERE / "frozen-scope.json").read_text())
 # IOTBENCH_TB_COMPOSE            absolute path to the ThingsBoard compose file
 # IOTBENCH_FW_DIR                FIWARE deployment root (contains edgex/)
 # IOTBENCH_REMOTE_RESULTS        generator results root on the load host
-SUT = os.environ.get("IOTBENCH_SUT", "ramonavm2")
-LOAD = os.environ.get("IOTBENCH_LOAD", "ramonavm1")
-TB = os.environ.get("IOTBENCH_TB_COMPOSE",
-                    "/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml")
-FW = os.environ.get("IOTBENCH_FW_DIR", "/root/iot-bench-deploy-cand-auto20261027")
-EDGEX = FW + "/edgex"
-REMOTE_RESULTS = os.environ.get(
-    "IOTBENCH_REMOTE_RESULTS",
-    "/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106")
+#
+# All of the above come from `scripts/iotbench_config.py`, which reads `.env`.
+# That module is the single place a deployment is configured: editing `.env`
+# moves the hosts, addresses, ports and paths, and every default reproduces the
+# qualified testbed exactly when nothing is set. Importing it here (rather than
+# reading os.environ again) means this launcher cannot disagree with the tools.
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts'))
+import iotbench_config as _cfg  # noqa: E402
+import iotbench_plan_overlay as _overlay  # noqa: E402
+
+SUT = _cfg.SUT
+LOAD = _cfg.LOAD
+TB = _cfg.TB_COMPOSE
+FW = _cfg.FW_DIR
+EDGEX = _cfg.EDGEX_DIR
+REMOTE_RESULTS = _cfg.REMOTE_RESULTS
 REMOTE_SOURCE = REMOTE_RESULTS + "/source"
 REMOTE_RUNS = REMOTE_RESULTS + "/runs"
 # Address literals are used inside generated FIWARE subscriptions and EdgeX
 # sink wiring, so they must be single-sourced. Defaults are the qualified hosts.
-SUT_IP = os.environ.get("IOTBENCH_SUT_IP", "87.107.191.107")
-LOAD_IP = os.environ.get("IOTBENCH_LOAD_IP", "87.107.191.32")
-SINK_URL_BASE = f"http://{LOAD_IP}:18091"
+SUT_IP = _cfg.SUT_IP
+LOAD_IP = _cfg.LOAD_IP
+SINK_URL_BASE = f"http://{LOAD_IP}:{_cfg.SINK_PORT}"
+
+# When the deployment host is not the one the frozen plans were generated
+# against, the plan's `target` block is re-pointed at the configured address and
+# the overlay is recorded beside the run. The workload is untouched; see
+# scripts/iotbench_plan_overlay.py for the proof and scripts/rebase-plan.py for
+# the offline command. When the address already matches, no overlay is written
+# and the launched bytes are the frozen bytes.
+PLAN_OVERLAY = _overlay
 
 # Replica count of each replicated application service. B0 and W1-W3 run N=2; W4
 # runs N=1 *on the same two-core pool 4-5*, so replica count is a deployment
@@ -118,13 +134,19 @@ def frozen_plan_path(platform, run_id):
 
 
 def transport_options():
-    """One explicit, private configuration shared by SSH and every SCP path."""
-    config = os.environ.get('IOT_BENCH_SSH_CONFIG')
+    """One explicit, private configuration shared by SSH and every SCP path.
+
+    `IOT_BENCH_SSH_CONFIG` is the explicit override used by the campaign driver.
+    When it is unset, the generated config named by `.env` is used, so a
+    deployment configured once works for every script without exporting
+    anything.
+    """
+    config = os.environ.get('IOT_BENCH_SSH_CONFIG') or _cfg.SSH_CONFIG
     if not config:
         return []
     path = Path(config).resolve()
     if not path.is_file():
-        raise RuntimeError('IOT_BENCH_SSH_CONFIG is not a file')
+        raise RuntimeError(f'IOT_BENCH_SSH_CONFIG is not a file: {path}')
     return ['-F', str(path), '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
             '-o', 'ConnectTimeout=10', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3']
 
@@ -730,17 +752,50 @@ def stage_reviewed_source(run_id, plan_path, out_dir):
     return manifest
 
 
+def plan_matches_frozen(plan, frozen_plan, host=None):
+    """True when `plan` is the frozen plan, optionally re-pointed at `host`.
+
+    The only permitted difference is the `target` host. Everything else — device
+    count, rate, seed, payload, schedule — must be identical, and the ports and
+    paths inside `target` must be the frozen ones. This is what lets a moved
+    testbed launch the same experiment without pretending the plan was reissued.
+
+    `host` defaults to the configured deployment address, which is the value the
+    launch path validated against; tests pass it explicitly.
+    """
+    if plan == frozen_plan:
+        return True
+    host = host or SUT_IP
+    return (PLAN_OVERLAY.workload_differences(frozen_plan, plan) == []
+            and PLAN_OVERLAY.target_matches(plan.get('target'),
+                                            frozen_plan.get('target'), host))
+
+
+def plan_is_frozen_or_overlay(plan_path, frozen_path, host=None):
+    """File-level form of `plan_matches_frozen`, for path identity checks."""
+    try:
+        return plan_matches_frozen(json.loads(Path(plan_path).read_text()),
+                                   json.loads(Path(frozen_path).read_text()), host)
+    except (OSError, ValueError):
+        return False
+
+
 def validate_cell_plan(platform, run_id, plan_path, resolved):
     if run_id in qualification_run_ids(platform):
         expected = json.loads(frozen_plan_path(platform, run_id).read_text())
         plan = json.loads(Path(plan_path).read_text())
-        if plan != expected:
+        if not plan_matches_frozen(plan, expected):
             raise SystemExit('qualification plan differs from the frozen bounded check')
-        for field in ('seed','payload','vus','target','request_timeout_ms','connection','arrivals','health','protocol_pilot_parameters'):
+        for field in ('seed','payload','vus','request_timeout_ms','connection','arrivals','health','protocol_pilot_parameters'):
             want,got = expected.get(field),resolved.get(field)
             matches = all(isinstance(got,dict) and got.get(k)==v for k,v in want.items()) if isinstance(want,dict) else got==want
             if not matches:
                 raise SystemExit('resolved qualification differs from frozen '+field)
+        # `target` is deployment, not treatment: it may name a different host when
+        # the testbed moved, but the ports and paths must be the qualified ones.
+        if not PLAN_OVERLAY.target_matches(resolved.get('target'), expected.get('target'), SUT_IP):
+            raise SystemExit('resolved qualification target differs from frozen target '
+                             'beyond the deployment host')
         if (resolved.get('protocol_pilot_parameters') or {}).get('drain_cutoff_unix_ms') is not None or resolved.get('test_faults'):
             raise SystemExit('resolved qualification has absolute cutoff or injected faults')
         steps = [(s.get('phase'), s.get('rate'), s.get('duration_s'), s.get('vus'))
@@ -764,13 +819,13 @@ def validate_cell_plan(platform, run_id, plan_path, resolved):
     if m.group(1) != PLATFORM_PREFIX[platform]:
         raise SystemExit(f"run id prefix does not match platform {platform}")
     if supplemental and (supplemental.get('platform') != platform or
-                         Path(plan_path).resolve() != frozen_plan_path(platform, run_id).resolve()):
+                         not plan_is_frozen_or_overlay(plan_path, frozen_plan_path(platform, run_id))):
         raise SystemExit('supplemental cell is not bound to its reviewed platform/plan')
     rep = int(m.group(2))
     cell = next(c for c in SCOPE["ordinary_cells"] if c["platform"] == platform)
     plan = json.loads(Path(plan_path).read_text())
     frozen_plan = json.loads((HERE / 'plans' / (run_id + '.json')).read_text())
-    if plan != frozen_plan:
+    if not plan_matches_frozen(plan, frozen_plan):
         raise SystemExit('plan differs from the generated frozen ordinary-cell plan')
     expected_steps = [(cell["rate_per_second"], cell["warmup_seconds"], 150),
                       (cell["rate_per_second"], cell["measurement_seconds"], 150)]
@@ -858,6 +913,29 @@ def cleanup_run(run_id, out_dir, acquire_lock):
     return False
 
 
+def plan_for_launch(platform, run_id, frozen_plan, plan_path, out_dir):
+    """Return the plan bytes to stage, plus a record of any address overlay.
+
+    The frozen plans name the SUT inside `target`. When the deployment runs on a
+    different address, the plan is overlaid at launch time: `target` alone is
+    re-pointed, and the overlay is written into the evidence directory so the
+    substitution is visible rather than implied. When the address already
+    matches, the frozen bytes are staged unchanged and no record is written.
+
+    The overlay is derived from the *frozen* plan, never from the caller's
+    `plan_path`, so a tampered plan cannot launder itself through an overlay.
+    """
+    frozen = json.loads(Path(frozen_plan).read_text())
+    if not PLAN_OVERLAY.needs_overlay(frozen, SUT_IP):
+        return plan_path, None
+    out = Path(out_dir) / 'plan.overlay.json'
+    record = PLAN_OVERLAY.overlay_plan(Path(frozen_plan), out, SUT_IP)
+    (Path(out_dir) / 'plan-overlay.json').write_text(json.dumps(record, indent=2) + '\n')
+    print(f"plan target re-pointed at {SUT_IP} (from {', '.join(record['from_hosts'])}); "
+          f"workload unchanged, overlay recorded in plan-overlay.json")
+    return out, record
+
+
 def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False):
     if resume_setup:
         raise SystemExit('pretraffic resume is disabled: use a separately reviewed fresh attempt')
@@ -876,6 +954,7 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
     if not remote_absent(LOAD, f"{REMOTE_RUNS}/{run_id}.capture-window.json"):
         raise SystemExit(f"remote evidence already exists for {run_id}; never overwrite a run")
     out_dir = ensure_evidence_dir(run_id)
+    launch_plan, overlay = plan_for_launch(platform, run_id, frozen_plan, plan_path, out_dir)
     owned_workload_check()
     # Acquire exclusively. `mkdir` is the atomic test-and-set: exit 1 means the
     # lock already exists, but 255 means the transport failed, and those are not
@@ -889,7 +968,7 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
     lock_owned = True
     launch_attempted = False
     try:
-        manifest = stage_reviewed_source(run_id, plan_path, out_dir)
+        manifest = stage_reviewed_source(run_id, launch_plan, out_dir)
         (out_dir / "staged-source.json").write_text(json.dumps(manifest, indent=2) + "\n")
         remote(LOAD, f"cd {REMOTE_SOURCE}; bin/benchctl resolve -plan plan.json -run-id {shlex.quote(run_id)} > resolved.json")
         resolved = json.loads(ssh(LOAD, f"cat {REMOTE_SOURCE}/resolved.json").stdout)

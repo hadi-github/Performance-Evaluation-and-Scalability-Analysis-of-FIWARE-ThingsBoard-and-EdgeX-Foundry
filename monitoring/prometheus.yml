@@ -68,12 +68,12 @@ scrape_configs:
   # ---- SUT host and containers (ramonavm2)
   - job_name: node
     static_configs:
-      - targets: ['87.107.191.107:9100']
+      - targets: ['${SUT_IP}:9100']
         labels: { host: ramonavm2, role: sut }
 
   - job_name: cadvisor
     static_configs:
-      - targets: ['87.107.191.107:8089']
+      - targets: ['${SUT_IP}:8089']
         labels: { host: ramonavm2, role: sut }
     metric_relabel_configs:
       # benchmark stacks and the exporters only (cAdvisor runs with --docker_only, so no parent cgroups appear:
@@ -117,23 +117,23 @@ scrape_configs:
   # ---- SUT: the load balancer (HAProxy native exporter), per backend and per replica (server)
   - job_name: haproxy
     static_configs:
-      - targets: ['87.107.191.107:8404']
+      - targets: ['${SUT_IP}:8404']
         labels: { host: ramonavm2, role: sut }
 
   # ---- SUT: stateful tier (one platform at a time; both ThingsBoard and EdgeX publish postgres-exporter on 9187)
   - job_name: postgres
     static_configs:
-      - targets: ['87.107.191.107:9187']
+      - targets: ['${SUT_IP}:9187']
         labels: { host: ramonavm2, role: sut }
   - job_name: kafka
     static_configs:
-      - targets: ['87.107.191.107:9308']
+      - targets: ['${SUT_IP}:9308']
         labels: { host: ramonavm2, role: sut, platform: thingsboard }
   - job_name: mongodb
     static_configs:
-      - targets: ['87.107.191.107:9216']
+      - targets: ['${SUT_IP}:9216']
         labels: { host: ramonavm2, role: sut, platform: fiware }
   - job_name: nats
     static_configs:
-      - targets: ['87.107.191.107:7777']
+      - targets: ['${SUT_IP}:7777']
         labels: { host: ramonavm2, role: sut, platform: edgex }

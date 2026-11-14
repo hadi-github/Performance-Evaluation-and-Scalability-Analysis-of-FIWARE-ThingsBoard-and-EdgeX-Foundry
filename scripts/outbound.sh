@@ -10,8 +10,11 @@
 #                                     (deploy/edgex/compose.yaml profile "export") carries the sink URL
 # Env: SUT (default 87.107.191.107), SINK_URL (default http://87.107.191.32:18090), TB_USER/TB_PASS.
 set -euo pipefail
-SUT="${SUT:-87.107.191.107}"
-SINK="${SINK_URL:-http://87.107.191.32:18090}"
+# Deployment addresses come from .env; see scripts/iotbench-env.sh.
+# shellcheck source=scripts/iotbench-env.sh
+source "$(dirname "$0")/iotbench-env.sh"
+SUT="${SUT:-${SUT_IP:-87.107.191.107}}"
+SINK="${SINK_URL:-${SINK_URL_BASE:-http://87.107.191.32:18090}}"
 
 case "${1:-}" in
   thingsboard|thingsboard-remove)

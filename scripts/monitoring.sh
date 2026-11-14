@@ -8,9 +8,14 @@ PROM_IMAGE="${PROM_IMAGE:-docker.arvancloud.ir/prom/prometheus:v3.13.4}"
 case "${1:-}" in
   up)
     [[ -f monitoring/.env ]] || { echo "monitoring/.env missing: cp monitoring/.env.example monitoring/.env, set GF_ADMIN_PASSWORD" >&2; exit 2; }
+    # Render the scrape config for this deployment before Prometheus reads it.
+    # Prometheus does not expand env vars in scrape_configs, so a template left
+    # unrendered would silently scrape the literal string "${SUT_IP}".
+    python3 scripts/render-prometheus.py
     (cd monitoring && docker compose up -d) ;;
   check)
-    docker run --rm -v "$PWD/monitoring:/etc/prometheus" --entrypoint promtool "$PROM_IMAGE" check config /etc/prometheus/prometheus.yml
+    python3 scripts/render-prometheus.py --check
+    docker run --rm -v "$PWD/monitoring:/etc/prometheus" --entrypoint promtool "$PROM_IMAGE" check config /etc/prometheus/prometheus.rendered.yml
     curl -fsS 127.0.0.1:9090/api/v1/targets | jq -r '.data.activeTargets[] | [.labels.job, .health, (.lastError // "")] | @tsv' | column -t -s $'\t' ;;
   reload) curl -fsS -X POST 127.0.0.1:9090/-/reload && echo reloaded ;;
   down) (cd monitoring && docker compose down) ;;

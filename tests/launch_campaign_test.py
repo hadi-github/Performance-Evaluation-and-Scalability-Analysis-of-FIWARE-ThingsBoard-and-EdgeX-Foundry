@@ -129,6 +129,77 @@ class ValidateCellPlanTests(unittest.TestCase):
                 mod.validate_cell_plan('thingsboard', rid, altered, resolved_for(run_id=rid))
 
 
+class HostRelocationTests(unittest.TestCase):
+    """A moved testbed runs the same experiment; a moved port does not.
+
+    The frozen plans name the SUT inside `target`. Moving the testbed to a new
+    address must not change what is measured, and it must not be possible to
+    smuggle a workload change in through the address rewrite.
+    """
+
+    PLAN = ROOT / 'workloads/campaigns/fixed-points-w1-w4/plans/w4dp-fw-r01-20261108.json'
+
+    def test_same_host_needs_no_overlay(self):
+        plan = json.loads(self.PLAN.read_text())
+        self.assertFalse(mod.PLAN_OVERLAY.needs_overlay(plan, '87.107.191.107'))
+
+    def test_different_host_needs_an_overlay(self):
+        plan = json.loads(self.PLAN.read_text())
+        self.assertTrue(mod.PLAN_OVERLAY.needs_overlay(plan, '10.20.30.40'))
+
+    def test_overlay_keeps_ports_and_paths(self):
+        plan = json.loads(self.PLAN.read_text())
+        moved = mod.PLAN_OVERLAY.rewrite_target(plan, '10.20.30.40')
+        self.assertEqual(moved['target'], {
+            'base_url': 'http://10.20.30.40:1026',
+            'north_url': 'http://10.20.30.40:4041',
+            'south_url': 'http://10.20.30.40:7896'})
+
+    def test_relocated_plan_is_accepted(self):
+        """A target-only overlay is the same experiment, so validation passes."""
+        plan = json.loads(self.PLAN.read_text())
+        moved = mod.PLAN_OVERLAY.rewrite_target(plan, '10.20.30.40')
+        self.assertTrue(mod.plan_matches_frozen(moved, plan, '10.20.30.40'))
+
+    def test_moved_port_is_rejected(self):
+        """Only the host is deployment; the port is part of the qualified shape."""
+        plan = json.loads(self.PLAN.read_text())
+        moved = mod.PLAN_OVERLAY.rewrite_target(plan, '10.20.30.40')
+        moved['target']['base_url'] = 'http://10.20.30.40:9999'
+        self.assertFalse(mod.plan_matches_frozen(moved, plan, '10.20.30.40'))
+
+    def test_workload_change_is_rejected(self):
+        plan = json.loads(self.PLAN.read_text())
+        moved = mod.PLAN_OVERLAY.rewrite_target(plan, '10.20.30.40')
+        moved['devices'] = 2000
+        self.assertFalse(mod.plan_matches_frozen(moved, plan, '10.20.30.40'))
+
+    def test_overlay_refuses_to_write_a_workload_change(self):
+        plan = json.loads(self.PLAN.read_text())
+        with tempfile.TemporaryDirectory() as d:
+            frozen = pathlib.Path(d) / 'frozen.json'
+            frozen.write_text(json.dumps(plan))
+            # Force a rewrite that would touch something outside target.
+            original = mod.PLAN_OVERLAY.rewrite_target
+            mod.PLAN_OVERLAY.rewrite_target = lambda p, h: dict(original(p, h), devices=9999)
+            try:
+                with self.assertRaises(SystemExit):
+                    mod.PLAN_OVERLAY.overlay_plan(frozen, pathlib.Path(d) / 'out.json', '10.0.0.1')
+            finally:
+                mod.PLAN_OVERLAY.rewrite_target = original
+            self.assertFalse((pathlib.Path(d) / 'out.json').exists())
+
+    def test_overlay_record_names_both_hashes_and_hosts(self):
+        with tempfile.TemporaryDirectory() as d:
+            record = mod.PLAN_OVERLAY.overlay_plan(self.PLAN, pathlib.Path(d) / 'out.json',
+                                                   '10.20.30.40')
+            self.assertEqual(record['from_hosts'], ['87.107.191.107'])
+            self.assertEqual(record['to_host'], '10.20.30.40')
+            self.assertEqual(record['workload_differences'], [])
+            self.assertNotEqual(record['frozen_sha256'], record['overlay_sha256'])
+            self.assertTrue(all(p.startswith('target') for p in record['changed_paths']))
+
+
 class EvidenceTests(unittest.TestCase):
     def test_tb_backend_gate_requires_both_exact_n2_backends(self):
         lines=[]

@@ -7,6 +7,9 @@ if [[ "${GENERATOR_DIAGNOSTIC_TIMEOUT_WRAPPED:-0}" != 1 ]]; then
   exec timeout --signal=TERM --kill-after=180s 3600s "$0" "$@"
 fi
 cd "$(dirname "$0")/.."
+# Deployment addresses come from .env; see scripts/iotbench-env.sh.
+# shellcheck source=scripts/iotbench-env.sh
+source scripts/iotbench-env.sh
 plan=${1:?plan JSON required}; run_id=${2:?run id required}; results=${3:?results directory required}
 [[ "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]] || { echo 'run_id must be a safe artifact/container identifier' >&2; exit 2; }
 python=${PYTHON:-python3}
@@ -42,9 +45,9 @@ command -v bash >/dev/null || { echo 'bash is required' >&2; exit 2; }
 bash -n scripts/run-protocol-capture.sh
 bash -n scripts/run-generator-diagnostic.sh
 "$benchctl" resolve -plan "$plan" > "$resolved_preflight"
-inventory_url=${SUT_INVENTORY_URL:-http://87.107.191.107:18085/inventory}
+inventory_url=${SUT_INVENTORY_URL:-http://${SUT_IP}:18085/inventory}
 curl -fsS --max-time 10 "$inventory_url" > "$inventory_preflight"
-curl -fsS --max-time 10 "${HAPROXY_METRICS_URL:-http://87.107.191.107:8404/metrics}" > "$haproxy_preflight"
+curl -fsS --max-time 10 "${HAPROXY_METRICS_URL:-http://${SUT_IP}:8404/metrics}" > "$haproxy_preflight"
 "$python" - "$inventory_preflight" "${SUT_PROJECT:-tbq20261105}" "${EXPECTED_SUT_CPUSET:-4-5}" <<'PY'
 import json,sys
 rows=json.load(open(sys.argv[1])); project,cpuset=sys.argv[2:]

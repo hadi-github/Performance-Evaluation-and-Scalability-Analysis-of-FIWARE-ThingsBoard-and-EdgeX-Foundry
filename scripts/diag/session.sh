@@ -5,9 +5,13 @@
 #   scripts/diag/session.sh <function> [args]     e.g. scripts/diag/session.sh fiware_all
 set -euo pipefail
 KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_vps}"
-J=(-o BatchMode=yes -o ConnectTimeout=40 -o ServerAliveInterval=15 -o IdentitiesOnly=yes -i "$KEY" -J root@ramonavm2)
-v1() { ssh "${J[@]}" root@87.107.191.32 "$@"; }
-v2() { ssh -o BatchMode=yes -o ServerAliveInterval=15 root@ramonavm2 "$@"; }
+# Deployment addresses come from .env; see scripts/iotbench-env.sh.
+_iotbench_root="$(cd "$(dirname "$0")/../.." && pwd)"
+if [[ -f "$_iotbench_root/.env" ]]; then source "$_iotbench_root/scripts/iotbench-env.sh"; fi
+SUT_ALIAS="${SUT_ALIAS:-ramonavm2}"
+J=(-o BatchMode=yes -o ConnectTimeout=40 -o ServerAliveInterval=15 -o IdentitiesOnly=yes -i "$KEY" -J "${SSH_USER:-root}@${SUT_ALIAS}")
+v1() { ssh "${J[@]}" "${SSH_USER:-root}@${LOAD_IP:-87.107.191.32}" "$@"; }
+v2() { ssh -o BatchMode=yes -o ServerAliveInterval=15 "${SSH_USER:-root}@${SUT_ALIAS}" "$@"; }
 R=/root/iot-bench-deploy
 log() { printf '[%s] %s\n' "$(date -u +%T)" "$*"; }
 

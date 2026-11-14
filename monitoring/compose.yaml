@@ -29,7 +29,10 @@ services:
       - --enable-feature=promql-delayed-name-removal
     network_mode: host
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # The rendered file, not the template: Prometheus does not expand
+      # environment variables in scrape_configs. `scripts/monitoring.sh up`
+      # renders it from prometheus.yml for the configured SUT address.
+      - ./prometheus.rendered.yml:/etc/prometheus/prometheus.yml:ro
       - ./rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
 
