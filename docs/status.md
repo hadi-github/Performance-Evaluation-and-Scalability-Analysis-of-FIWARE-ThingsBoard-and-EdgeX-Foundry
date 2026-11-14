@@ -6,7 +6,7 @@ The owner has changed the future primary latency endpoint to **application dispa
 
 The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. After the controller paused at TB repetition 2, independent review accepted its valid platform failure and cleared a **new persistent controller at original entry 7, EdgeX repetition 3**. Older gates/authorization text below remain dated historical context, not an override of this narrowed release.
 
-**Last reconciled: 2026-11-12** (W1–W4 qualification state); actual recorded UTC timestamps govern run timing.
+**Last reconciled: 2026-11-14** (W1–W4 qualification state and the W4 infrastructure block); actual recorded UTC timestamps govern run timing.
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
 preserved verbatim — and may contradict each other — under [`research/archive/sessions/`](../research/archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
@@ -196,6 +196,13 @@ Reading this table:
   one further 1,000-device cohort reaches 16,192 and fits, the next would reach
   17,192. EdgeX also refuses `DELETE`, so the inventory cannot be reclaimed. See
   [`research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md`](../research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md).
+- **The W4 launch is blocked on infrastructure, not on the benchmark.** The first
+  attempt (`w4dp-tb-r01-20261108`) was aborted twice **before any traffic** and then
+  the load generator host went offline. No matrix row was consumed: an attempt counts
+  only once it opens a traffic window, and none did. Two harness defects found in the
+  process are fixed (a transport failure was read as "evidence already exists"; the
+  launch gate verified 3 of the 13 receipt bindings, ignoring `b0_launcher`). See
+  [`research/findings/w4-r01-aborted-pretraffic-20261114.md`](../research/findings/w4-r01-aborted-pretraffic-20261114.md).
 
 The detailed per-run narratives, including every superseded intermediate
 qualification and the harness defects found along the way, are in the internal
