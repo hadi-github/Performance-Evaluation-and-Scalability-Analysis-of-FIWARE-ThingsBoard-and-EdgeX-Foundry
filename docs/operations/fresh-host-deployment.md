@@ -265,10 +265,15 @@ must be reachable from the SUT, and it must be configured through the platform's
 delivery mechanism — not by reading the platform's database.
 
 ```sh
-SUT=<sut-address> SINK_URL=http://<load-host>:18090 scripts/outbound.sh thingsboard
-SUT=<sut-address> SINK_URL=http://<load-host>:18090 scripts/outbound.sh fiware
+source scripts/iotbench-env.sh    # addresses come from .env
+scripts/outbound.sh thingsboard   # uses $SUT_IP and $SINK_URL_BASE
+scripts/outbound.sh fiware
 # edgex: no action — the export profile in compose.yaml carries the sink URL
 ```
+
+Both addresses come from `.env`; `SINK_URL` still overrides. On the load host the
+sink URL must name an address the SUT can reach, which is why `IOTBENCH_LOAD_IP`
+is a separate variable from the load host's SSH alias.
 
 Two sink ports appear in the controls and they are not interchangeable:
 `18090` is the general sink used by `scripts/sink.sh` and `scripts/outbound.sh`;
@@ -325,6 +330,16 @@ as evidence:
 7. **Evidence boundary is understood** — raw evidence is external to Git. A clone
    alone does not reproduce earlier results; see the
    [campaign control README](../../results/feasible-campaign-20261106/README.md).
+8. **Monitoring renders and scrapes** — `scripts/render-prometheus.py --check` is
+   current, `promtool` accepts `monitoring/prometheus.rendered.yml`, and Prometheus
+   reports the load-host targets `up`. With no SUT running, every SUT-exporter
+   target is expected to be `down`; confirming that shape is the check, because
+   the alternative is silently scraping the literal string `${SUT_IP}`.
+
+   ```sh
+   scripts/render-prometheus.py --check
+   scripts/monitoring.sh check      # promtool + live target table
+   ```
 
 ## 8. What must not be done during a redeploy
 
