@@ -38,7 +38,13 @@ REMOTE_DIR="${IOTBENCH_LOAD_ROOT:-/root/iot-bench-deploy}"
 ssh_opts=(-o BatchMode=yes); [[ -n "$JUMP" ]] && ssh_opts+=(-J "$JUMP")
 # `.env` may name a named config; using it keeps host-key handling identical to
 # every other path (the alternative is a second, quietly different policy).
-[[ -n "${SSH_CONFIG:-}" && -f "${SSH_CONFIG/#\~/$HOME}" ]] && ssh_opts+=(-F "${SSH_CONFIG/#\~/$HOME}")
+if [[ -n "${SSH_CONFIG:-}" ]]; then
+  cfg="${SSH_CONFIG/#\~/$HOME}"
+  [[ -f "$cfg" ]] || { echo "IOTBENCH_SSH_CONFIG is not a file: $cfg" >&2; exit 2; }
+  ssh_opts+=(-F "$cfg")
+fi
+# `-i ~/...` is not expanded by ssh, so expand it here. Getting this wrong is
+# silent: ssh falls back to any other usable key, which may be the wrong one.
 [[ -n "${SSH_KEY:-}" ]] && ssh_opts+=(-o IdentitiesOnly=yes -i "${SSH_KEY/#\~/$HOME}")
 scp -q "${ssh_opts[@]}" "$tmp/bundle.tgz" "$HOST:/tmp/iot-bench-generator.tgz"
 ssh "${ssh_opts[@]}" "$HOST" "set -e; D='$REMOTE_DIR'; mkdir -p \$D/bin; t=\$(mktemp -d)
