@@ -288,8 +288,8 @@ class WBound:
                     return p.stdout
                 last = 'backends not all UP'
                 _time.sleep(2)
-            raise RuntimeError('TB pretraffic readiness timed out: both N=2 HAProxy backends '
-                               f'must be UP within {timeout}s (last: {last})')
+            raise RuntimeError(f'TB pretraffic readiness timed out: all {b0.REPLICAS} HAProxy '
+                               f'backend(s) per proxy must be UP within {timeout}s (last: {last})')
 
         b0.wait_tb_backends = wait_tb_backends
 

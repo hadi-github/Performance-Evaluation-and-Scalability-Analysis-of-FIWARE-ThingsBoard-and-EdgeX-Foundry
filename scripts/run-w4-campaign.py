@@ -83,13 +83,25 @@ def plan(rows):
     return runnable, skipped
 
 
-def workload_policy_ok(result):
-    """The same mandatory gates the ordinary controller demands.
+def workload_policy_ok(result, run_id):
+    """The mandatory gates, with W's own vocabulary for a platform finding.
 
-    W4 differs from B0 in replica count only, so its result must satisfy the
-    identical integrity/history/ownership/cleanup contract. Anything less is a
-    failed attempt, not a slower one.
+    W differs from the B0 ordinary campaign here in exactly one place, and the
+    campaign documents why: for a *proposed experimental attempt* a platform
+    backlog is a result, not a harness defect. `VALID_PLATFORM_FAILURE_OR_BACKLOG`
+    means the harness was clean and the platform was measured — that is the
+    finding the attempt was made to obtain. It must never be retried to get a
+    nicer number.
+
+    What still stops the driver is anything that makes the *measurement* untrustworthy:
+    a failed mandatory gate, a history failure, a retained workload lock, a post-run
+    defect, a fetch error, or a run that did not stop its owned services. Those would
+    be harness faults worth an owner look, not a platform result.
     """
+    if result.get('run_id') != run_id:
+        return f'result identity {result.get("run_id")!r} differs from requested {run_id!r}'
+    if result.get('run_kind') != 'ordinary':
+        return f'run_kind={result.get("run_kind")!r}, not an ordinary workload attempt'
     required = ('measurement_valid', 'capture_valid', 'latency_assessed',
                 'generator_resource_qualified', 'sut_resource_qualified',
                 'cleanup_verified', 'post_run_check_qualified', 'history_retrieved',
@@ -97,8 +109,9 @@ def workload_policy_ok(result):
     failed = [k for k in required if result.get(k) is not True]
     if failed:
         return 'mandatory result gates failed: ' + ', '.join(failed)
-    if result.get('platform_result') != 'VALID_PLATFORM_SUCCESS':
-        return f'platform_result={result.get("platform_result")!r}'
+    if result.get('platform_result') not in ('VALID_PLATFORM_SUCCESS',
+                                             'VALID_PLATFORM_FAILURE_OR_BACKLOG'):
+        return f'platform_result={result.get("platform_result")!r} is not an assessed platform result'
     if result.get('history_result') != 'VALID_HISTORY_SUCCESS':
         return f'history_result={result.get("history_result")!r}'
     if result.get('workload_lock_retained') is not False:
@@ -174,7 +187,7 @@ def main():
             if not result_path.is_file():
                 raise SystemExit(f'{rid}: launch produced no run-result.json')
             result = json.loads(result_path.read_text())
-            problem = workload_policy_ok(result)
+            problem = workload_policy_ok(result, rid)
             if problem:
                 raise SystemExit(f'{rid}: {problem}; attempt preserved, never retried')
             state['completed'].append(rid)

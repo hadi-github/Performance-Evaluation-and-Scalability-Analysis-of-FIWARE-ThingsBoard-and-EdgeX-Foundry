@@ -162,7 +162,7 @@ plans resolve offline; one-factor/count/interleaving/preservation tests and the
 three-adapter logical-padding test pass. These are source/engineering checks,
 not live deployment, qualification or experimental results.
 
-#### Measured qualification state — updated 2026-11-12
+#### Measured qualification state — updated 2026-11-14
 
 The staging text above describes the batch as it was reviewed. Since then the
 **release qualifications** for W1, W2 and most of W3 have run. These are
@@ -174,22 +174,28 @@ matrix remains `PROPOSED_NOT_LAUNCH_CLEARED`.
 |---|---|---|---|
 | W1 (50/s, 1,000 devices) | `VALID` — 45,000/45,000, p99 347 ms | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` — 13,481/30,000 over the 5 s timeout, p99 ~35.3 s, harness clean | `VALID` — 45,000/45,000, p99 8.5 ms |
 | W2 (25/s, 2,000 devices) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` | `VALID` | `VALID` (retained inventory 13,192 confirmed) |
-| W3 (25/s, 1,000 devices, +1,024 B) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` (warm-up only; measurement 15,000/15,000 clean, p99 257.7 ms); payload gate **PASS** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 407.3 ms; stored-payload gate **UNAVAILABLE** | **not launched** |
-| W4 (25/s, 1,000 devices, N=1) | not launched | not launched | not launched |
+| W3 (25/s, 1,000 devices, +1,024 B) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` (warm-up only; measurement 15,000/15,000 clean, p99 257.7 ms); payload gate **PASS** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 407.3 ms; stored-payload gate **UNAVAILABLE** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 15.5 ms; stored-payload gate **PASS** (22,500/22,500) |
+| W4 (25/s, 1,000 devices, N=1) | not launched | not launched | not launched (1 of 5 repetitions admitted; see below) |
 
 Reading this table:
 
 - **A platform failure is a result, not a defect to repair.** FIWARE failing W1 at
   50/s is an accepted finding. It is not to be re-run to obtain a better number.
-- **W3's two platforms disagree legitimately.** ThingsBoard preserved the padding
+- **W3's three platforms disagree legitimately.** ThingsBoard preserved the padding
   end to end but its delivery verdict is a warm-up cold-start artifact; FIWARE
   delivered perfectly but its frozen subscriptions never forward `padding`, so the
-  stored payload is unobservable. A single pass/fail column would misstate both.
+  stored payload is unobservable. EdgeX stores the whole canonical object, so its
+  stored-payload gate is both available and passed. A single pass/fail column would
+  misstate all three.
 - **The W3 FIWARE stored-payload gate stays explicitly unavailable.** It must never
   be read as passed. Making it observable requires the documented subscription
   change, a new receipt and a comparability note.
-- **W4 has not been measured anywhere.** No qualification plan is staged for it and
-  no attempt is authorized. See the W4 row of the gates below.
+- **W4 has not been measured anywhere.** Its N=1 configuration is now implemented and
+  verified on all three platforms, but **only 1 of its 5 EdgeX repetitions fits under
+  the frozen 16,384-device discovery limit**. Retained EdgeX inventory is 15,192;
+  one further 1,000-device cohort reaches 16,192 and fits, the next would reach
+  17,192. EdgeX also refuses `DELETE`, so the inventory cannot be reclaimed. See
+  [`research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md`](../research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md).
 
 The detailed per-run narratives, including every superseded intermediate
 qualification and the harness defects found along the way, are in the internal
@@ -197,8 +203,8 @@ record under [`research/findings/`](../research/README.md), not here.
 
 #### What each workload still needs
 
-W1 and W2 have run their qualifications on all three platforms. W3 has run on two
-platforms and is unlaunched on EdgeX. W4 is unstarted.
+W1 and W2 have run their qualifications on all three platforms. W3 has run on all
+three. W4's N=1 configuration is implemented and verified but has not run.
 
 - **W1** — measured on all three. ThingsBoard and EdgeX `VALID`; FIWARE
   `INVALID_PLATFORM_FAILURE_OR_BACKLOG`, accepted as a platform finding. Its former
@@ -208,14 +214,19 @@ platforms and is unlaunched on EdgeX. W4 is unstarted.
   `INVALID_PLATFORM_FAILURE_OR_BACKLOG`. The live retained EdgeX inventory check was
   satisfied by making the inventory gate reserve the actual cohort rather than a
   projection.
-- **W3** — measured on two, **not launched on EdgeX**. The FIWARE stored-payload gate
-  and the transport/wire measurement remain unavailable by design: current FIWARE
-  sink/history subscriptions do not retain padding, and no on-wire capture exists in
-  this harness. Computed header bytes are not measured wire bytes.
-- **W4** — **not measured on any platform.** It needs a verified N=1 deployment that
-  keeps the two-core pool `4-5`, one UP backend per tier including the ThingsBoard
-  rule-engine container count, and a reported aggregate-memory change. A default
-  `make up N=1` maps to a **single core** and does not produce this configuration.
+- **W3** — measured on all three. EdgeX is `VALID_PLATFORM_SUCCESS` and, unlike
+  FIWARE, its stored-payload gate is available and passed (22,500/22,500 rows,
+  1,024 bytes of padding on every one). The FIWARE stored-payload gate and the
+  transport/wire measurement remain unavailable by design: current FIWARE sink and
+  history subscriptions do not retain padding, and no on-wire capture exists in this
+  harness. Computed header bytes are not measured wire bytes.
+- **W4** — **not measured on any platform.** The N=1 deployment it requires is now
+  implemented: replica count is a launcher parameter defaulting to the previous
+  value, an explicit two-core pool `4-5` survives the N=1 mapping that would
+  otherwise pick a single core, and all three platforms were verified live at
+  exactly one replica per replicated service before any attempt was authorized. Its
+  five EdgeX repetitions are limited to one by the frozen device-discovery cap
+  described above.
 
 "Measured" does not mean "cleared". No workload is released for the 60 proposed
 attempts, and a `VALID` qualification on one platform does not qualify the workload
