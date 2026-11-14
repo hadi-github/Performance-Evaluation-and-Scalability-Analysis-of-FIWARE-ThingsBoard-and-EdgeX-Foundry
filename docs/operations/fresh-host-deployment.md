@@ -35,44 +35,80 @@ Ports the stack publishes, per platform:
 Every one of these is overridable in the platform `.env`. If you change a port,
 record it: run manifests name the target they used.
 
-## 1. Register the hosts
+## 1. Configure the deployment: one file
 
-Both hosts must be resolvable by SSH alias. The launcher defaults to the
-qualified aliases, so a host with the same identity needs no configuration. A
-different layout is configured by environment variable — none of these are
-edited in source, and all defaults reproduce the qualified layout exactly:
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `IOTBENCH_SUT` | `ramonavm2` | SSH alias of the system under test |
-| `IOTBENCH_LOAD` | `ramonavm1` | SSH alias of the load generator |
-| `IOTBENCH_TB_COMPOSE` | `/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml` | ThingsBoard compose file, absolute |
-| `IOTBENCH_FW_DIR` | `/root/iot-bench-deploy-cand-auto20261027` | FIWARE deployment root; `edgex/` is expected beneath it |
-| `IOTBENCH_REMOTE_RESULTS` | `/root/iot-qual-load-20261105/feasible-ordinary-dispatch-20261106` | generator results root on the load host |
-| `IOTBENCH_SUT_IP` | `87.107.191.107` | SUT address used in generated FIWARE subscriptions |
-| `IOTBENCH_LOAD_IP` | `87.107.191.32` | load-host address used in the sink URL |
-
-Export them before invoking the launcher; they are read at import time:
+Every host, address, port and path the tooling uses comes from **one file**,
+`.env` at the repository root. Nothing else needs editing when the testbed
+moves: not the scripts, not the campaign plans, not this page.
 
 ```sh
-export IOTBENCH_SUT=sut IOTBENCH_LOAD=load
-export IOTBENCH_TB_COMPOSE=/srv/iot-bench/sut/thingsboard/compose.yaml
-export IOTBENCH_FW_DIR=/srv/iot-bench/sut
-export IOTBENCH_REMOTE_RESULTS=/srv/iot-bench/load/results
-export IOTBENCH_SUT_IP=10.0.0.5 IOTBENCH_LOAD_IP=10.0.0.6
+cp .env.example .env
+$EDITOR .env                 # the two addresses are the only required edits
+scripts/configure-from-env.sh --trust
 ```
 
-The default deployment paths under `/root/` embed the date the directory was
-created (`iot-qual-tb-20261105`, `iot-bench-deploy-cand-auto20261027`). They are
-retained because live campaign state depends on them; a fresh deploy should use
-a dated-free layout such as `/srv/iot-bench/{sut,load}` and set the variables
-above.
+`configure-from-env.sh` validates the file, writes the SSH config that every
+script shares, and — with `--trust` — scans and records the host keys. Read its
+output: it prints the resolved configuration and the fingerprints it recorded.
 
-A new host with a different identity is a **D1-level finding**, not an operational
-detail — see [server-access preflight](server-access-preflight.md) Gate A. Record
-the change in the qualification record before any run whose evidence will be
-compared with earlier cells. Comparability across hosts is a reviewed claim, not an
-assumption.
+| Variable | Default (qualified testbed) | Meaning |
+|---|---|---|
+| `IOTBENCH_SUT_HOST` | `ramonavm2` | SSH alias of the system under test |
+| `IOTBENCH_LOAD_HOST` | `ramonavm1` | SSH alias of the load generator |
+| `IOTBENCH_SUT_IP` | `87.107.191.107` | the address the generator connects to |
+| `IOTBENCH_LOAD_IP` | `87.107.191.32` | the address platforms push receipts to |
+| `IOTBENCH_SSH_USER` | `root` | SSH user on both hosts |
+| `IOTBENCH_SSH_PORT_SUT` / `_LOAD` | `22` | SSH ports (they often differ: an ISP NAT may map one) |
+| `IOTBENCH_SSH_KEY` | *(empty)* | identity file; a leading `~` is expanded |
+| `IOTBENCH_JUMP` | *(empty)* | `user@host` when the load host is only reachable through the SUT |
+| `IOTBENCH_SSH_CONFIG` | `.iotbench-ssh-config` | generated config, used by every ssh/scp call |
+| `IOTBENCH_SUT_ROOT` / `_LOAD_ROOT` | `/srv/iot-bench/{sut,load}` in `.env.example`; `/root/iot-qual-*` in code | deployment roots on each host |
+| `IOTBENCH_TB_COMPOSE` | `/root/iot-qual-tb-20261105/deploy/thingsboard/compose.yaml` | ThingsBoard compose file |
+| `IOTBENCH_FW_DIR` | `/root/iot-bench-deploy-cand-auto20261027` | FIWARE root; `edgex/` is expected beneath it |
+| `IOTBENCH_REMOTE_RESULTS` | `/root/iot-qual-load-20261105/…` | generator results root on the load host |
+| `IOTBENCH_SINK_PORT` | `18091` | capture port for the sink |
+| `IOTBENCH_POOL_CPUSET` / `_INFRA_CPUSET` / `_REPLICAS` | `4-5` / `2-3` / `2` | CPU budget and replica count |
+
+**The code defaults are the qualified testbed, byte for byte.** With no `.env`
+at all, the tooling behaves exactly as it did for the published runs — a missing
+file must never silently point a run somewhere new. `.env.example` deliberately
+differs in one respect: it names the date-free `/srv/iot-bench/{sut,load}`
+layout, which is what a fresh deployment should use. The code defaults keep the
+dated `/root/iot-qual-*-20261105` paths because live campaign state depends on
+them.
+
+### A reachable host is not a configured host
+
+Two things must both be true, and a ping only proves the first:
+
+```sh
+ssh -F .iotbench-ssh-config ramonavm1 'hostname; test -d /run && echo RUN_OK'
+```
+
+The command must *run* and print `RUN_OK`, not merely open a connection. See
+[A reachable port is not a usable host](troubleshooting.md#a-reachable-port-is-not-a-usable-host).
+
+### Moving the testbed later
+
+Changing `IOTBENCH_SUT_IP` is enough: the campaign plans are hash-bound, so they
+are never rewritten. When the configured address differs from a plan's
+`target`, the launcher writes a **target-only overlay**, proves with a
+full-field comparison that nothing else changed, and stores both hashes and
+both hosts as `plan-overlay.json` in that run's evidence. Only the host may
+differ — a moved port or a changed device count still fails closed.
+
+To inspect an overlay offline:
+
+```sh
+scripts/rebase-plan.py workloads/campaigns/<batch>/plans/<plan>.json /tmp/plan.json
+scripts/rebase-plan.py workloads/campaigns/<batch>/plans/<plan>.json /tmp/plan.json --verify
+```
+
+A new host with a different identity is a **D1-level finding**, not an
+operational detail — see [server-access preflight](server-access-preflight.md)
+Gate A. Record the change in the qualification record before any run whose
+evidence will be compared with earlier cells. Comparability across hosts is a
+reviewed claim, not an assumption.
 
 ## 2. Choose the replica setting deliberately
 
