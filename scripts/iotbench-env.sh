@@ -34,8 +34,13 @@ values = {
 # where a script is started with an explicit `SUT_IP=`/`SINK_PORT=` for this run
 # and there is no `.env` at all; assigning unconditionally would silently revert
 # it to the qualified default and send traffic to the wrong machine.
+#
+# The explicit `if [ -z "${K+x}" ]` form is used rather than `: "${K:=v}"`
+# because the latter keeps the quotes of a shell-quoted value literally, so a
+# path would arrive as `'~/.ssh/key'` including the quote characters.
 for key, value in values.items():
-    print(f': "${{{key}:={shlex.quote(str(value))}}}"')
+    quoted = shlex.quote(str(value))
+    print(f'if [ -z "${{{key}+x}}" ]; then {key}={quoted}; fi')
 PY
 }
 
