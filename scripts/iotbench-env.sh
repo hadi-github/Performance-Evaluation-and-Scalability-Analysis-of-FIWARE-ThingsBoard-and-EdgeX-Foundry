@@ -30,8 +30,12 @@ values = {
     'TB_COMPOSE': c.TB_COMPOSE, 'FW_DIR': c.FW_DIR, 'EDGEX_DIR': c.EDGEX_DIR,
     'REMOTE_RESULTS': c.REMOTE_RESULTS, 'SINK_PORT': c.SINK_PORT,
 }
+# Never clobber a value the caller already set. This matters on the load host,
+# where a script is started with an explicit `SUT_IP=`/`SINK_PORT=` for this run
+# and there is no `.env` at all; assigning unconditionally would silently revert
+# it to the qualified default and send traffic to the wrong machine.
 for key, value in values.items():
-    print(f'{key}={shlex.quote(str(value))}')
+    print(f': "${{{key}:={shlex.quote(str(value))}}}"')
 PY
 }
 
@@ -44,7 +48,9 @@ eval "$(_iotbench_eval)" || return 1
 # the load host cannot resolve, so the aliases get their own names.
 SUT_ALIAS="${SUT}"
 LOAD_ALIAS="${LOAD}"
-SINK_URL_BASE="http://${LOAD_IP}:${SINK_PORT}"
+# Same rule as above for the derived URL: an explicit SINK_URL wins.
+: "${SINK_URL_BASE:=http://${LOAD_IP}:${SINK_PORT}}"
 export SUT_ALIAS LOAD_ALIAS SUT_IP LOAD_IP SSH_USER SSH_PORT_SUT SSH_PORT_LOAD \
        SSH_KEY JUMP SSH_CONFIG SUT_ROOT LOAD_ROOT TB_COMPOSE FW_DIR EDGEX_DIR \
        REMOTE_RESULTS SINK_PORT SINK_URL_BASE
+

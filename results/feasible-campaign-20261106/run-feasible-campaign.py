@@ -993,11 +993,17 @@ def launch(platform, run_id, plan_path, grafana_url, timeout, resume_setup=False
         pilot = resolved['protocol_pilot_parameters']
         sampler_tail = int(pilot['drain_seconds_after_measurement']) + int(pilot['late_observation_seconds']) + 5
         gate_env = f'EDGEX_PREPROVISIONED_RUN_ID={shlex.quote(run_id)} ' if platform == 'edgex' else ''
+        # The load host does not keep a `.env`: the deployment configuration lives
+        # on the workstation that drives the campaign. Every address a remote
+        # script may need is therefore passed explicitly for this run, so a script
+        # that sources scripts/iotbench-env.sh keeps what it was given instead of
+        # falling back to the qualified defaults (which point at the old testbed).
         command = (
             f"set -eu; umask 077; mkdir -p {REMOTE_RUNS}; cd {REMOTE_SOURCE}; "
             f"test ! -e {REMOTE_RUNS}/{run_id}.capture-window.json; "
             f"setsid env BENCHCTL={REMOTE_SOURCE}/scripts/benchctl-calibrated.sh "
-            f"SINK_BIN={REMOTE_SOURCE}/bin/sink SINK_PORT=18091 GENERATOR_CPUSET=0-1 SINK_CPU=2 "
+            f"SINK_BIN={REMOTE_SOURCE}/bin/sink SINK_PORT={_cfg.SINK_PORT} GENERATOR_CPUSET=0-1 SINK_CPU=2 "
+            f"SUT_IP={SUT_IP} LOAD_IP={LOAD_IP} SINK_URL_BASE={SINK_URL_BASE} "
             f"PROM_RW=http://127.0.0.1:9090/api/v1/write DIAGNOSTIC_TAIL_SECONDS={sampler_tail} {gate_env}{grafana}SUT={SUT_IP} "
             f"scripts/run-capture.sh {REMOTE_SOURCE}/plan.json {shlex.quote(run_id)} {REMOTE_RUNS} {platform} "
             f"> {REMOTE_RUNS}/{run_id}.launch.log 2>&1 & pid=$!; "

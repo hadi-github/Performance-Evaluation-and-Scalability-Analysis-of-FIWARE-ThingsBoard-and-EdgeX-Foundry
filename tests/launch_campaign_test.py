@@ -2,7 +2,9 @@
 import importlib.util
 import copy
 import json
+import os
 import pathlib
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -12,6 +14,17 @@ spec = importlib.util.spec_from_file_location(
     "run_feasible_campaign", ROOT / "results" / "feasible-campaign-20261106" / "run-feasible-campaign.py")
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
+
+
+def clean_env(**overrides):
+    """The environment with every IOTBENCH_* variable removed.
+
+    A developer machine may have `.env` exported; a test must assert the
+    documented defaults, not whatever host is currently configured.
+    """
+    env = {k: v for k, v in os.environ.items() if not k.startswith('IOTBENCH_')}
+    env.update(overrides)
+    return env
 
 
 def resolved_for(platform="thingsboard", run_id="disp-tb-r01-20261106", **overrides):
@@ -198,6 +211,51 @@ class HostRelocationTests(unittest.TestCase):
             self.assertEqual(record['workload_differences'], [])
             self.assertNotEqual(record['frozen_sha256'], record['overlay_sha256'])
             self.assertTrue(all(p.startswith('target') for p in record['changed_paths']))
+
+
+class ShellLoaderTest(unittest.TestCase):
+    """`scripts/iotbench-env.sh` must never override what the caller decided.
+
+    The load host has no `.env`, and the launcher starts the capture with an
+    explicit `SUT_IP=`/`SINK_PORT=` for this run. A loader that assigned
+    unconditionally would revert those to the qualified defaults and send
+    traffic at the wrong machine — a failure that looks like a platform fault.
+    """
+
+    SCRIPT = ROOT / 'scripts' / 'iotbench-env.sh'
+
+    def run_loader(self, exports='', env_file='/nonexistent'):
+        # `export` with no arguments dumps the whole environment, so it is only
+        # emitted when there is something to export.
+        prefix = f'export {exports}; ' if exports else ''
+        prog = (f'cd "{ROOT}"; {prefix}'
+                'source scripts/iotbench-env.sh; '
+                'printf "%s|%s|%s|%s" "$SUT_IP" "$SINK_PORT" "$SINK_URL_BASE" "$LOAD_IP"')
+        return subprocess.run(['bash', '-c', prog], capture_output=True, text=True,
+                              env=clean_env(IOTBENCH_ENV_FILE=env_file))
+
+    def test_caller_values_survive(self):
+        p = self.run_loader('SUT_IP=10.99.0.7 SINK_PORT=18090')
+        self.assertEqual(p.returncode, 0, p.stderr)
+        sut_ip, sink_port, sink_url, _ = p.stdout.split('|')
+        self.assertEqual(sut_ip, '10.99.0.7')
+        self.assertEqual(sink_port, '18090')
+        self.assertEqual(sink_url, 'http://87.107.191.32:18090')
+
+    def test_env_file_fills_the_gaps(self):
+        with tempfile.TemporaryDirectory() as d:
+            env = pathlib.Path(d) / '.env'
+            env.write_text('IOTBENCH_SUT_IP=10.5.5.5\nIOTBENCH_LOAD_IP=10.6.6.6\n')
+            p = self.run_loader('SUT_IP=10.99.0.7', env_file=str(env))
+            self.assertEqual(p.returncode, 0, p.stderr)
+            sut_ip, _, _, load_ip = p.stdout.split('|')
+            self.assertEqual(sut_ip, '10.99.0.7')   # caller wins over .env
+            self.assertEqual(load_ip, '10.6.6.6')   # .env fills the unset one
+
+    def test_unset_everything_gives_the_qualified_defaults(self):
+        p = self.run_loader()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(p.stdout, '87.107.191.107|18091|http://87.107.191.32:18091|87.107.191.32')
 
 
 class EvidenceTests(unittest.TestCase):
