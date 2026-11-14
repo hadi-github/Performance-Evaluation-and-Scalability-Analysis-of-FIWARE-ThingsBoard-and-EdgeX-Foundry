@@ -124,6 +124,27 @@ The monitor in `/tmp/opencode/load-host-watch.log` records every transition; the
 launch is deferred until the host is continuously reachable rather than briefly
 pingable.
 
+## Resuming: what "healthy" must mean
+
+The supervisor (`/tmp/opencode/supervise-w4.sh`) gates the launch on a health
+predicate that requires an SSH **command to return output**, not just a ping or an
+accepted key:
+
+```bash
+ssh -F "$SSHCFG" ramonavm1 'hostname; test -d /run && echo RUN_OK'
+# healthy only if the output contains the hostname AND RUN_OK
+```
+
+It requires **8 consecutive healthy polls one minute apart** before it will launch.
+A host that authenticates and then dies cannot pass that. Before launching it also
+refuses if `/run/iot-bench-workload.lock` still exists, if any
+`benchctl`/`sink`/`run-capture` process is already running, or if the receipt has
+drifted from the tree.
+
+Because `/run` is `tmpfs`, a completed reboot clears the leaked lock on its own; the
+lock check is there for the case where the host recovered **without** rebooting, in
+which case the documented ownership verification and `rmdir` are still required.
+
 ## What was preserved
 
 - Staging for the aborted attempt, hash-verified byte-identical before the

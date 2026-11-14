@@ -68,18 +68,45 @@ Preserve the original failure. A later export can establish retrievability at
 the later time, but not visibility by the original cutoff. Do not relabel the
 run or invent a persistence-latency claim.
 
-## Load lock is present
-
-Do not kill the owner or recursively delete the lock. Identify the exact process,
-project and run that own it, then follow the reviewed cleanup procedure. A stale
-lock is not permission to start another workload.
-
 ## SSH or status path fails
 
 Use the reviewed private SSH configuration, preserve host-key checking and avoid
 copying private keys into examples. If the direct workstation path fails, use
 the documented SUT-to-load path only after verifying the transport is the
 reviewed one; the administrative path must not proxy measured telemetry.
+
+### A reachable port is not a usable host
+
+The load host has been observed to answer ICMP and **accept an SSH key**, open a
+session, and then return no output for any command (including `/bin/echo`) before
+going down again. Do not treat an open tcp/22 or a completed authentication as
+health, and never start a multi-minute workload inside such a window: it dies
+mid-setup and, because a killed launcher cannot release it, leaves the load lock
+behind.
+
+Require evidence that a command **actually ran**:
+
+```bash
+ssh -F "$IOT_BENCH_SSH_CONFIG" ramonavm1 'hostname; test -d /run && echo RUN_OK'
+```
+
+Wait for several consecutive successes spaced by a minute, not one success. If the
+host came back **without** rebooting, treat any existing
+`/run/iot-bench-workload.lock` as owned until proven otherwise (see above); if it
+rebooted, `/run` is `tmpfs` and the lock is gone with it.
+
+## Load lock is present
+
+Do not kill the owner or recursively delete the lock. Identify the exact process,
+project and run that own it, then follow the reviewed cleanup procedure. A stale
+lock is not permission to start another workload.
+
+A launcher killed by `SIGKILL` cannot release this lock, so it is expected after a
+workstation or host crash. Verify no owner exists — no owner file in the lock
+directory, no `benchctl`/`sink`/`run-capture` process, nothing listening on 18091,
+and no run artifacts for the run ID — record a `lock-recovery.json`, then `rmdir`
+the lock. Never `rm -rf` it. Precedent:
+`results/workload-batch-20261108/evidence/w1-qual-ex-20261110e/lock-recovery.json`.
 
 ## Related pages
 
