@@ -21,6 +21,7 @@ to measure.
 | SUT sizing | 8 vCPU / 16 GB is the qualified shape. `scripts/resources.mk` refuses an `N` whose pool exceeds the host's cores; `scripts/check-resources.sh` refuses a stack whose limits exceed memory minus a 1.5 GB reserve. A smaller host fails closed, which is the intended behaviour. |
 | SUT OS baseline | Linux, Docker Engine with Compose v2, `jq`, `curl`, `git`, `make`. Cores `0–3` reserved for host/LB/infra (see [resource layout](../../README.md#resource-layout-fixed-pinned)). |
 | Load-host baseline | Docker (for the sink and monitoring stack), `jq`, `curl`, Go toolchain **only if** you build there (prebuilt binaries are the normal path). |
+| Installing the baseline | `scripts/bootstrap-host.sh load` or `scripts/bootstrap-host.sh sut` installs those packages over SSH and prints the resulting host state. It refuses to go further than packages: it does not change the kernel, the Docker version the distribution ships, or any sysctl, because those are measurement inputs. `--dry-run` reports what is missing. |
 | Network | SUT reachable from the load host on the platform ingress ports; load host reachable from the SUT for outbound delivery. No platform port exposed to the public internet except through the firewall you set up in step 6. |
 | Out-of-band | SSH access details and credentials. **Never commit them.** `IOT_BENCH_SSH_CONFIG` points at a private SSH config; host keys are trusted explicitly, never `StrictHostKeyChecking=no`. |
 
@@ -194,9 +195,14 @@ The generator host ships `git archive HEAD` plus prebuilt static binaries, so th
 manifest names the exact commit and Go need not be installed remotely.
 
 ```sh
-# from the repository root, on the workstation
-scripts/deploy-generator.sh root@<load-host> --jump root@<sut>
+# from the repository root, on the workstation; hosts come from .env
+scripts/deploy-generator.sh
 ```
+
+The host comes from `IOTBENCH_SSH_USER`, `IOTBENCH_LOAD_HOST` and
+`IOTBENCH_SSH_CONFIG`/`IOTBENCH_SSH_KEY`, so no argument is needed once `.env` is
+right. An explicit `user@host` argument still overrides it. The destination is
+`IOTBENCH_LOAD_ROOT`, defaulting to the qualified `/root/iot-bench-deploy`.
 
 Notes:
 
@@ -207,8 +213,9 @@ Notes:
   binaries; building them elsewhere and copying them in by hand loses the
   provenance link.
 - Untracked files already on the host (`.env`, `results/`) are preserved.
-- **It ships to `/root/iot-bench-deploy`, which is not where the campaign launcher
-  reads from.** The two paths serve different purposes and both are needed:
+- **It ships to `/root/iot-bench-deploy` (or `IOTBENCH_LOAD_ROOT`), which is not
+  where the campaign launcher reads from.** The two paths serve different purposes
+  and both are needed:
   - `deploy-generator.sh` installs a **usable generator checkout** on the load host
     (binaries plus a source tree you can run by hand).
   - The launcher **stages its own source per run** into `IOTBENCH_REMOTE_RESULTS/source/`
@@ -228,6 +235,28 @@ Notes:
   `IOT_BENCH_PREBUILT_DIR` is unset. Using a stale `/root/iot-bench-deploy` tree
   from an earlier experiment is harmless for the launcher, but do not mistake it
   for the binaries a run uses.
+
+### Prove the generator works before there is a SUT
+
+The load host can be verified on its own, which is what to do while waiting for a
+SUT to exist. `benchctl` runs k6 in a container against a local fixture endpoint,
+so nothing outside the host is involved:
+
+```sh
+ssh -F .iotbench-ssh-config ramonavm1 '
+  cd /root/iot-bench-deploy && mkdir -p /tmp/gen-check &&
+  nohup ./bin/fixture-target -addr 127.0.0.1:18080 >/tmp/gen-check/f.log 2>&1 &
+  sleep 2 &&
+  ./bin/benchctl run -plan workloads/plans/fixture-smoke.json \
+    -results /tmp/gen-check -run-id gen-check -cpuset 0-1 -env GOGC=400'
+```
+
+A working host prints `== gen-check: VALID` with `achieved_ratio=1` on all three
+phases and exits non-zero on anything less. This exercises the pinned k6 image,
+the Docker path, the CPU pinning and the plan-resolution code — everything a real
+run uses except the platform. **It is a pilot only** (`pilot_only: true`): it is
+not a measurement and must never be aggregated.
+
 
 ## 5. Configure outbound delivery
 

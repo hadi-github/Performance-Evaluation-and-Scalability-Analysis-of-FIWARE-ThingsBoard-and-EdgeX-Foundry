@@ -6,7 +6,7 @@ The owner has changed the future primary latency endpoint to **application dispa
 
 The feasible ordinary batch received conditional independent technical release after live qualification and owner approval. After the controller paused at TB repetition 2, independent review accepted its valid platform failure and cleared a **new persistent controller at original entry 7, EdgeX repetition 3**. Older gates/authorization text below remain dated historical context, not an override of this narrowed release.
 
-**Last reconciled: 2026-11-14** (W1–W4 qualification state and the W4 infrastructure block); actual recorded UTC timestamps govern run timing.
+**Last reconciled: 2026-11-15** (load host rebuilt on the new address and made operational; SUT still absent); actual recorded UTC timestamps govern run timing.
 This page supersedes every per-session narrative. Session close-outs, progress logs and state snapshots are
 preserved verbatim — and may contradict each other — under [`research/archive/sessions/`](../research/archive/sessions/).
 When this page and an archived narrative disagree, **this page wins**; discrepancies are to be corrected *here*
@@ -203,6 +203,21 @@ Reading this table:
   process are fixed (a transport failure was read as "evidence already exists"; the
   launch gate verified 3 of the 13 receipt bindings, ignoring `b0_launcher`). See
   [`research/findings/w4-r01-aborted-pretraffic-20261114.md`](../research/findings/w4-r01-aborted-pretraffic-20261114.md).
+- **The testbed address is now configuration, and the load host is operational again.**
+  Hosts, ports, keys, paths and the sink port come from one git-ignored `.env`
+  (`scripts/iotbench_config.py`, `.env.example` documents it); every code default still
+  reproduces the qualified testbed, so an unconfigured checkout behaves as before. Frozen
+  plans are never rewritten: a moved address produces a recorded target-only overlay
+  (`plan-overlay.json`) that proves no workload field changed. The replacement load host
+  runs the pinned k6 image and completed a fixture pilot with `achieved_ratio=1` on every
+  phase, so the generator path is verified independently of any SUT. See
+  [`docs/operations/fresh-host-deployment.md`](operations/fresh-host-deployment.md).
+- **The replacement load host is Ubuntu 22.04, not the pre-registered 24.04.** 4 vCPU /
+  7.75 GiB matches the pre-registered size, cgroup v2 is unified, and Docker 29.1.3 with
+  Compose 2.40.3 runs the pinned generator image. The OS and CPU model differ from the
+  qualified host. That is a comparability statement, not an operational footnote: it must
+  be recorded as a deviation before any run whose evidence will be pooled with earlier
+  cells, and it is not yet resolved.
 
 The detailed per-run narratives, including every superseded intermediate
 qualification and the harness defects found along the way, are in the internal
