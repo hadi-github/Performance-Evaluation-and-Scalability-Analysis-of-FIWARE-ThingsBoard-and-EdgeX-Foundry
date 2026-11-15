@@ -1,0 +1,27 @@
+--- a/internal/cache/init.go
++++ b/internal/cache/init.go
+@@ -35,11 +35,24 @@
+ 	newDeviceCache(devices, dic)
+ 
+ 	// init profile cache
++	// Benchmark amendment "dedup-profile-fetch": one GET per DISTINCT profile
++	// instead of one GET per device. Upstream v4.0.2 issues a sequential
++	// DeviceProfileByName call for every device even though the cache below is
++	// keyed by profile name, so a single shared profile across N devices cost N
++	// round-trips before driver.Start could register the ingest route (measured
++	// ~46 ms each: ~468 s at 10,192 devices against a 180 s readiness deadline).
++	// The resulting profileCache is identical -- newProfileCache keys by
++	// dp.Name, so duplicate appends always collapsed to one entry anyway.
+ 	profiles := make([]models.DeviceProfile, 0, len(devices))
++	seenProfile := make(map[string]struct{}, len(devices))
+ 	for _, d := range devices {
+ 		if len(d.ProfileName) == 0 {
+ 			continue
+ 		}
++		if _, ok := seenProfile[d.ProfileName]; ok {
++			continue
++		}
++		seenProfile[d.ProfileName] = struct{}{}
+ 		res, err := dpc.DeviceProfileByName(context.Background(), d.ProfileName)
+ 		if err != nil {
+ 			return err

@@ -28,6 +28,7 @@ Usage (from a tmux session on the workstation, so a disconnect does not kill it)
 import argparse
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +52,16 @@ INVENTORY_BLOCKED = {
     'w4dp-ex-r05-20261108': 'retained 16,192 + cohort 1,000 exceeds the frozen 16,384 discovery limit',
 }
 
+# When the owner amendment is selected, the cap is 50,000 and the readiness cost
+# is O(profiles) instead of O(devices), so those four cells stop being blocked.
+# The skip list is kept (rather than deleted) so the historical reason stays
+# legible and the flag-off behaviour is byte-identical.
+AMENDMENT_ENV = 'IOTBENCH_EDGEX_DISCOVERY_AMENDMENT'
+
+
+def amendment_enabled():
+    return os.environ.get(AMENDMENT_ENV, '') == '1'
+
 
 def load_b0():
     spec = importlib.util.spec_from_file_location(
@@ -72,9 +83,10 @@ def w4_rows():
 def plan(rows):
     """Split the matrix into runnable and skipped cells, with reasons."""
     runnable, skipped = [], []
+    amended = amendment_enabled()
     for row in rows:
         rid = row['run_id']
-        if rid in INVENTORY_BLOCKED:
+        if rid in INVENTORY_BLOCKED and not amended:
             skipped.append({'run_id': rid, 'ordinal': row['ordinal'],
                             'platform': row['platform'],
                             'reason': INVENTORY_BLOCKED[rid]})

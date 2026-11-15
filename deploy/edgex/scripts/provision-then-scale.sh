@@ -282,15 +282,19 @@ case "${1:-}" in
     done
     meta=$(metadata_state)
     jq -n --arg run "$RUN" --argjson n "$N" --argjson d "$D" --arg pool "$pool" --argjson r "$replicas" --argjson m "$meta" \
-      --argjson repairs "$REPAIRS_USED" \
+      --argjson repairs "$REPAIRS_USED" --argjson retained "$retained" --argjson reserve "$reserve" \
+      --argjson metadata_limit "$metadata_limit" --argjson driver_limit "$driver_limit" \
       --arg t "$(date -u +%FT%TZ)" '{run_id: $run, n: $n, devices: $d, pool_cpuset: $pool, time_utc: $t,
         helper_revision: 2, replica_repair_restarts: $repairs,
+        discovery: {retained: $retained, reserve: $reserve,
+                    metadata_limit: $metadata_limit, driver_limit: $driver_limit,
+                    amendment: (if $metadata_limit > 16384 then "maxresultcount-raised" else "frozen-16384" end)},
         device_rest: $r, core_metadata: $m} |
       .reasons = ([.device_rest[] | select(.devices_accepted != .devices) | "\(.container) accepted \(.devices_accepted)/\(.devices) devices"]
         + (if .core_metadata.restarts > 0 or .core_metadata.panics > 0
            then ["core-metadata restarts \(.core_metadata.restarts), panics \(.core_metadata.panics)"] else [] end)) |
       .pass = (.reasons | length == 0)' > "$GATE"
-    jq -c '{pass, reasons, core_metadata}' "$GATE"
+    jq -c '{pass, reasons, core_metadata, discovery}' "$GATE"
     jq -e .pass "$GATE" >/dev/null || {
       setup_failure_dump "$GATE.failure.txt" "gate failed: $(jq -c '.reasons' "$GATE")"
       echo "GATE FAILED: run is INVALID (setup failure)" >&2

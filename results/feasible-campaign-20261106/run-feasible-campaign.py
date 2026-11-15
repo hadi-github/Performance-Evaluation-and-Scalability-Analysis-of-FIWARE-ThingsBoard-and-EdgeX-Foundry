@@ -81,6 +81,37 @@ SUT_TB_PROJECT = "tbq20261105"
 SUT_FWHC_CONTAINER = "fiwhc-timescale-1"
 PLATFORM_PREFIX = {"thingsboard": "tb", "fiware": "fw", "edgex": "ex"}
 
+# --- EdgeX discovery amendment (opt-in) -------------------------------------
+# The frozen override (compose.feasible-discovery.yaml, sha256 0893a6b8...) caps
+# MaxResultCount at 16,384, which admits only 1 of W4's 5 EdgeX repetitions.
+# The amendment adds a SEPARATE override that raises the cap to 50,000 AND runs
+# device-rest from an image built with the profile-fetch dedup patch. Both are
+# needed: the cap gates the inventory check, but the readiness gate runs first and
+# binds on O(devices) profile fetches.
+#
+# The flag defaults to OFF, so B0/W1-W3 continue to pass exactly the frozen
+# override and every hash binding still verifies. Selecting it is a recorded
+# departure from the frozen configuration and requires re-qualification; see
+# research/findings/edgex-profile-fetch-dedup-amendment-20261115.md.
+EDGEX_DISCOVERY_AMENDMENT = os.environ.get('IOTBENCH_EDGEX_DISCOVERY_AMENDMENT', '') == '1'
+EDGEX_AMENDMENT_OVERRIDE = REPO / 'deploy/edgex/compose.feasible-discovery-amended.yaml'
+# Image the amendment builds; the live resource check must expect this tag
+# instead of the stock one, and the two must never be confused.
+EDGEX_AMENDMENT_IMAGE = 'edgex-amended/device-rest:4.0.2-p1'
+EDGEX_STOCK_IMAGE = 'edgex-nats/device-rest:4.0.2'
+
+
+def edgex_discovery_override_source():
+    """The override file this run must stage, frozen or amended.
+
+    Single source of truth: activate(), verify_effective_resources() and
+    check_rendered_config() all resolve the override here, so a run can never
+    provision under one cap and be verified against the other.
+    """
+    return EDGEX_AMENDMENT_OVERRIDE if EDGEX_DISCOVERY_AMENDMENT else (
+        REPO / 'deploy/edgex/compose.feasible-discovery.yaml')
+
+
 
 def qualification_run_ids(platform):
     ids = [f'{PLATFORM_PREFIX[platform]}-dispatch-endpoint-qual-20261106']
@@ -248,7 +279,12 @@ def read_only_check(platform):
     if platform == "edgex":
         env = {"EDGEX_REPLICAS": str(REPLICAS), "POOL_CPUSET": POOL_CPUSET, "INFRA_CPUSET": INFRA_CPUSET,
                "SINK_URL": SINK_URL_BASE}
-        cfg = remote(SUT, compose("edgex", EDGEX + "/compose.yaml", env, "config --format json", "--profile export")).stdout
+        # Render with the SAME override the run activates, so the check validates
+        # the configuration actually deployed. Under the amendment that includes
+        # the amended image tag and the raised cap.
+        live_override = EDGEX + '/compose.feasible-discovery-' + sha256_file(edgex_discovery_override_source())[:16] + '.yaml'
+        cfg = remote(SUT, compose("edgex", EDGEX + "/compose.yaml", env, "config --format json",
+                                  "--profile export -f " + shlex.quote(live_override))).stdout
         obj = json.loads(cfg)
         required = {"database": 1610612736, "core-data": 536870912, "device-rest": 536870912,
                     "app-http-export": 536870912}
@@ -256,7 +292,8 @@ def read_only_check(platform):
         # Expected budget is the effective fixed allocation, including all infra and the one exporter.
         total_bytes = 0
         expected_images = {"core-data": "edgex-nats/core-data:4.0.2",
-                           "device-rest": "edgex-nats/device-rest:4.0.2",
+                           "device-rest": (EDGEX_AMENDMENT_IMAGE if EDGEX_DISCOVERY_AMENDMENT
+                                           else EDGEX_STOCK_IMAGE),
                            "app-http-export": "edgex-nats/app-service-configurable:4.0.2"}
         for name, memory in required.items():
             svc = obj.get("services", {}).get(name)
@@ -271,6 +308,15 @@ def read_only_check(platform):
             svc = obj["services"][name]
             if svc.get("deploy", {}).get("replicas") != REPLICAS or svc.get("cpuset") != POOL_CPUSET:
                 raise RuntimeError(f"EdgeX actual replica mapping or app pool mismatch: {name}")
+        # The discovery cap the run will actually gate on. Pinned in both
+        # directions so neither a silent revert to 16,384 nor an accidental raise
+        # under the frozen path can pass unnoticed.
+        rendered_cap = obj["services"]["core-common-config-bootstrapper"]["environment"].get(
+            "ALL_SERVICES_SERVICE_MAXRESULTCOUNT")
+        wanted_cap = "50000" if EDGEX_DISCOVERY_AMENDMENT else "16384"
+        if rendered_cap != wanted_cap:
+            raise RuntimeError(f"EdgeX discovery cap is {rendered_cap}, expected {wanted_cap} "
+                               f"({'amendment' if EDGEX_DISCOVERY_AMENDMENT else 'frozen'} configuration)")
         if (obj["services"]["app-http-export"].get("cpuset") != POOL_CPUSET or
             not obj["services"]["app-http-export"].get("environment", {}).get("WRITABLE_PIPELINE_FUNCTIONS_HTTPEXPORT_PARAMETERS_URL", "").endswith(":18091/edgex")):
             raise RuntimeError("EdgeX app export pool or sink route mismatch")
@@ -382,7 +428,7 @@ def verify_effective_resources(platform, restart_baseline=None, admit_restarts=F
                  ('fiwhc', FW+'/fiware-history-candidate/compose.yaml', '', {'quantumleap','timescale'})]
     elif platform == 'edgex':
         env.update(EDGEX_REPLICAS=str(REPLICAS), SINK_URL=SINK_URL_BASE)
-        override = EDGEX+'/compose.feasible-discovery-'+sha256_file(REPO/'deploy/edgex/compose.feasible-discovery.yaml')[:16]+'.yaml'
+        override = EDGEX+'/compose.feasible-discovery-'+sha256_file(edgex_discovery_override_source())[:16]+'.yaml'
         specs = [('edgex', EDGEX+'/compose.yaml', '--profile export -f '+shlex.quote(override),
                   {'database','nats','haproxy','core-keeper','core-metadata','core-data','device-rest','app-http-export','core-common-config-bootstrapper'})]
     else:
@@ -467,8 +513,10 @@ def stage_edgex_helper():
 
 
 def stage_edgex_discovery_override():
-    source = REPO / 'deploy/edgex/compose.feasible-discovery.yaml'
+    source = edgex_discovery_override_source()
     digest = sha256_file(source)
+    # The hash suffix makes the staged name content-addressed, so the frozen and
+    # amended overrides can never overwrite each other on the SUT.
     target = EDGEX + '/compose.feasible-discovery-' + digest[:16] + '.yaml'
     if ssh(SUT, 'test -e ' + shlex.quote(target), check=False).returncode:
         subprocess.run(scp_command(source, SUT + ':' + target), check=True, timeout=60)

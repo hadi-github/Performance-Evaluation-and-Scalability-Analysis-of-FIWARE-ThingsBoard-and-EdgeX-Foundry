@@ -1,0 +1,77 @@
+# OWNER AMENDMENT — device-rest built with the profile-fetch dedup patch.
+#
+# Not used unless a run opts in. The default EdgeX path builds verbatim upstream
+# v4.0.2 from `deploy/edgex/compose.yaml`; this Dockerfile is only used by
+# `deploy/edgex/scripts/build-patched-device-rest.sh`, which stages the patched
+# source tree and passes it as the build context.
+#
+# WHY A REBUILD AND NOT A CONFIG CHANGE
+#   The O(devices) profile fetch lives inside device-sdk-go's InitCache, not in
+#   device-rest's own code and not in any configuration file. Upstream `main`
+#   still has the loop, so no released version fixes it. The only way to change
+#   it without changing the benchmark's measurement definition is to patch the
+#   SDK at build time and leave every other byte of the build identical.
+#
+# WHY THE PATCH IS APPLIED OUTSIDE THIS BUILD
+#   Upstream's Makefile builds with `-mod=readonly`, which SILENTLY IGNORES a
+#   `vendor/` directory and resolves modules from the module cache instead. A
+#   patch placed in `vendor/` under `-mod=readonly` is an invisible no-op: it
+#   compiles, runs, and still fetches once per device. This build therefore uses
+#   `-mod=vendor` explicitly, and the staging script asserts the patch is present
+#   in the binary rather than trusting a build exit code.
+#
+#   The patch is applied by the staging script rather than here so that this
+#   image needs no `git`, `patch` or `apk` inside the container. That is not
+#   cosmetic: `apk add` in this environment hangs against the Alpine CDN (it
+#   cannot be reached from the build network), which turned a stock-style
+#   Dockerfile into a 40-minute stall. With a pre-staged vendor tree the build is
+#   fully offline apart from pulling the two base images.
+#
+# Every compiler flag is copied from device-rest-go v4.0.2 (Makefile GOFLAGS):
+# the same build tags, the same ldflags including -bindnow and SDKVersion,
+# -trimpath, -buildmode=pie, CGO_ENABLED=0. The only difference between this
+# image and the stock one is the dedup loop.
+#
+# The runtime stage intentionally omits `dumb-init` and `apk upgrade`. dumb-init
+# matters only for the injected secure-bootstrapping entrypoint, and this stack
+# runs with EDGEX_SECURITY_SECRET_STORE=false (no secure mode), so the binary is
+# the entrypoint directly.
+ARG BASE=golang:1.25-alpine3.22
+ARG RUNTIME_BASE=alpine:3.22
+FROM ${BASE} AS builder
+
+ARG DEVICE_REST_VERSION="4.0.2"
+
+WORKDIR /device-rest-go
+COPY . .
+
+# The gate that matters. A successful `go build` does NOT prove the patch is
+# live: upstream builds with -mod=readonly, which silently ignores vendor/, so an
+# unpatched image compiles happily and still fetches once per device. This test
+# drives the real InitCache and counts DeviceProfileByName round-trips, so it
+# fails unless deduplication is actually in effect. It runs offline against the
+# vendored tree.
+#
+# Verified both directions before shipping: patched tree -> 1 fetch (pass),
+# stock v4.0.2 tree -> 50 fetches ("want 1") for 50 devices on one profile.
+RUN cp amendment/sdk_dedup_profile_fetch_test.go \
+       vendor/github.com/edgexfoundry/device-sdk-go/v4/internal/cache/amended_test.go \
+ && CGO_ENABLED=0 go test -mod=vendor \
+       ./vendor/github.com/edgexfoundry/device-sdk-go/v4/internal/cache/ \
+       -run TestInitCacheDedupProfileFetch -count=1
+
+RUN CGO_ENABLED=0 go build -mod=vendor \
+      -tags "include_nats_messaging" \
+      -ldflags "-s -w -bindnow \
+        -X github.com/edgexfoundry/device-rest-go.Version=${DEVICE_REST_VERSION} \
+        -X github.com/edgexfoundry/device-sdk-go/v4/internal/common.SDKVersion=${DEVICE_REST_VERSION}" \
+      -trimpath -buildmode=pie -o /out/device-rest ./cmd
+
+FROM ${RUNTIME_BASE}
+LABEL license='SPDX-License-Identifier: Apache-2.0' \
+  copyright='Copyright (c) 2023: Intel'
+LABEL Name=device-rest-go-amended
+COPY --from=builder /out/device-rest /device-rest
+EXPOSE 59986
+ENTRYPOINT ["/device-rest"]
+CMD ["-cp=keeper.http://edgex-core-keeper:59890", "--registry"]

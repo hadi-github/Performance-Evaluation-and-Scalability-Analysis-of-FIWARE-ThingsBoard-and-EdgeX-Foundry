@@ -1,0 +1,54 @@
+# OWNER AMENDMENT — EdgeX discovery limit raise + deduplicated profile fetch.
+# Opt-in, never applied by default.
+#
+# This file is ADDITIVE. It does not replace
+# `compose.feasible-discovery.yaml` (sha256 0893a6b8…), which stays byte-identical
+# so every B0 review binding still verifies. A run selects this file by setting
+# `IOTBENCH_EDGEX_DISCOVERY_AMENDMENT=1`; when that flag is unset the launcher
+# passes the frozen override exactly as before and B0/W1-W3 behaviour is
+# byte-identical.
+#
+# TWO CHANGES, BOTH REQUIRED
+#
+#   1. MaxResultCount 16384 -> 50000 for core-metadata AND device-rest.
+#      This gate is the pre-run inventory check. The W batch retains one cohort
+#      per run, so it must admit 35,192 retained + 6,000 reserve = 41,192
+#      (research/findings/edgex-discovery-limit-and-inventory-scaling.md).
+#      16,384 is short by 24,808. 50,000 is EdgeX's own documented example value
+#      and clears the requirement with 8,808 headroom. It clamps only list-query
+#      `limit` -- never the ingest->sink path -- so it cannot make a run faster
+#      or slower.
+#
+#   2. device-rest runs the amended image, built from upstream v4.0.2 with the
+#      profile-fetch dedup patch (deploy/edgex/amendment/). Without this, change 1
+#      unblocks nothing: the readiness gate runs BEFORE the inventory check, and
+#      device-sdk-go v4.0.2 fetches the shared profile once per device. At the
+#      retained inventory that is O(devices) round-trips against a bounded
+#      deadline -- measured 224 s at 10,192 devices and extrapolating past 600 s
+#      at the 41,192 the W batch needs. See
+#      research/findings/edgex-ordinal-15-readiness-failure.md.
+#
+# WHY THE IMAGE IS PINNED BY DIGEST-INDEPENDENT TAG *AND* VERIFIED AT BUILD
+#   The image tag is fixed (`edgex-amended/device-rest:4.0.2-p1`) so the live
+#   resource check can compare it like any other pinned image. The tag is
+#   produced only by deploy/edgex/scripts/build-patched-device-rest.sh, whose
+#   build stage runs a behavioural test that FAILS on the unpatched tree. A
+#   `docker build` exit code alone would not prove this: upstream compiles with
+#   -mod=readonly, which silently ignores vendor/ and produces an unpatched binary
+#   from a patched tree.
+#
+# Unchanged: every other image, all replicas, cpusets, memory limits, ports,
+# profiles, healthchecks, and the ingest->sink path itself.
+services:
+  core-common-config-bootstrapper:
+    environment:
+      ALL_SERVICES_SERVICE_MAXRESULTCOUNT: "50000"
+
+  device-rest:
+    image: edgex-amended/device-rest:4.0.2-p1
+    # The stock compose file declares a build stanza for the NATS-enabled image.
+    # The amended image is prebuilt by the script above, so the stanza is removed
+    # here rather than overridden: with it present, `docker compose up` could
+    # rebuild device-rest from upstream source and silently discard the patch.
+    # `build: !reset null` is the compose-spec override form.
+    build: !reset null

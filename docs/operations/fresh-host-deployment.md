@@ -176,9 +176,29 @@ make smoke N=2
 ```
 
 For the bounded inventory cohort, EdgeX additionally uses the discovery override
-`deploy/edgex/compose.feasible-discovery.yaml` (`ALL_SERVICES_SERVICE_MAXRESULTCOUNT`).
-The launcher applies it; a hand-started stack needs `-f` with that file if it must
-discover the full cohort.
+`deploy/edgex/compose.feasible-discovery.yaml` (`ALL_SERVICES_SERVICE_MAXRESULTCOUNT`,
+16,384). The launcher applies it; a hand-started stack needs `-f` with that file if
+it must discover the full cohort.
+
+**Capacity beyond 16,384 devices requires an opt-in amendment.** The frozen 16,384
+cap admits only one W4 EdgeX repetition. Raising it is not sufficient on its own:
+device-rest also has to stop fetching the shared profile once per device, which
+binds at the readiness gate *before* the inventory check. Enabling it is a recorded
+departure from the frozen configuration and needs its own qualification receipt:
+
+```sh
+# build the amended image once on the SUT (needs github.com; set GO_BUILDER_BASE
+# to a builder image that configures GOPROXY where proxy.golang.org is blocked)
+./deploy/edgex/scripts/build-patched-device-rest.sh        # prints the image tag
+
+# select it for a run; anything but exactly "1" leaves the frozen path active
+export IOTBENCH_EDGEX_DISCOVERY_AMENDMENT=1
+```
+
+The build fails closed if the dedup patch is not actually in effect, which a plain
+exit code would not catch — upstream builds with `-mod=readonly`, which silently
+ignores `vendor/`. See
+[the amendment record](../../research/findings/edgex-profile-fetch-dedup-amendment-20261115.md).
 
 ### What `make smoke` proves, and what it does not
 
