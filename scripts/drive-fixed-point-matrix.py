@@ -14,6 +14,14 @@ objective is to fill the matrix: stopping at the first failure would leave later
 cells unmeasured for no better reason. Systemic failures still halt (see
 HARD_STOP below).
 
+Before a platform's first launch the driver runs a cheap environment repair
+(see `repair_detached`). Docker Compose reuses a stopped container, and a
+container left behind by an interrupted `up` can carry no network endpoint: the
+stack then comes up with a published port that nothing answers on, and the
+launcher fails *before* sending traffic. That is a host fault, not a platform
+result, and it must not consume an ordinal. Removing such a stopped container is
+safe -- Compose recreates it on the next `up` and named volumes are untouched.
+
 Progress is appended to a JSONL log so an interrupted session can be resumed by
 re-reading which ordinals already have a terminal record.
 """
@@ -25,11 +33,23 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261115a'
+RECEIPT = 'owner-w-matrix3-20261115b'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
-MAX_ORDINAL = 36
+
+# The authorized set: ordinals 4-36 plus the pre-registered W1 repetition 4
+# (ordinals 40-42). Ordinals 1-3 are preserved pre-traffic failures and are never
+# retried; their cells are completed by repetition 4, so every cell has 3 valid
+# repetitions. See authorization/owner-w-matrix3-20261115b.json.
+ORDINALS = tuple(range(4, 37)) + (40, 41, 42)
+
+# Compose projects that publish the shared port 8404, per platform.
+PROJECTS = {
+    'thingsboard': ['tbq20261105'],
+    'fiware': ['fiware', 'fiwhc'],
+    'edgex': ['edgex'],
+}
 
 # Setup/activation problems that mean *no* row can run, so continuing is waste.
 HARD_STOP = (
@@ -46,8 +66,57 @@ HARD_STOP = (
 
 def rows():
     data = json.loads(MATRIX.read_text())
-    return sorted((r for r in data['experimental_runs'] if r['ordinal'] <= MAX_ORDINAL),
-                  key=lambda r: r['ordinal'])
+    by_ordinal = {r['ordinal']: r for r in data['experimental_runs']}
+    missing = [o for o in ORDINALS if o not in by_ordinal]
+    if missing:
+        raise SystemExit(f'run-matrix.json has no row for authorized ordinal(s) {missing}')
+    return [by_ordinal[o] for o in ORDINALS]
+
+
+def ssh_sut(command, timeout=120):
+    """Run a read-only or repair command on the SUT over the configured SSH alias."""
+    p = subprocess.run(['ssh', '-F', str(REPO / '.iotbench-ssh-config'), 'ramonavm2', command],
+                       capture_output=True, text=True, timeout=timeout)
+    return p.returncode, p.stdout, p.stderr
+
+
+def repair_detached(platform):
+    """Drop stopped containers that Compose would reuse without a network endpoint.
+
+    A container that exists but is not running and has no network attachment was
+    left behind by an interrupted `up`. Compose's next `up` starts that same
+    container instead of creating a fresh one, so the published port has no
+    listener and every request fails before traffic. Removing it forces a clean
+    create. Named volumes, images and the running stack are untouched.
+    """
+    projects = PROJECTS[platform]
+    names = ','.join(f"label=com.docker.compose.project={p}" for p in projects)
+    cmd = (
+        'for c in $(docker ps -a --filter status=exited --filter status=created '
+        f'--format "{{{{.Names}}}}" {names}); do '
+        'n=$(docker inspect -f "{{len .NetworkSettings.Networks}}" "$c" 2>/dev/null || echo 0); '
+        'if [ "${n:-0}" -eq 0 ]; then echo "detached: $c"; docker rm "$c" >/dev/null && '
+        'echo "removed: $c"; fi; done'
+    )
+    rc, out, err = ssh_sut(cmd, timeout=180)
+    if rc != 0:
+        return {'platform': platform, 'exit': rc, 'stderr': err[-800:]}
+    return {'platform': platform, 'removed': [l.split(': ', 1)[1] for l in out.splitlines()
+                                              if l.startswith('removed: ')]}
+
+
+def switch_exporters(platform):
+    """Point the SUT's platform-specific exporters at the platform about to run.
+
+    Monitoring only. A failure here costs exporter coverage for that platform but
+    cannot invalidate a run, so it is logged and never treated as a hard stop.
+    """
+    cmd = (f'test -x /root/iot-bench-deploy/monitoring/exporters/exporters-switch.sh && '
+           f'cd /root/iot-bench-deploy/monitoring/exporters && '
+           f'TB_PROJECT=tbq20261105 ./exporters-switch.sh {platform}')
+    rc, out, err = ssh_sut(cmd, timeout=300)
+    return {'platform': platform, 'exit': rc,
+            'stdout': out.strip()[-400:], 'stderr': err.strip()[-400:]}
 
 
 def load_log(path):
@@ -134,7 +203,21 @@ def main():
                     print('hard stop: environment is not in a runnable state')
                     return 2
                 continue
+            rep = repair_detached(plat)
+            append(args.log, {'event': 'repair', **rep})
+            if rep.get('removed'):
+                print(f"  removed stale detached container(s): {', '.join(rep['removed'])}")
+            if rep.get('exit'):
+                print(f'  repair could not run: {rep["stderr"].strip()[:300]}')
             running = plat
+
+        # Exporters are per platform (9187 is shared by ThingsBoard and EdgeX), so
+        # point them at this platform before the launcher starts the stack. The
+        # launcher's own `up` creates the network the exporters join, so this runs
+        # again after the first successful start of a platform; a failure here is
+        # logged and ignored.
+        exp = switch_exporters(plat)
+        append(args.log, {'event': 'exporters', **exp})
 
         print(f'\n=== ordinal {ordinal}: launching {rid} ({plat}) ===')
         rc, out, err, secs = run(

@@ -321,6 +321,12 @@ scripts/monitoring.sh exporters-up <platform>
 scripts/monitoring.sh check                 # targets must be UP for the running platform
 ```
 
+`postgres-exporter` publishes `9187` for both ThingsBoard and EdgeX, so those two
+profiles cannot run together. When platforms take turns, switch the profile instead
+of stacking them: `monitoring/exporters/exporters-switch.sh <platform>|none` tears
+down every platform profile first, then starts only the one named. Node-exporter and
+cAdvisor are host-level and stay up across a switch.
+
 The SUT firewall restricts exporter ports to the load host and is re-applied after
 every Docker start by `iot-bench-firewall.service`. Re-run `exporters-install` on a
 new SUT; it is not covered by `deploy/`.
