@@ -33,16 +33,17 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261115b'
+RECEIPT = 'owner-w-matrix3-20261116c'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 
-# The authorized set: ordinals 4-36 plus the pre-registered W1 repetition 4
-# (ordinals 40-42). Ordinals 1-3 are preserved pre-traffic failures and are never
-# retried; their cells are completed by repetition 4, so every cell has 3 valid
-# repetitions. See authorization/owner-w-matrix3-20261115b.json.
-ORDINALS = tuple(range(4, 37)) + (40, 41, 42)
+# The authorized set: every remaining ordinal that fills a cell. Ordinals 1-5 are
+# preserved pre-traffic failures and are never retried; their cells are completed
+# by a later pre-registered repetition instead (W1 -> 40-42, W2 edgex -> 44).
+# Ordinal 4 completed and is accepted as W2 fiware repetition 1.
+# See authorization/owner-w-matrix3-20261116c.json.
+ORDINALS = tuple(range(6, 37)) + (40, 41, 42, 44)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
