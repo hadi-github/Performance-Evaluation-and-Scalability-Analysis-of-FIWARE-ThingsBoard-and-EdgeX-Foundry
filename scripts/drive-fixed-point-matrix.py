@@ -27,23 +27,24 @@ re-reading which ordinals already have a terminal record.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261116d'
+RECEIPT = 'owner-w-matrix3-20261116e'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 
-# The authorized set: every remaining ordinal that fills a cell. Ordinals 1-6 are
-# preserved pre-traffic failures and are never retried; their cells are completed
-# by a later pre-registered repetition instead (W1 -> 40-42, W2 edgex -> 44,
-# W2 thingsboard -> 45). Ordinal 4 completed and is accepted as W2 fiware rep 1.
-# See authorization/owner-w-matrix3-20261116d.json.
-ORDINALS = tuple(range(7, 37)) + (40, 41, 42, 44, 45)
+# The authorized set: every remaining ordinal that fills a cell. Ordinals 1-10 are
+# preserved pre-traffic failures and are never retried. Ordinals 4 and 7 completed
+# and are accepted as-is. The burned cells are completed by a later pre-registered
+# repetition (W1 -> 40-42, W2 edgex -> 44, W2 tb -> 45, W3 tb -> 47, W3 fw -> 48,
+# W4 tb -> 37). See authorization/owner-w-matrix3-20261116e.json.
+ORDINALS = tuple(range(11, 37)) + (37, 40, 41, 42, 44, 45, 47, 48)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
@@ -62,7 +63,26 @@ HARD_STOP = (
     'prebuilt tools do not match',
     'no prebuilt workspace tools',
     'load-host workload lock',
+    # A full workstation disk fails the launch while staging the evidence copy,
+    # which consumes the ordinal without sending any traffic. That is a host
+    # fault, not a platform result: stop the whole run instead of marching on.
+    'No space left on device',
 )
+
+# Every evidence directory for a W run is ~90 MB; a fresh run peaks higher while
+# the source tarball and the fetched artifacts coexist. Refuse to spend an
+# ordinal with less than this much headroom, so a full disk cannot burn one.
+MIN_FREE_BYTES = 3 * 1024 ** 3
+
+
+def disk_guard():
+    """Return a problem description if the workstation is too full to run."""
+    st = os.statvfs(str(REPO))
+    free = st.f_bavail * st.f_frsize
+    if free < MIN_FREE_BYTES:
+        return (f'workstation has {free / 1024 ** 3:.1f} GiB free, '
+                f'need {MIN_FREE_BYTES / 1024 ** 3:.0f} GiB for one run')
+    return None
 
 
 def rows():
@@ -185,6 +205,13 @@ def main():
         if args.stop_after and launched >= args.stop_after:
             print('stop-after reached; leaving the rest for a later invocation')
             break
+
+        problem = disk_guard()
+        if problem:
+            print(f'hard stop before ordinal {ordinal}: {problem}')
+            append(args.log, {'event': 'hard-stop', 'reason': 'disk-space',
+                              'ordinal': ordinal, 'run_id': rid, 'detail': problem})
+            return 2
 
         if plat != running:
             print(f'\n=== ordinal {ordinal}: switching to {plat} (stopping other stacks) ===')
