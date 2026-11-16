@@ -41,16 +41,29 @@ def free_bytes():
 
 
 def driver_alive():
-    p = subprocess.run(['pgrep', '-f', 'drive-fixed-point-matrix.py --start-ordinal'],
-                       capture_output=True, text=True)
-    # Exclude the supervisor's own pgrep match and the tmux wrapper.
-    pids = [x for x in p.stdout.split() if x]
-    for pid in pids:
+    """True while a real driver process exists.
+
+    The driver is normally started with no arguments at all, so the pattern must
+    not include a flag: an earlier version matched only
+    `drive-fixed-point-matrix.py --start-ordinal`, which never matched, so the
+    supervisor declared the driver gone and exited after two intervals. That is
+    why `wsuper` kept disappearing mid-queue. Scan every cmdline instead and read
+    the driver script out of it.
+    """
+    for entry in Path('/proc').iterdir():
+        if not entry.name.isdigit():
+            continue
         try:
-            cmd = Path(f'/proc/{pid}/cmdline').read_bytes().replace(b'\0', b' ').decode()
+            argv = entry.joinpath('cmdline').read_bytes().split(b'\0')
         except OSError:
             continue
-        if 'drive-fixed-point-matrix.py' in cmd and 'pgrep' not in cmd:
+        parts = [a.decode('utf-8', 'replace') for a in argv if a]
+        # Skip our own scan and anything that merely mentions the script in a
+        # shell string, e.g. a `bash -c` wrapper or a grep/pgrep invocation.
+        if len(parts) < 2 or 'python' not in parts[0]:
+            continue
+        if any(part == 'drive-fixed-point-matrix.py'
+               or part.endswith('/drive-fixed-point-matrix.py') for part in parts[1:]):
             return True
     return False
 
