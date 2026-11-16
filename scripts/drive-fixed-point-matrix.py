@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261116g'
+RECEIPT = 'owner-w-matrix3-20261116h'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -57,7 +57,13 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 # spent and is never reused. W4/thingsboard therefore takes repetitions 3, 4 and 5
 # (29, 37, 60). See authorization/owner-w-matrix3-20261116g.json and
 # results/workload-batch-20261108/evidence/w4dp-tb-r02-20261108/HARNESS-DEFECT.md.
-ORDINALS = tuple(range(22, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55, 60)
+#
+# A second workstation reboot at 2026-11-16T15:17Z killed the queue at ordinal 25.
+# Ordinal 25 (w3dp-fw-r03) had already completed validly on the load host (22,500/
+# 22,500 acked, 0 missing) but lost its local record the same way ordinal 20 did, so
+# its ID is spent too. W3/fiware is completed by repetitions 2, 4 and 5
+# (17, 48, 56). See authorization/owner-w-matrix3-20261116h.json.
+ORDINALS = tuple(range(26, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55, 56, 60)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
