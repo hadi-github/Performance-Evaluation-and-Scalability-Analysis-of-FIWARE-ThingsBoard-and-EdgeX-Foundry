@@ -23,7 +23,11 @@ mkdir -p "$(dirname "$log")"
 # Deployment addresses come from .env; see scripts/iotbench-env.sh.
 # shellcheck source=scripts/iotbench-env.sh
 source "$(dirname "$0")/iotbench-env.sh"
-export SUT SINK_URL="${SINK_URL:-$SINK_URL_BASE}"
+# iotbench-env.sh leaves SUT as the SSH *alias*; outbound.sh builds the API URL
+# from it, so it must be the address. SINK_URL_BASE already points at the load
+# host, so the guard only has to pin the SUT side.
+export SUT="$SUT_IP"
+export SINK_URL="${SINK_URL:-$SINK_URL_BASE}"
 
 while true; do
   if ssh -F .iotbench-ssh-config ramonavm2 \
