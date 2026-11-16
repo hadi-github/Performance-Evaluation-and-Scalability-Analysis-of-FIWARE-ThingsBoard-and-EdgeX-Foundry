@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261116f'
+RECEIPT = 'owner-w-matrix3-20261116g'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -46,8 +46,18 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 # record before it was written, so its ID is spent and the W4/edgex cell takes its
 # pre-registered repetition 4 (39) instead. W2/thingsboard and W3/thingsboard lost
 # their only traffic-sending attempts to the pre-traffic CPU-snapshot defect, so
-# they take repetition 5 (53, 55). See authorization/owner-w-matrix3-20261116f.json.
-ORDINALS = tuple(range(21, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55)
+# they take repetition 5 (53, 55).
+#
+# Ordinal 21 (w4dp-tb-r02) reached traffic but is a harness defect, not a platform
+# result: ThingsBoard stored all 22,500 messages (history 22,500 present, 0 missing)
+# and every resource gate passed, yet the sink received nothing because the root rule
+# chain was missing the `bench sink` TbRestApiCallNode. The launcher installs the
+# outbound route for FIWARE and relies on the EdgeX export profile, but never calls
+# `outbound.sh thingsboard`. The node is reinstalled and persisted; ordinal 21's ID is
+# spent and is never reused. W4/thingsboard therefore takes repetitions 3, 4 and 5
+# (29, 37, 60). See authorization/owner-w-matrix3-20261116g.json and
+# results/workload-batch-20261108/evidence/w4dp-tb-r02-20261108/HARNESS-DEFECT.md.
+ORDINALS = tuple(range(22, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55, 60)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
