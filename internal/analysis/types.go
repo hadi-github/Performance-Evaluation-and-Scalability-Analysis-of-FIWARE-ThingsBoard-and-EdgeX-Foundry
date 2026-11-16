@@ -25,6 +25,12 @@ const (
 	NotAssessed Status = "NOT_ASSESSED"
 )
 
+// Input availability labels: they say whether an input was read, not a verdict.
+const (
+	Available   = "AVAILABLE"
+	Unavailable = "UNAVAILABLE"
+)
+
 type Claim struct {
 	Status  Status   `json:"status"`
 	Reasons []string `json:"reasons"`

@@ -495,18 +495,6 @@ func intsEqual(a, b []int) bool {
 	}
 	return true
 }
-func containsAll(have, need []string) bool {
-	m := map[string]bool{}
-	for _, s := range have {
-		m[s] = true
-	}
-	for _, s := range need {
-		if !m[s] {
-			return false
-		}
-	}
-	return true
-}
 func stringsEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

@@ -280,30 +280,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func extractDeviceID(body []byte) string {
-	var payload struct {
-		DeviceID string `json:"device_id"`
-	}
-	if json.Unmarshal(body, &payload) == nil {
-		return payload.DeviceID
-	}
-	return ""
-}
-
-func extractScheduledSendMS(body []byte) float64 {
-	var payload struct {
-		ScheduledSendMS json.RawMessage `json:"scheduled_send_ms"`
-	}
-	if json.Unmarshal(body, &payload) != nil || len(payload.ScheduledSendMS) == 0 {
-		return 0
-	}
-	var value float64
-	if json.Unmarshal(payload.ScheduledSendMS, &value) != nil {
-		return 0
-	}
-	return value
-}
-
 // MessageIdentity is the per-telemetry identity and payload metadata retained from
 // native JSON envelopes. Device names are inherited from EdgeX event headers and
 // Orion entity IDs where the canonical payload lacks a direct device_id field.

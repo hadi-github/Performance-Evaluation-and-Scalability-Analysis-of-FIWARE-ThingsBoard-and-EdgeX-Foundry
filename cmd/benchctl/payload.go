@@ -45,12 +45,12 @@ type storedRow struct {
 // expectation. The ledger is the generator's record, not the platform's store, so
 // taking identity/timing from it keeps the padding comparison independent.
 type ledgerRow struct {
-	Seq             *uint32  `json:"seq"`
+	Seq             *uint32          `json:"seq"`
 	DeviceID        *json.RawMessage `json:"device_id"`
-	RunID           *string  `json:"run_id"`
-	ScheduledSendMS *float64 `json:"scheduled_send_ms"`
-	Outcome         string   `json:"outcome"`
-	Rec             string   `json:"rec"`
+	RunID           *string          `json:"run_id"`
+	ScheduledSendMS *float64         `json:"scheduled_send_ms"`
+	Outcome         string           `json:"outcome"`
+	Rec             string           `json:"rec"`
 }
 
 func payloadValidateCommand(args []string) {

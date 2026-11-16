@@ -117,10 +117,10 @@ type Health struct {
 	// adds the rate-derived pool (see scripts/pool_policy.py) and is otherwise
 	// gate-identical to v1.
 	WorkloadPolicy   string  `json:"workload_policy,omitempty"`
-	MinAchievedRatio float64 `json:"min_achieved_ratio"`        // per step, attempted / planned sends (>= 0.99)
-	SendLagP99Ms     float64 `json:"send_lag_p99_ms"`           // per step, p99 send lag limit (10)
-	EarlyToleranceMs float64 `json:"early_tolerance_ms"`        // a send this much before its scheduled time is a violation
-	MaxCoreBusy      float64 `json:"max_core_busy"`             // per generator core, 0 = report only
+	MinAchievedRatio float64 `json:"min_achieved_ratio"` // per step, attempted / planned sends (>= 0.99)
+	SendLagP99Ms     float64 `json:"send_lag_p99_ms"`    // per step, p99 send lag limit (10)
+	EarlyToleranceMs float64 `json:"early_tolerance_ms"` // a send this much before its scheduled time is a violation
+	MaxCoreBusy      float64 `json:"max_core_busy"`      // per generator core, 0 = report only
 }
 
 // IsDispatchIntegrity reports whether a policy label opts into the dispatch

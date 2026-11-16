@@ -28,9 +28,9 @@ func (r reader) read(role, path string) ([]byte, error) {
 		path = filepath.Join(r.base, path)
 	}
 	b, err := os.ReadFile(path)
-	in := Input{Role: role, Path: path, Status: "AVAILABLE", Bytes: len(b)}
+	in := Input{Role: role, Path: path, Status: Available, Bytes: len(b)}
 	if err != nil {
-		in.Status = "UNAVAILABLE"
+		in.Status = Unavailable
 		in.Error = err.Error()
 	} else {
 		h := sha256.Sum256(b)
@@ -392,7 +392,7 @@ func Analyze(o Options) (*Result, error) {
 		r.Steps = append(r.Steps, s)
 	}
 	for _, in := range r.Inputs {
-		if in.Status == "AVAILABLE" {
+		if in.Status == Available {
 			b, e := os.ReadFile(in.Path)
 			h := sha256.Sum256(b)
 			if e != nil || hex.EncodeToString(h[:]) != in.SHA256 {

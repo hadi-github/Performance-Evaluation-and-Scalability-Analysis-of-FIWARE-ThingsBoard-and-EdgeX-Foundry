@@ -10,6 +10,16 @@ for live evidence and [publication checks](../operations/publication-handoff.md)
 From the repository root, with the Go toolchain in `go.mod`, Python 3 and Node.js:
 
 ```sh
+make test-short   # fast Go suite; skips Docker integration
+make test         # full Go suite
+make check        # CI-equivalent Go gate: build, vet, gofmt, full tests
+make test-python  # both offline Python discovery commands
+make test-node    # offline adapter regressions
+```
+
+The underlying commands, used by CI:
+
+```sh
 # Short mode skips Docker integration; never contacts benchmark hosts.
 go test -short -count=1 ./internal/... ./cmd/... ./tests/...
 go test -race -count=1 ./internal/runner ./cmd/benchctl

@@ -314,13 +314,21 @@ func TestLegacySinkRecordStaysLegacy(t *testing.T) {
 
 func TestProtocolPayloadFieldsRetainedInReceipt(t *testing.T) {
 	payload := []byte(`{"run_id":"pilot-a","seq":7,"device_id":"bench-pilot-a-00002","scheduled_send_ms":1700000000000.125}`)
-	if got := extractDeviceID(payload); got != "bench-pilot-a-00002" {
+	messages, err := ExtractMessages(payload)
+	if err != nil || len(messages) != 1 {
+		t.Fatalf("messages=%v err=%v", messages, err)
+	}
+	if got := messages[0].DeviceID; got != "bench-pilot-a-00002" {
 		t.Fatalf("device_id=%q", got)
 	}
-	if got := extractScheduledSendMS(payload); got != 1700000000000.125 {
+	if got := messages[0].ScheduledSendMS; got != 1700000000000.125 {
 		t.Fatalf("scheduled_send_ms=%.3f", got)
 	}
-	if got := extractScheduledSendMS([]byte(`{"scheduled_send_ms":"not-a-number"}`)); got != 0 {
+	messages, err = ExtractMessages([]byte(`{"run_id":"r","seq":1,"scheduled_send_ms":"not-a-number"}`))
+	if err != nil || len(messages) != 1 {
+		t.Fatalf("messages=%v err=%v", messages, err)
+	}
+	if got := messages[0].ScheduledSendMS; got != 0 {
 		t.Fatalf("invalid schedule unexpectedly parsed: %v", got)
 	}
 }

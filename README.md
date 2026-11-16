@@ -48,13 +48,16 @@ adapter tests. Docker/Compose is needed for deployment; cloning is not permissio
 to deploy or generate traffic. From the repository root:
 
 ```bash
-go build ./cmd/...
-go test -short -count=1 ./internal/... ./cmd/... ./tests/...
-python3 -B -m unittest discover -s tests -p '*_test.py'
-python3 -B -m unittest discover -s tests/offline -p 'test_*.py'
-node --test tests/offline/*.test.mjs
+make build          # go build ./cmd/...
+make test-short     # fast Go suite; skips Docker integration
+make check          # CI-equivalent Go gate: build, vet, gofmt, full tests
+make test-python    # offline Python regressions
+make test-node      # offline adapter regressions
 bash scripts/check-preregistration.sh
 ```
+
+`go build ./...` and `go test ./...` are also safe: `results/go.mod` marks retained
+evidence as data, so copied Go source snapshots are never treated as buildable source.
 
 ### Pointing it at a deployment
 

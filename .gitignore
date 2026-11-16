@@ -6,6 +6,8 @@ deploy/*/.env
 
 # raw results stay out of git; amendment files next to runs are versioned (never edit raw results or manifests)
 results/**
+# module boundary: retained evidence is data, not buildable source
+!results/go.mod
 !results/feasible-campaign-20261106/
 results/feasible-campaign-20261106/*
 !results/feasible-campaign-20261106/run-feasible-campaign.py
