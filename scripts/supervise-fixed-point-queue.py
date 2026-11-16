@@ -73,9 +73,17 @@ def terminals():
 
 
 def prune():
+    """Reclaim space without disturbing any owned platform.
+
+    Only *dangling* images are removed, which is what recovered ~20 GiB earlier.
+    `docker container prune` is deliberately NOT used: it would delete stopped
+    infra containers (postgres, kafka, haproxy) belonging to the owned compose
+    projects, forcing a slow recreate before the next run. Named volumes are
+    never touched either way, but there is no reason to take that risk for space
+    that image pruning already provides.
+    """
     before = free_bytes()
     subprocess.run(['docker', 'image', 'prune', '-f'], capture_output=True, text=True)
-    subprocess.run(['docker', 'container', 'prune', '-f'], capture_output=True, text=True)
     after = free_bytes()
     append(SUP_LOG, {'event': 'prune', 'free_before_gib': round(before / 1024 ** 3, 1),
                      'free_after_gib': round(after / 1024 ** 3, 1)})
