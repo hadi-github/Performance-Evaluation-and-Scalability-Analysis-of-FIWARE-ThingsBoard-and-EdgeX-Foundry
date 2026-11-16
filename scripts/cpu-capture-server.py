@@ -55,9 +55,18 @@ def main():
             try:
                 for project in a.project:
                     result = subprocess.run(['bash', str(script), project], capture_output=True, timeout=8, check=True)
-                    if not result.stdout:
-                        raise ValueError('empty project snapshot: ' + project)
-                    output.append(result.stdout)
+                    # A configured project that is not running yields no rows. Only one
+                    # platform is up at a time (isolated_one_platform_at_a_time), so the
+                    # stopped projects are expected to be empty. An empty project must
+                    # not poison the snapshot for the project that is actually running:
+                    # every caller needs the live platform's counters, and a 503 here
+                    # blocked the ThingsBoard pre-traffic gate while silently emptying
+                    # the in-run CPU boundary capture for the other two platforms.
+                    if result.stdout:
+                        output.append(result.stdout)
+                if not output:
+                    raise ValueError('no running container in any configured project: '
+                                     + ', '.join(a.project))
             except (subprocess.SubprocessError, ValueError) as e:
                 self.send_error(503, str(e))
                 return

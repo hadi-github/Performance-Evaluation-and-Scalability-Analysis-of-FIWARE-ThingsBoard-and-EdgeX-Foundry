@@ -34,17 +34,20 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261116e'
+RECEIPT = 'owner-w-matrix3-20261116f'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 
 # The authorized set: every remaining ordinal that fills a cell. Ordinals 1-10 are
 # preserved pre-traffic failures and are never retried. Ordinals 4 and 7 completed
-# and are accepted as-is. The burned cells are completed by a later pre-registered
-# repetition (W1 -> 40-42, W2 edgex -> 44, W2 tb -> 45, W3 tb -> 47, W3 fw -> 48,
-# W4 tb -> 37). See authorization/owner-w-matrix3-20261116e.json.
-ORDINALS = tuple(range(11, 37)) + (37, 40, 41, 42, 44, 45, 47, 48)
+# and are accepted as-is, as are 11-13 and 15-19. Ordinal 20 completed validly on
+# both servers but the workstation reboot at 2026-11-16T06:40Z destroyed the local
+# record before it was written, so its ID is spent and the W4/edgex cell takes its
+# pre-registered repetition 4 (39) instead. W2/thingsboard and W3/thingsboard lost
+# their only traffic-sending attempts to the pre-traffic CPU-snapshot defect, so
+# they take repetition 5 (53, 55). See authorization/owner-w-matrix3-20261116f.json.
+ORDINALS = tuple(range(21, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
