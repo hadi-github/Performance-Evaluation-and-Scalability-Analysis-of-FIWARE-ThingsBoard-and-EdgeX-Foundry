@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "receipt_id": "owner-w-matrix3-20261117a",
+  "scope_label": "w-matrix-finish-remaining-cells",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "Owner standing orders 2026-11-16/17: run autonomously until the queue finishes or a safety guard stops it; do not interrupt the driver or change benchmark, sink or chart code; 3 repetitions of every W1-W4 x platform cell; W4 qualification runs skipped; owner confirmed roughly three days of headroom. STATE AT 2026-11-17T08:20Z: the queue hit a hard stop at ordinal 45 because ordinal 44 (w2dp-ex-r04) leaked /run/iot-bench-workload.lock on the load host. Ordinal 44 itself ran fully valid traffic (22500/22500 sends and ACKs, 22500 sink rows, 22500 history rows, quiet interval passed, all sink health counters zero) but its analysis died in dispatch-integrity.py with 'scenario start metadata differs by more than 5 ms', so no dispatch-analysis.json was produced and the run is NOT_ASSESSED. That is an analysis/metadata defect, not a platform result, so W2/edgex takes its pre-registered r05 spare (ordinal 52). The stale lock was removed after confirming zero k6/benchctl/sink processes and an empty lock directory. Remaining pre-registered runs: W3/fiware r4+r5 (48,56), W2/edgex r5 (52), W3/thingsboard r4+r5 (47,55), W4/thingsboard r5 (60), W2/thingsboard r5 (53), W1/thingsboard r5 (51).",
+  "authorized_run_ids": [
+    "w1dp-tb-r05-20261108",
+    "w2dp-ex-r05-20261108",
+    "w2dp-tb-r05-20261108",
+    "w3dp-fw-r04-20261108",
+    "w3dp-fw-r05-20261108",
+    "w3dp-tb-r04-20261108",
+    "w3dp-tb-r05-20261108",
+    "w4dp-tb-r05-20261108"
+  ],
+  "counts_toward_proposed_attempts": true,
+  "attempt_kind": {
+    "w3dp-fw-r04-20261108": true,
+    "w3dp-fw-r05-20261108": true,
+    "w2dp-ex-r05-20261108": true,
+    "w3dp-tb-r04-20261108": true,
+    "w3dp-tb-r05-20261108": true,
+    "w4dp-tb-r05-20261108": true,
+    "w2dp-tb-r05-20261108": true,
+    "w1dp-tb-r05-20261108": true
+  },
+  "bindings_sha256": {
+    "scope": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
+    "run_matrix": "312a68fdf423588397be7cf592d0c6d29636c4e3239e64fb5701707ee49b1d8a",
+    "launcher": "33b94a31ba46a29cba05010baaac1f37f24455ed3908a4e84c6433879ba7c95d",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "c453526a709e2d48686f8683707c057f44083e3407dd3f9ac53eacf1343fe25d",
+    "variant_stager": "3985836616d033f22430b337aa2012dffe50366d5df81d5738168829f4c39a46",
+    "integrity": "32f26d2bb75249c2fe24b9bc44cc34db26ec4dce0dd5f955b33b0e749ae85a14",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "86d8683806e5ddaf78b2dfe84aeeb76beff81d46a1921f2064e67fe6e5915e2d",
+    "qualification_index_w1": "685c55022c81277eb979f94c2268ce89534914a14c3432a15859065f39423372",
+    "qualification_index_w2": "f671e0a41ddf3318fe7f59e9130961e028178c6c41f65cc5ac3730e610e5d645",
+    "qualification_index_w3": "590520dfb589391e3682846a3c7bdfc7e02a0624946d5f47270c07a4954c8035",
+    "qualification_index_w4": "f60402fa625dba32368e43f38edf0c37dadfafdde98667437bef230e0dfbcc32"
+  },
+  "authorized_plan_sha256": {
+    "w3dp-fw-r04-20261108": "9228bb7fcd4c49ad36dd801d21b2d9bdae94ea01c6ae57002df52d7e61ddf3ce",
+    "w3dp-fw-r05-20261108": "3814fdcacaac24da985849f9d28ec0b210afde5d2451d239c34e75b98bf57574",
+    "w2dp-ex-r05-20261108": "3b8241f98c4e1f4f55f7759ca496be0e032cca8451c77431d92f48e53c80bebb",
+    "w3dp-tb-r04-20261108": "53852c3df430568bb9afdadfab05e7c4a95ad50420a07aa59fc8a26c3310b17e",
+    "w3dp-tb-r05-20261108": "b3cd3aa5286e1e23476c1a41fe7402f2ecd1e1d519e8fe38923ac1f5222ac49e",
+    "w4dp-tb-r05-20261108": "791483917885382c5f96ccec66b58a88df3ddbfc27a93744606794afe4a8117d",
+    "w2dp-tb-r05-20261108": "f8077bae02745daf66ab643bab6bbab1ce14be52ff74d8cdbcecdfc95e6b9b77",
+    "w1dp-tb-r05-20261108": "8971dee86d461445ae2d963d0e5020560cdbe67da37c9bdcaef837a56fe142a1"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.15-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}

@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261116h'
+RECEIPT = 'owner-w-matrix3-20261117a'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -63,7 +63,16 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 # 22,500 acked, 0 missing) but lost its local record the same way ordinal 20 did, so
 # its ID is spent too. W3/fiware is completed by repetitions 2, 4 and 5
 # (17, 48, 56). See authorization/owner-w-matrix3-20261116h.json.
-ORDINALS = tuple(range(26, 37)) + (37, 39, 40, 41, 42, 44, 45, 47, 48, 53, 55, 56, 60)
+#
+# The queue then ran to ordinal 45, where it hit a hard stop: ordinal 44
+# (w2dp-ex-r04) ran fully valid traffic but leaked /run/iot-bench-workload.lock on
+# the load host, and its analysis died on a scenario-start metadata check, so it
+# produced no dispatch analysis. W2/edgex takes its r05 spare (52). See
+# authorization/owner-w-matrix3-20261117a.json and the stale-lock recovery below.
+#
+# Ordered so that the cells which a single run completes come first, and the two
+# ThingsBoard cells that are already out of pre-registered spares come last.
+ORDINALS = (48, 56, 52, 60, 47, 55, 53, 51)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
@@ -118,6 +127,46 @@ def ssh_sut(command, timeout=120):
     p = subprocess.run(['ssh', '-F', str(REPO / '.iotbench-ssh-config'), 'ramonavm2', command],
                        capture_output=True, text=True, timeout=timeout)
     return p.returncode, p.stdout, p.stderr
+
+
+def ssh_load(command, timeout=120):
+    """Run a command on the load host over the configured SSH alias."""
+    p = subprocess.run(['ssh', '-F', str(REPO / '.iotbench-ssh-config'), 'ramonavm1', command],
+                       capture_output=True, text=True, timeout=timeout)
+    return p.returncode, p.stdout, p.stderr
+
+
+# A workload that is killed rather than allowed to exit cleanly leaves
+# /run/iot-bench-workload.lock behind on the load host. The next launch then
+# refuses with 'load-host workload lock is present', which is a HARD_STOP, so one
+# leaked lock silently ends the whole campaign -- exactly what happened at ordinal
+# 44 on 2026-11-17. The lock is only meaningful while a workload process is alive,
+# so clear it only when every one of these holds:
+#   * the lock exists and is an empty directory (no ownership file inside),
+#   * no k6 / benchctl / sink process is running on the load host,
+#   * no run-capture.sh is still working on a run.
+# Anything else is left alone and stays a hard stop for a human to look at.
+LOCK_PROCS = ('k6', 'benchctl', 'sink')
+LOCK_SCRIPT_MARKER = 'run-capture.sh'
+
+
+def clear_stale_load_lock():
+    """Remove a leaked workload lock, but only when provably nobody owns it."""
+    rc, out, err = ssh_load(
+        'set -u; '
+        'if [ ! -d /run/iot-bench-workload.lock ]; then echo absent; exit 0; fi; '
+        'if [ -n "$(ls -A /run/iot-bench-workload.lock 2>/dev/null)" ]; then '
+        'echo nonempty; exit 0; fi; '
+        'procs=$(ps -eo comm= | grep -cE "^(k6|benchctl|sink)$" || true); '
+        'scripts=$(pgrep -fc "' + LOCK_SCRIPT_MARKER + '" || true); '
+        'echo "procs=${procs:-0} scripts=${scripts:-0}"; '
+        'if [ "${procs:-0}" -eq 0 ] && [ "${scripts:-0}" -eq 0 ]; then '
+        'rmdir /run/iot-bench-workload.lock && echo cleared || echo failed; '
+        'else echo busy; fi', timeout=120)
+    state = (out or '').strip().splitlines()
+    verdict = state[-1] if state else (err or '').strip()[-200:]
+    return {'exit': rc, 'state': verdict,
+            'detail': ' '.join(state[:-1])[-200:] if len(state) > 1 else ''}
 
 
 def repair_detached(platform):
@@ -265,6 +314,15 @@ def main():
         # logged and ignored.
         exp = switch_exporters(plat)
         append(args.log, {'event': 'exporters', **exp})
+
+        # A killed workload leaves its lock behind and the launcher then refuses,
+        # which would end the campaign. Clear it only when provably unowned.
+        lock = clear_stale_load_lock()
+        append(args.log, {'event': 'load-lock', **lock})
+        if lock['state'] == 'cleared':
+            print('  cleared a leaked load-host workload lock (no workload alive)')
+        elif lock['state'] in ('busy', 'nonempty'):
+            print(f"  load-host lock is {lock['state']}; leaving it for inspection")
 
         print(f'\n=== ordinal {ordinal}: launching {rid} ({plat}) ===')
         rc, out, err, secs = run(
