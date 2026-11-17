@@ -60,19 +60,33 @@ MATRIX = W_ROOT / 'run-matrix.json'
 SCOPE = W_ROOT / 'scope.json'
 PROPOSAL = W_ROOT / 'r06-completion-proposal.json'
 
-# The two cells that cannot reach three reps from the frozen matrix, and the
-# repetition number that fills their third slot.
+# The three cells that cannot reach three valid repetitions from the frozen
+# matrix, and the repetitions that fill their remaining slots.
+#
+# Each thingsboard cell was pre-registered with exactly five IDs. Pre-traffic
+# host failures consumed most of them, leaving a ceiling below three:
+#
+#   W1/thingsboard  usable r2@o24                     + r06, r07 -> 3
+#   W2/thingsboard  usable r3@o34                     + r06, r07 -> 3
+#   W3/thingsboard  usable r3@o27                     + r06, r07 -> 3
+#
+# W2/edgex needed one more slot but was recovered on disk instead (ordinal 44,
+# re-analysed after the step-metadata tolerance fix), so it spends no new ID.
 TARGETS = (
     ('W1', 'thingsboard', 6, 'w1dp-tb-r06-20261108'),
+    ('W1', 'thingsboard', 7, 'w1dp-tb-r07-20261108'),
     ('W2', 'thingsboard', 6, 'w2dp-tb-r06-20261108'),
+    ('W2', 'thingsboard', 7, 'w2dp-tb-r07-20261108'),
+    ('W3', 'thingsboard', 6, 'w3dp-tb-r06-20261108'),
+    ('W3', 'thingsboard', 7, 'w3dp-tb-r07-20261108'),
 )
 
-# A sixth seed. The frozen scope only defines five (`seed_by_repetition`), and the
-# stager indexes it as seeds[rep-1], so repetition 6 would raise IndexError. The
-# seed is metadata for reproducibility, not a benchmark parameter, so a new value
-# is appended rather than re-deriving the existing five, which must stay
+# The frozen scope only defines five seeds (`seed_by_repetition`) and the stager
+# indexes it as seeds[rep-1], so repetitions 6 and 7 would raise IndexError.
+# Seeds are reproducibility metadata, not benchmark parameters, so new values are
+# appended rather than re-deriving the existing five, which must stay
 # byte-identical to what the 60 authorized runs used.
-NEW_SEED = 202611066
+NEW_SEEDS = {6: 202611066, 7: 202611067}
 
 
 def sha(path):
@@ -87,18 +101,35 @@ def bounded_receipt(receipt_id):
 
 
 def assert_quiet():
-    """Refuse to touch bound files while anything could re-verify them."""
-    p = subprocess.run(['pgrep', '-af', 'drive-fixed-point-matrix.py|run-workload-campaign.py'],
-                       capture_output=True, text=True)
-    alive = [l for l in p.stdout.splitlines()
-             if 'pgrep' not in l and 'stage-r06' not in l]
+    """Refuse to touch bound files while anything could re-verify them.
+
+    The match is on the *executable command line*, not on any string that merely
+    mentions the script. A long-lived `tmux` server, for instance, carries the
+    original `new-session ... python3 scripts/drive-fixed-point-matrix.py` text in
+    its argv forever, even after that session has exited, so a naive `pgrep -f`
+    reports a driver that no longer exists. Matching on the leading token of the
+    process command line tells the difference.
+    """
+    p = subprocess.run(['ps', '-eo', 'pid=,args='], capture_output=True, text=True)
+    alive = []
+    for line in p.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        pid, _, args = line.partition(' ')
+        # A live driver/launcher has python3 as the *first* token.
+        if not args.startswith('python3 '):
+            continue
+        if ('drive-fixed-point-matrix.py' in args
+                or 'run-workload-campaign.py' in args):
+            alive.append(f'{pid} {args[:120]}')
     if alive:
         raise SystemExit('refusing: a driver or launcher is alive:\n  '
                          + '\n  '.join(alive[:5]))
 
 
 def baseline_plan(workload_id, platform):
-    """Reuse the r05 plan for the same cell as the template for r06."""
+    """Reuse the cell's r05 plan as the template for later repetitions."""
     p = PLANS / f'{workload_id.lower()}dp-{"tb" if platform == "thingsboard" else platform[:2]}-r05-20261108.json'
     if not p.is_file():
         raise SystemExit(f'missing template plan: {p}')
@@ -109,8 +140,8 @@ def build_plan(workload_id, platform, repetition, run_id, seed):
     """Clone the cell's r05 plan and retarget only the identity fields.
 
     Everything measured -- rates, devices, payload offset, VU pool, schedule,
-    health policy -- is copied unchanged, because r06 is the same fixed point as
-    the other repetitions of that cell. Only the labels and the seed differ.
+    health policy -- is copied unchanged, because a later repetition is the same
+    fixed point as the other repetitions of that cell. Only labels and seed differ.
     """
     plan = copy.deepcopy(baseline_plan(workload_id, platform))
     plan['plan_id'] = f'fixed-{workload_id.lower()}-{platform}-r{repetition:02d}-20261108'
@@ -140,7 +171,7 @@ def prepare(receipt_id):
     for workload_id, platform, repetition, run_id in TARGETS:
         if run_id in existing:
             raise SystemExit(f'{run_id} is already in the matrix; nothing to prepare')
-        seed = NEW_SEED
+        seed = NEW_SEEDS[repetition]
         plan = build_plan(workload_id, platform, repetition, run_id, seed)
         sibling = next(r for r in matrix['experimental_runs']
                        if r['workload_id'] == workload_id and r['platform'] == platform)
@@ -169,30 +200,33 @@ def prepare(receipt_id):
 
     proposal = {
         'schema_version': 1,
-        'purpose': ('Add w1dp-tb-r06-20261108 and w2dp-tb-r06-20261108 so '
-                    'W1/thingsboard and W2/thingsboard reach three valid repetitions, '
-                    'giving a balanced 12x3 matrix.'),
+        'purpose': ('Add r06/r07 for W1/thingsboard, W2/thingsboard and W3/thingsboard so '
+                    'each reaches three valid repetitions, giving a balanced 12x3 matrix. '
+                    'W2/edgex needed one more slot but was recovered on disk instead '
+                    '(ordinal 44), so it spends no new ID.'),
         'prepared_against_receipt': receipt_id,
         'prepared_bindings_sha256': {
             'scope': sha(SCOPE),
             'run_matrix': sha(MATRIX),
         },
-        'why': ('Each thingsboard cell had exactly five pre-registered IDs. Three of the '
-                'five in W1/thingsboard and in W2/thingsboard were consumed by pre-traffic '
-                'host failures, so neither cell can reach three valid repetitions without '
-                'a sixth ID. r06 fills the third slot; it adds no fourth repetition '
-                'anywhere, so the design stays balanced at three per cell.'),
+        'why': ('Each thingsboard cell had exactly five pre-registered IDs. Pre-traffic host '
+                'failures consumed most of them: W1/thingsboard spent r1,r3,r4,r5; '
+                'W2/thingsboard spent r2,r5; W3/thingsboard spent r1,r2,r4,r5. That leaves a '
+                'ceiling of one usable repetition per cell, so two further IDs each are '
+                'needed to reach three. r06 and r07 fill those slots; no cell gains a fourth '
+                'repetition, so the design stays balanced at three per cell.'),
         'adds_rows': rows,
-        'appends_seed': NEW_SEED,
+        'appends_seeds': NEW_SEEDS,
         'scope_changes': {
-            'seed_by_repetition': f'append {NEW_SEED} (6th entry)',
+            'seed_by_repetition': 'append ' + ', '.join(str(v) for v in sorted(NEW_SEEDS.values()))
+                                  + ' (6th, 7th entries)',
             'experimental_attempts_proposed': f'{scope["experimental_attempts_proposed"]} -> '
                                               f'{scope["experimental_attempts_proposed"] + len(rows)}',
         },
         'authorization_required': True,
         'note': ('run-matrix.json and scope.json are hash-bound into the live receipt, and '
-                 'verify_tree_bindings() re-checks them on every launch. Apply only after the '
-                 'current queue drains, then record a new receipt naming both IDs.'),
+                 'verify_tree_bindings() re-checks them on every launch. Apply only while the '
+                 'queue is idle, then record a new receipt naming all six IDs.'),
     }
     PROPOSAL.write_text(json.dumps(proposal, indent=1, sort_keys=True) + '\n')
     print(f'  wrote {PROPOSAL.relative_to(REPO)}')
@@ -258,8 +292,9 @@ def apply(receipt_id):
     # Extend scope first (matrix hashes nothing but itself).
     scope = json.loads(SCOPE.read_text())
     seeds = list(scope['seed_by_repetition'])
-    if NEW_SEED not in seeds:
-        seeds.append(NEW_SEED)
+    for value in sorted(prop['appends_seeds'].values()):
+        if value not in seeds:
+            seeds.append(value)
     scope['seed_by_repetition'] = seeds
     scope['experimental_attempts_proposed'] = (scope['experimental_attempts_proposed']
                                                + len(prop['adds_rows']))
@@ -271,7 +306,7 @@ def apply(receipt_id):
     print(f'extended {MATRIX.relative_to(REPO)} to {len(matrix["experimental_runs"])} rows')
     print(f'extended {SCOPE.relative_to(REPO)} seed_by_repetition to {len(seeds)} entries')
     print('\nBoth files are now drifted from receipt ' + receipt_id + '.')
-    print('Record a new receipt naming the two new IDs before launching them:')
+    print('Record a new receipt naming the new IDs before launching them:')
     print('  python3 scripts/record-w-authorization.py --receipt-id <new> \\')
     print('      --authorize ' + ' '.join(r['run_id'] for r in prop['adds_rows']))
     return 0

@@ -1,1544 +1,1700 @@
 {
-  "schema_version": 1,
-  "batch_id": "fixed-points-w1-w4-20261108",
-  "scope_sha256": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
-  "status": "PROPOSED_NOT_LAUNCH_CLEARED",
-  "experimental_runs": [
-    {
-      "ordinal": 1,
-      "workload_id": "W1",
-      "platform": "thingsboard",
-      "repetition": 1,
-      "run_id": "w1dp-tb-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w1dp-tb-r01-20261108.json",
-      "plan_sha256": "89337eb69dff12d323fe3d07f194153c04aa8ea87ee6aea3a82c422f5ae2a7df",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 2,
-      "workload_id": "W1",
-      "platform": "fiware",
-      "repetition": 1,
-      "run_id": "w1dp-fw-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w1dp-fw-r01-20261108.json",
-      "plan_sha256": "e15c77835d5e89a28299f5e8b88646896384c79210217b3c39032e243b3c3bc4",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 3,
-      "workload_id": "W1",
-      "platform": "edgex",
-      "repetition": 1,
-      "run_id": "w1dp-ex-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w1dp-ex-r01-20261108.json",
-      "plan_sha256": "7524cd684497339523fcd6e50c8f5aea9d09d1a62672bfa85f54924d7db2ebcc",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 4,
-      "workload_id": "W2",
-      "platform": "fiware",
-      "repetition": 1,
-      "run_id": "w2dp-fw-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w2dp-fw-r01-20261108.json",
-      "plan_sha256": "389e8b75e80e414cbf99ea83e2b6a16b9c0eafbec93f62f566ebfac9de39ff28",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 5,
-      "workload_id": "W2",
-      "platform": "edgex",
-      "repetition": 1,
-      "run_id": "w2dp-ex-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w2dp-ex-r01-20261108.json",
-      "plan_sha256": "30daab28296f0ba9a277747d8ae3464d1f899ff3498d9ec0609479926f1107e5",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 6,
-      "workload_id": "W2",
-      "platform": "thingsboard",
-      "repetition": 1,
-      "run_id": "w2dp-tb-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w2dp-tb-r01-20261108.json",
-      "plan_sha256": "264f96461d1ce88c806022d45315196b6dc3ea38a5632f62048ea93572a94465",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 7,
-      "workload_id": "W3",
-      "platform": "edgex",
-      "repetition": 1,
-      "run_id": "w3dp-ex-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w3dp-ex-r01-20261108.json",
-      "plan_sha256": "152f3ac800003d39626f2ee7eaa217b6c5442155e72c9cbc285837bd1d1e0249",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 8,
-      "workload_id": "W3",
-      "platform": "thingsboard",
-      "repetition": 1,
-      "run_id": "w3dp-tb-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w3dp-tb-r01-20261108.json",
-      "plan_sha256": "63c06331c2161f2f993e42e2daeb2f6142031e11da13acd90085f266ceae8d0d",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 9,
-      "workload_id": "W3",
-      "platform": "fiware",
-      "repetition": 1,
-      "run_id": "w3dp-fw-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w3dp-fw-r01-20261108.json",
-      "plan_sha256": "b3e2c9a82978b1d85bef8e03fcc9ff6a013c6190aa9e8ac4849b5a09ae9af76b",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 10,
-      "workload_id": "W4",
-      "platform": "thingsboard",
-      "repetition": 1,
-      "run_id": "w4dp-tb-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w4dp-tb-r01-20261108.json",
-      "plan_sha256": "17426bb67e67b100da91604cb93f78f72557d9ef24a878a10bb93dcf331a8f55",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 11,
-      "workload_id": "W4",
-      "platform": "fiware",
-      "repetition": 1,
-      "run_id": "w4dp-fw-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w4dp-fw-r01-20261108.json",
-      "plan_sha256": "bf8de16897c18359f892cd64ec472af03c112e764f64aa7ed68cdcf0c8767706",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 12,
-      "workload_id": "W4",
-      "platform": "edgex",
-      "repetition": 1,
-      "run_id": "w4dp-ex-r01-20261108",
-      "seed": 202611061,
-      "plan": "plans/w4dp-ex-r01-20261108.json",
-      "plan_sha256": "04760a635aaca81f71e60ccdb15108c7805398d3a7009a9b690204f142d45567",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 13,
-      "workload_id": "W2",
-      "platform": "edgex",
-      "repetition": 2,
-      "run_id": "w2dp-ex-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w2dp-ex-r02-20261108.json",
-      "plan_sha256": "d61fac19b219cc7fee21f8eb1dc8c541f6914fa5d38319c6691753b974c0a591",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 14,
-      "workload_id": "W2",
-      "platform": "thingsboard",
-      "repetition": 2,
-      "run_id": "w2dp-tb-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w2dp-tb-r02-20261108.json",
-      "plan_sha256": "262a4283c2c3ee4a12edee0bec55bb0934daa3738f8525bcdbc2d88fa65faef4",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 15,
-      "workload_id": "W2",
-      "platform": "fiware",
-      "repetition": 2,
-      "run_id": "w2dp-fw-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w2dp-fw-r02-20261108.json",
-      "plan_sha256": "c535be0a508efac4cf4932457cb9b27613ff528aa783ff2abc40b4b13036a63c",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 16,
-      "workload_id": "W3",
-      "platform": "thingsboard",
-      "repetition": 2,
-      "run_id": "w3dp-tb-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w3dp-tb-r02-20261108.json",
-      "plan_sha256": "934289b7a4efa28e87215a349e6f829b042619143505694b9210a7e46ffa285e",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 17,
-      "workload_id": "W3",
-      "platform": "fiware",
-      "repetition": 2,
-      "run_id": "w3dp-fw-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w3dp-fw-r02-20261108.json",
-      "plan_sha256": "7ae743a9ec3ffec658917b6233cfbff5fa45fd9a1a7f2ac35c355d8082eb2cad",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 18,
-      "workload_id": "W3",
-      "platform": "edgex",
-      "repetition": 2,
-      "run_id": "w3dp-ex-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w3dp-ex-r02-20261108.json",
-      "plan_sha256": "423ea710bf386572319f6ff89cb66b47cb9fc6b42c8cfc185b6de5927eda9b17",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 19,
-      "workload_id": "W4",
-      "platform": "fiware",
-      "repetition": 2,
-      "run_id": "w4dp-fw-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w4dp-fw-r02-20261108.json",
-      "plan_sha256": "250fba84311e99ab853f340c3f9d9714d7cf351f099875be3afd4d58f912f7ff",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 20,
-      "workload_id": "W4",
-      "platform": "edgex",
-      "repetition": 2,
-      "run_id": "w4dp-ex-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w4dp-ex-r02-20261108.json",
-      "plan_sha256": "a4a62e49dd62ad4af297ac7bcf400727f37d19f8a2372e37065903fec3002eea",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 21,
-      "workload_id": "W4",
-      "platform": "thingsboard",
-      "repetition": 2,
-      "run_id": "w4dp-tb-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w4dp-tb-r02-20261108.json",
-      "plan_sha256": "773db36d9479284fe380b5dcead8bbe9a6f1bd5f664effb91c47298ccda2d2b0",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 22,
-      "workload_id": "W1",
-      "platform": "fiware",
-      "repetition": 2,
-      "run_id": "w1dp-fw-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w1dp-fw-r02-20261108.json",
-      "plan_sha256": "fe522c2ade152e9f263c47d3b416d3433b8dbaa71cae84b2ec8e62bc61518d6d",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 23,
-      "workload_id": "W1",
-      "platform": "edgex",
-      "repetition": 2,
-      "run_id": "w1dp-ex-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w1dp-ex-r02-20261108.json",
-      "plan_sha256": "ac9d97da22afe36608570aa5e8130c45256093ecc3e097e0fe352489fd9c687d",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 24,
-      "workload_id": "W1",
-      "platform": "thingsboard",
-      "repetition": 2,
-      "run_id": "w1dp-tb-r02-20261108",
-      "seed": 202611062,
-      "plan": "plans/w1dp-tb-r02-20261108.json",
-      "plan_sha256": "be6e5e53d5ae6ad70c17c0f007a74cc405fe37750e98cf843d5b744b58059952",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 25,
-      "workload_id": "W3",
-      "platform": "fiware",
-      "repetition": 3,
-      "run_id": "w3dp-fw-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w3dp-fw-r03-20261108.json",
-      "plan_sha256": "c77ab1363b65357f5a56ba167fb03810a86356089484670209827637e5b7e3d5",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 26,
-      "workload_id": "W3",
-      "platform": "edgex",
-      "repetition": 3,
-      "run_id": "w3dp-ex-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w3dp-ex-r03-20261108.json",
-      "plan_sha256": "4568540f201540f3a12ed8de445dbe632175fff3f42e9468a7eef3434a992f17",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 27,
-      "workload_id": "W3",
-      "platform": "thingsboard",
-      "repetition": 3,
-      "run_id": "w3dp-tb-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w3dp-tb-r03-20261108.json",
-      "plan_sha256": "9472a7215416491986119410e34536c5b24ecad4d09f8b3ddfa5c8c1a769a46a",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 28,
-      "workload_id": "W4",
-      "platform": "edgex",
-      "repetition": 3,
-      "run_id": "w4dp-ex-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w4dp-ex-r03-20261108.json",
-      "plan_sha256": "9c1a42427502a17765230f5c474f058aee274deaee7f98dfdc839de61cef17b9",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 29,
-      "workload_id": "W4",
-      "platform": "thingsboard",
-      "repetition": 3,
-      "run_id": "w4dp-tb-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w4dp-tb-r03-20261108.json",
-      "plan_sha256": "ba121773d998b3fa6b900e248445687cf6d86807063e91a9586a16304bde0b6b",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 30,
-      "workload_id": "W4",
-      "platform": "fiware",
-      "repetition": 3,
-      "run_id": "w4dp-fw-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w4dp-fw-r03-20261108.json",
-      "plan_sha256": "e034fd7b6ba24a7dd7fe3787bcf02322264ee2a617f1558e2bb57da2c03d75e9",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 31,
-      "workload_id": "W1",
-      "platform": "edgex",
-      "repetition": 3,
-      "run_id": "w1dp-ex-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w1dp-ex-r03-20261108.json",
-      "plan_sha256": "2be935e48abe9b65c78e5cf0298f10f11959b0d4e1c8a57680e6ed621bbea264",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 32,
-      "workload_id": "W1",
-      "platform": "thingsboard",
-      "repetition": 3,
-      "run_id": "w1dp-tb-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w1dp-tb-r03-20261108.json",
-      "plan_sha256": "929216f24e6361938c5499afb0b2d72fbe40d124bd4b590346dba99dbf4c07cb",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 33,
-      "workload_id": "W1",
-      "platform": "fiware",
-      "repetition": 3,
-      "run_id": "w1dp-fw-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w1dp-fw-r03-20261108.json",
-      "plan_sha256": "0424ced746a384bead3e441fbd47e579abfe3566489cc950008ea10663d7e65b",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 34,
-      "workload_id": "W2",
-      "platform": "thingsboard",
-      "repetition": 3,
-      "run_id": "w2dp-tb-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w2dp-tb-r03-20261108.json",
-      "plan_sha256": "e313d21157f6d897b7e8d85794af9da7ff3647a8b840bf31c3a7920502f036cb",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 35,
-      "workload_id": "W2",
-      "platform": "fiware",
-      "repetition": 3,
-      "run_id": "w2dp-fw-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w2dp-fw-r03-20261108.json",
-      "plan_sha256": "1da26500cc234863232cc5e2334f02057e3e225480a73718b4d132ca48578e35",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 36,
-      "workload_id": "W2",
-      "platform": "edgex",
-      "repetition": 3,
-      "run_id": "w2dp-ex-r03-20261108",
-      "seed": 202611063,
-      "plan": "plans/w2dp-ex-r03-20261108.json",
-      "plan_sha256": "e986816aaea9fa285d75929679c5c2b1f78b260628713bdacbcd4466b45ac7de",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 37,
-      "workload_id": "W4",
-      "platform": "thingsboard",
-      "repetition": 4,
-      "run_id": "w4dp-tb-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w4dp-tb-r04-20261108.json",
-      "plan_sha256": "e515393dd65f93a2cd67810995e1e435f73f4bbc0270c6d2a77da8c4c1a9ab8d",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 38,
-      "workload_id": "W4",
-      "platform": "fiware",
-      "repetition": 4,
-      "run_id": "w4dp-fw-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w4dp-fw-r04-20261108.json",
-      "plan_sha256": "487c0dcbd0adff77a96e38ead8d2375787d5e41f6a54e44d81bc351c64c90417",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 39,
-      "workload_id": "W4",
-      "platform": "edgex",
-      "repetition": 4,
-      "run_id": "w4dp-ex-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w4dp-ex-r04-20261108.json",
-      "plan_sha256": "a8f5071f2ad86e3b9077c9f57cf66b878f602f8065d115db781859814da5fd38",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 40,
-      "workload_id": "W1",
-      "platform": "thingsboard",
-      "repetition": 4,
-      "run_id": "w1dp-tb-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w1dp-tb-r04-20261108.json",
-      "plan_sha256": "26fd2ea1d640ae0ac260d729b4dfa329297e9fc972f90c3cc607c7bccd67dac7",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 41,
-      "workload_id": "W1",
-      "platform": "fiware",
-      "repetition": 4,
-      "run_id": "w1dp-fw-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w1dp-fw-r04-20261108.json",
-      "plan_sha256": "ebeab8036a57bbc28681569ebdf8340f3b5ef3bde691b4d4a5c559e15df2148e",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 42,
-      "workload_id": "W1",
-      "platform": "edgex",
-      "repetition": 4,
-      "run_id": "w1dp-ex-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w1dp-ex-r04-20261108.json",
-      "plan_sha256": "46f83a05524bdae3846e8fb1fa0359f035e2bff584b7aae7f8ac7656fbac1944",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 43,
-      "workload_id": "W2",
-      "platform": "fiware",
-      "repetition": 4,
-      "run_id": "w2dp-fw-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w2dp-fw-r04-20261108.json",
-      "plan_sha256": "6868ee358106e1ec3cdcc11d858c04d9761781c003eee0b185061e94902f0a19",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 44,
-      "workload_id": "W2",
-      "platform": "edgex",
-      "repetition": 4,
-      "run_id": "w2dp-ex-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w2dp-ex-r04-20261108.json",
-      "plan_sha256": "967e9810269a882c92fccc707b26d9bbd7434f3d162bf52759e5b865294b38e0",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 45,
-      "workload_id": "W2",
-      "platform": "thingsboard",
-      "repetition": 4,
-      "run_id": "w2dp-tb-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w2dp-tb-r04-20261108.json",
-      "plan_sha256": "d6ca5533f81de7734821c2c4362d9792fa7d59617431cf39616a633e222b24d1",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 46,
-      "workload_id": "W3",
-      "platform": "edgex",
-      "repetition": 4,
-      "run_id": "w3dp-ex-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w3dp-ex-r04-20261108.json",
-      "plan_sha256": "a5ca42d1a7e844c3246ec95fe3c29fe830f59102598c00cd89f28e7f03874bc2",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 47,
-      "workload_id": "W3",
-      "platform": "thingsboard",
-      "repetition": 4,
-      "run_id": "w3dp-tb-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w3dp-tb-r04-20261108.json",
-      "plan_sha256": "53852c3df430568bb9afdadfab05e7c4a95ad50420a07aa59fc8a26c3310b17e",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 48,
-      "workload_id": "W3",
-      "platform": "fiware",
-      "repetition": 4,
-      "run_id": "w3dp-fw-r04-20261108",
-      "seed": 202611064,
-      "plan": "plans/w3dp-fw-r04-20261108.json",
-      "plan_sha256": "9228bb7fcd4c49ad36dd801d21b2d9bdae94ea01c6ae57002df52d7e61ddf3ce",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 49,
-      "workload_id": "W1",
-      "platform": "fiware",
-      "repetition": 5,
-      "run_id": "w1dp-fw-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w1dp-fw-r05-20261108.json",
-      "plan_sha256": "5d869d732ead09aca83ebacf00b549ce8d7b25baa62aa5fc6b633abf655c465f",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 50,
-      "workload_id": "W1",
-      "platform": "edgex",
-      "repetition": 5,
-      "run_id": "w1dp-ex-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w1dp-ex-r05-20261108.json",
-      "plan_sha256": "004530bcb261c1ea8619680682b69efecc167dc59d10979ec77bb711a203f766",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 51,
-      "workload_id": "W1",
-      "platform": "thingsboard",
-      "repetition": 5,
-      "run_id": "w1dp-tb-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w1dp-tb-r05-20261108.json",
-      "plan_sha256": "8971dee86d461445ae2d963d0e5020560cdbe67da37c9bdcaef837a56fe142a1",
-      "expected_warmup_messages": 15000,
-      "expected_measurement_messages": 30000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 52,
-      "workload_id": "W2",
-      "platform": "edgex",
-      "repetition": 5,
-      "run_id": "w2dp-ex-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w2dp-ex-r05-20261108.json",
-      "plan_sha256": "3b8241f98c4e1f4f55f7759ca496be0e032cca8451c77431d92f48e53c80bebb",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 53,
-      "workload_id": "W2",
-      "platform": "thingsboard",
-      "repetition": 5,
-      "run_id": "w2dp-tb-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w2dp-tb-r05-20261108.json",
-      "plan_sha256": "f8077bae02745daf66ab643bab6bbab1ce14be52ff74d8cdbcecdfc95e6b9b77",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 54,
-      "workload_id": "W2",
-      "platform": "fiware",
-      "repetition": 5,
-      "run_id": "w2dp-fw-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w2dp-fw-r05-20261108.json",
-      "plan_sha256": "f763b2be8f404cfb75df44a8d7441a83fc44eb78147219e04747637483548951",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 55,
-      "workload_id": "W3",
-      "platform": "thingsboard",
-      "repetition": 5,
-      "run_id": "w3dp-tb-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w3dp-tb-r05-20261108.json",
-      "plan_sha256": "b3cd3aa5286e1e23476c1a41fe7402f2ecd1e1d519e8fe38923ac1f5222ac49e",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 56,
-      "workload_id": "W3",
-      "platform": "fiware",
-      "repetition": 5,
-      "run_id": "w3dp-fw-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w3dp-fw-r05-20261108.json",
-      "plan_sha256": "3814fdcacaac24da985849f9d28ec0b210afde5d2451d239c34e75b98bf57574",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 57,
-      "workload_id": "W3",
-      "platform": "edgex",
-      "repetition": 5,
-      "run_id": "w3dp-ex-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w3dp-ex-r05-20261108.json",
-      "plan_sha256": "f2720fa7818b5253b2c76a565667dc04d52cab762a84706b81958b23a65ff5f7",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 2,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 58,
-      "workload_id": "W4",
-      "platform": "fiware",
-      "repetition": 5,
-      "run_id": "w4dp-fw-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w4dp-fw-r05-20261108.json",
-      "plan_sha256": "cbf6543943060e5eac9a3e35e6886b4465bde0de83e067fb48d9bddec7c0bbf2",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "orion",
-          "iot-agent"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 59,
-      "workload_id": "W4",
-      "platform": "edgex",
-      "repetition": 5,
-      "run_id": "w4dp-ex-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w4dp-ex-r05-20261108.json",
-      "plan_sha256": "645bd9dd55e3da902c12c482a459e2a3f83b424e48b8c87bdbc4f68635b9fa94",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "core-data",
-          "device-rest"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    },
-    {
-      "ordinal": 60,
-      "workload_id": "W4",
-      "platform": "thingsboard",
-      "repetition": 5,
-      "run_id": "w4dp-tb-r05-20261108",
-      "seed": 202611065,
-      "plan": "plans/w4dp-tb-r05-20261108.json",
-      "plan_sha256": "791483917885382c5f96ccec66b58a88df3ddbfc27a93744606794afe4a8117d",
-      "expected_warmup_messages": 7500,
-      "expected_measurement_messages": 15000,
-      "deployment": {
-        "replicas_per_replicated_service": 1,
-        "replicated_services": [
-          "tb-core",
-          "tb-rule-engine",
-          "tb-http-transport"
-        ],
-        "application_cpu_pool": "4-5",
-        "application_cpu_budget_k": 2,
-        "same_haproxy_ingress": true,
-        "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
-        "supporting_tiers": "unchanged; retain actual resources and reused database state"
-      },
-      "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE"
-    }
-  ],
-  "pool_policy_revision": {
-    "revision": "2026-11-10-generator-pool-v2",
-    "decided_by": "owner instruction to raise the pool when the limit is a framework artifact rather than a platform limit",
-    "supersedes": "fixed 150/150 VUs per scenario (dispatch-integrity-v1)",
-    "change": "generator pool is derived from rate x timeout with 10% headroom, rounded up to 50",
-    "scope": "generator concurrency only; no platform-side resource or deployment setting changes",
-    "b0_impact": "none - the rule reproduces 150 at 25/s, so every B0 cell and every W2/W3/W4 cell is pool-identical",
-    "w1_impact": "W1 50/s moves 150 -> 300; this is the pool W1 always required (rate x timeout = 250)",
-    "evidence": [
-      "ThingsBoard qualification w1-qual-tb-20261110c recorded implied_in_flight_at_p99 = 243 against a 150 pool",
-      "the same run needed ~11 VUs in measurement once warm, and dropped nothing there",
-      "FIWARE qualification w1-qual-fw-20261110c dropped only during a 30 s latency stall, not at steady state",
-      "B0 peak was 125 (ThingsBoard) and 16 (FIWARE) at 25/s, so the 150 cap never bound any B0 cell"
+ "batch_id": "fixed-points-w1-w4-20261108",
+ "experimental_runs": [
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
     ],
-    "not_claimed": "This is not a platform capacity claim and does not authorize a throughput claim above the fixed points."
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 1,
+   "plan": "plans/w1dp-tb-r01-20261108.json",
+   "plan_sha256": "89337eb69dff12d323fe3d07f194153c04aa8ea87ee6aea3a82c422f5ae2a7df",
+   "platform": "thingsboard",
+   "repetition": 1,
+   "run_id": "w1dp-tb-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 2,
+   "plan": "plans/w1dp-fw-r01-20261108.json",
+   "plan_sha256": "e15c77835d5e89a28299f5e8b88646896384c79210217b3c39032e243b3c3bc4",
+   "platform": "fiware",
+   "repetition": 1,
+   "run_id": "w1dp-fw-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 3,
+   "plan": "plans/w1dp-ex-r01-20261108.json",
+   "plan_sha256": "7524cd684497339523fcd6e50c8f5aea9d09d1a62672bfa85f54924d7db2ebcc",
+   "platform": "edgex",
+   "repetition": 1,
+   "run_id": "w1dp-ex-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 4,
+   "plan": "plans/w2dp-fw-r01-20261108.json",
+   "plan_sha256": "389e8b75e80e414cbf99ea83e2b6a16b9c0eafbec93f62f566ebfac9de39ff28",
+   "platform": "fiware",
+   "repetition": 1,
+   "run_id": "w2dp-fw-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 5,
+   "plan": "plans/w2dp-ex-r01-20261108.json",
+   "plan_sha256": "30daab28296f0ba9a277747d8ae3464d1f899ff3498d9ec0609479926f1107e5",
+   "platform": "edgex",
+   "repetition": 1,
+   "run_id": "w2dp-ex-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 6,
+   "plan": "plans/w2dp-tb-r01-20261108.json",
+   "plan_sha256": "264f96461d1ce88c806022d45315196b6dc3ea38a5632f62048ea93572a94465",
+   "platform": "thingsboard",
+   "repetition": 1,
+   "run_id": "w2dp-tb-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 7,
+   "plan": "plans/w3dp-ex-r01-20261108.json",
+   "plan_sha256": "152f3ac800003d39626f2ee7eaa217b6c5442155e72c9cbc285837bd1d1e0249",
+   "platform": "edgex",
+   "repetition": 1,
+   "run_id": "w3dp-ex-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 8,
+   "plan": "plans/w3dp-tb-r01-20261108.json",
+   "plan_sha256": "63c06331c2161f2f993e42e2daeb2f6142031e11da13acd90085f266ceae8d0d",
+   "platform": "thingsboard",
+   "repetition": 1,
+   "run_id": "w3dp-tb-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 9,
+   "plan": "plans/w3dp-fw-r01-20261108.json",
+   "plan_sha256": "b3e2c9a82978b1d85bef8e03fcc9ff6a013c6190aa9e8ac4849b5a09ae9af76b",
+   "platform": "fiware",
+   "repetition": 1,
+   "run_id": "w3dp-fw-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 10,
+   "plan": "plans/w4dp-tb-r01-20261108.json",
+   "plan_sha256": "17426bb67e67b100da91604cb93f78f72557d9ef24a878a10bb93dcf331a8f55",
+   "platform": "thingsboard",
+   "repetition": 1,
+   "run_id": "w4dp-tb-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 11,
+   "plan": "plans/w4dp-fw-r01-20261108.json",
+   "plan_sha256": "bf8de16897c18359f892cd64ec472af03c112e764f64aa7ed68cdcf0c8767706",
+   "platform": "fiware",
+   "repetition": 1,
+   "run_id": "w4dp-fw-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 12,
+   "plan": "plans/w4dp-ex-r01-20261108.json",
+   "plan_sha256": "04760a635aaca81f71e60ccdb15108c7805398d3a7009a9b690204f142d45567",
+   "platform": "edgex",
+   "repetition": 1,
+   "run_id": "w4dp-ex-r01-20261108",
+   "seed": 202611061,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 13,
+   "plan": "plans/w2dp-ex-r02-20261108.json",
+   "plan_sha256": "d61fac19b219cc7fee21f8eb1dc8c541f6914fa5d38319c6691753b974c0a591",
+   "platform": "edgex",
+   "repetition": 2,
+   "run_id": "w2dp-ex-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 14,
+   "plan": "plans/w2dp-tb-r02-20261108.json",
+   "plan_sha256": "262a4283c2c3ee4a12edee0bec55bb0934daa3738f8525bcdbc2d88fa65faef4",
+   "platform": "thingsboard",
+   "repetition": 2,
+   "run_id": "w2dp-tb-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 15,
+   "plan": "plans/w2dp-fw-r02-20261108.json",
+   "plan_sha256": "c535be0a508efac4cf4932457cb9b27613ff528aa783ff2abc40b4b13036a63c",
+   "platform": "fiware",
+   "repetition": 2,
+   "run_id": "w2dp-fw-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 16,
+   "plan": "plans/w3dp-tb-r02-20261108.json",
+   "plan_sha256": "934289b7a4efa28e87215a349e6f829b042619143505694b9210a7e46ffa285e",
+   "platform": "thingsboard",
+   "repetition": 2,
+   "run_id": "w3dp-tb-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 17,
+   "plan": "plans/w3dp-fw-r02-20261108.json",
+   "plan_sha256": "7ae743a9ec3ffec658917b6233cfbff5fa45fd9a1a7f2ac35c355d8082eb2cad",
+   "platform": "fiware",
+   "repetition": 2,
+   "run_id": "w3dp-fw-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 18,
+   "plan": "plans/w3dp-ex-r02-20261108.json",
+   "plan_sha256": "423ea710bf386572319f6ff89cb66b47cb9fc6b42c8cfc185b6de5927eda9b17",
+   "platform": "edgex",
+   "repetition": 2,
+   "run_id": "w3dp-ex-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 19,
+   "plan": "plans/w4dp-fw-r02-20261108.json",
+   "plan_sha256": "250fba84311e99ab853f340c3f9d9714d7cf351f099875be3afd4d58f912f7ff",
+   "platform": "fiware",
+   "repetition": 2,
+   "run_id": "w4dp-fw-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 20,
+   "plan": "plans/w4dp-ex-r02-20261108.json",
+   "plan_sha256": "a4a62e49dd62ad4af297ac7bcf400727f37d19f8a2372e37065903fec3002eea",
+   "platform": "edgex",
+   "repetition": 2,
+   "run_id": "w4dp-ex-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 21,
+   "plan": "plans/w4dp-tb-r02-20261108.json",
+   "plan_sha256": "773db36d9479284fe380b5dcead8bbe9a6f1bd5f664effb91c47298ccda2d2b0",
+   "platform": "thingsboard",
+   "repetition": 2,
+   "run_id": "w4dp-tb-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 22,
+   "plan": "plans/w1dp-fw-r02-20261108.json",
+   "plan_sha256": "fe522c2ade152e9f263c47d3b416d3433b8dbaa71cae84b2ec8e62bc61518d6d",
+   "platform": "fiware",
+   "repetition": 2,
+   "run_id": "w1dp-fw-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 23,
+   "plan": "plans/w1dp-ex-r02-20261108.json",
+   "plan_sha256": "ac9d97da22afe36608570aa5e8130c45256093ecc3e097e0fe352489fd9c687d",
+   "platform": "edgex",
+   "repetition": 2,
+   "run_id": "w1dp-ex-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 24,
+   "plan": "plans/w1dp-tb-r02-20261108.json",
+   "plan_sha256": "be6e5e53d5ae6ad70c17c0f007a74cc405fe37750e98cf843d5b744b58059952",
+   "platform": "thingsboard",
+   "repetition": 2,
+   "run_id": "w1dp-tb-r02-20261108",
+   "seed": 202611062,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 25,
+   "plan": "plans/w3dp-fw-r03-20261108.json",
+   "plan_sha256": "c77ab1363b65357f5a56ba167fb03810a86356089484670209827637e5b7e3d5",
+   "platform": "fiware",
+   "repetition": 3,
+   "run_id": "w3dp-fw-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 26,
+   "plan": "plans/w3dp-ex-r03-20261108.json",
+   "plan_sha256": "4568540f201540f3a12ed8de445dbe632175fff3f42e9468a7eef3434a992f17",
+   "platform": "edgex",
+   "repetition": 3,
+   "run_id": "w3dp-ex-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 27,
+   "plan": "plans/w3dp-tb-r03-20261108.json",
+   "plan_sha256": "9472a7215416491986119410e34536c5b24ecad4d09f8b3ddfa5c8c1a769a46a",
+   "platform": "thingsboard",
+   "repetition": 3,
+   "run_id": "w3dp-tb-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 28,
+   "plan": "plans/w4dp-ex-r03-20261108.json",
+   "plan_sha256": "9c1a42427502a17765230f5c474f058aee274deaee7f98dfdc839de61cef17b9",
+   "platform": "edgex",
+   "repetition": 3,
+   "run_id": "w4dp-ex-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 29,
+   "plan": "plans/w4dp-tb-r03-20261108.json",
+   "plan_sha256": "ba121773d998b3fa6b900e248445687cf6d86807063e91a9586a16304bde0b6b",
+   "platform": "thingsboard",
+   "repetition": 3,
+   "run_id": "w4dp-tb-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 30,
+   "plan": "plans/w4dp-fw-r03-20261108.json",
+   "plan_sha256": "e034fd7b6ba24a7dd7fe3787bcf02322264ee2a617f1558e2bb57da2c03d75e9",
+   "platform": "fiware",
+   "repetition": 3,
+   "run_id": "w4dp-fw-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 31,
+   "plan": "plans/w1dp-ex-r03-20261108.json",
+   "plan_sha256": "2be935e48abe9b65c78e5cf0298f10f11959b0d4e1c8a57680e6ed621bbea264",
+   "platform": "edgex",
+   "repetition": 3,
+   "run_id": "w1dp-ex-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 32,
+   "plan": "plans/w1dp-tb-r03-20261108.json",
+   "plan_sha256": "929216f24e6361938c5499afb0b2d72fbe40d124bd4b590346dba99dbf4c07cb",
+   "platform": "thingsboard",
+   "repetition": 3,
+   "run_id": "w1dp-tb-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 33,
+   "plan": "plans/w1dp-fw-r03-20261108.json",
+   "plan_sha256": "0424ced746a384bead3e441fbd47e579abfe3566489cc950008ea10663d7e65b",
+   "platform": "fiware",
+   "repetition": 3,
+   "run_id": "w1dp-fw-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 34,
+   "plan": "plans/w2dp-tb-r03-20261108.json",
+   "plan_sha256": "e313d21157f6d897b7e8d85794af9da7ff3647a8b840bf31c3a7920502f036cb",
+   "platform": "thingsboard",
+   "repetition": 3,
+   "run_id": "w2dp-tb-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 35,
+   "plan": "plans/w2dp-fw-r03-20261108.json",
+   "plan_sha256": "1da26500cc234863232cc5e2334f02057e3e225480a73718b4d132ca48578e35",
+   "platform": "fiware",
+   "repetition": 3,
+   "run_id": "w2dp-fw-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 36,
+   "plan": "plans/w2dp-ex-r03-20261108.json",
+   "plan_sha256": "e986816aaea9fa285d75929679c5c2b1f78b260628713bdacbcd4466b45ac7de",
+   "platform": "edgex",
+   "repetition": 3,
+   "run_id": "w2dp-ex-r03-20261108",
+   "seed": 202611063,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 37,
+   "plan": "plans/w4dp-tb-r04-20261108.json",
+   "plan_sha256": "e515393dd65f93a2cd67810995e1e435f73f4bbc0270c6d2a77da8c4c1a9ab8d",
+   "platform": "thingsboard",
+   "repetition": 4,
+   "run_id": "w4dp-tb-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 38,
+   "plan": "plans/w4dp-fw-r04-20261108.json",
+   "plan_sha256": "487c0dcbd0adff77a96e38ead8d2375787d5e41f6a54e44d81bc351c64c90417",
+   "platform": "fiware",
+   "repetition": 4,
+   "run_id": "w4dp-fw-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 39,
+   "plan": "plans/w4dp-ex-r04-20261108.json",
+   "plan_sha256": "a8f5071f2ad86e3b9077c9f57cf66b878f602f8065d115db781859814da5fd38",
+   "platform": "edgex",
+   "repetition": 4,
+   "run_id": "w4dp-ex-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 40,
+   "plan": "plans/w1dp-tb-r04-20261108.json",
+   "plan_sha256": "26fd2ea1d640ae0ac260d729b4dfa329297e9fc972f90c3cc607c7bccd67dac7",
+   "platform": "thingsboard",
+   "repetition": 4,
+   "run_id": "w1dp-tb-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 41,
+   "plan": "plans/w1dp-fw-r04-20261108.json",
+   "plan_sha256": "ebeab8036a57bbc28681569ebdf8340f3b5ef3bde691b4d4a5c559e15df2148e",
+   "platform": "fiware",
+   "repetition": 4,
+   "run_id": "w1dp-fw-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 42,
+   "plan": "plans/w1dp-ex-r04-20261108.json",
+   "plan_sha256": "46f83a05524bdae3846e8fb1fa0359f035e2bff584b7aae7f8ac7656fbac1944",
+   "platform": "edgex",
+   "repetition": 4,
+   "run_id": "w1dp-ex-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 43,
+   "plan": "plans/w2dp-fw-r04-20261108.json",
+   "plan_sha256": "6868ee358106e1ec3cdcc11d858c04d9761781c003eee0b185061e94902f0a19",
+   "platform": "fiware",
+   "repetition": 4,
+   "run_id": "w2dp-fw-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 44,
+   "plan": "plans/w2dp-ex-r04-20261108.json",
+   "plan_sha256": "967e9810269a882c92fccc707b26d9bbd7434f3d162bf52759e5b865294b38e0",
+   "platform": "edgex",
+   "repetition": 4,
+   "run_id": "w2dp-ex-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 45,
+   "plan": "plans/w2dp-tb-r04-20261108.json",
+   "plan_sha256": "d6ca5533f81de7734821c2c4362d9792fa7d59617431cf39616a633e222b24d1",
+   "platform": "thingsboard",
+   "repetition": 4,
+   "run_id": "w2dp-tb-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 46,
+   "plan": "plans/w3dp-ex-r04-20261108.json",
+   "plan_sha256": "a5ca42d1a7e844c3246ec95fe3c29fe830f59102598c00cd89f28e7f03874bc2",
+   "platform": "edgex",
+   "repetition": 4,
+   "run_id": "w3dp-ex-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 47,
+   "plan": "plans/w3dp-tb-r04-20261108.json",
+   "plan_sha256": "53852c3df430568bb9afdadfab05e7c4a95ad50420a07aa59fc8a26c3310b17e",
+   "platform": "thingsboard",
+   "repetition": 4,
+   "run_id": "w3dp-tb-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 48,
+   "plan": "plans/w3dp-fw-r04-20261108.json",
+   "plan_sha256": "9228bb7fcd4c49ad36dd801d21b2d9bdae94ea01c6ae57002df52d7e61ddf3ce",
+   "platform": "fiware",
+   "repetition": 4,
+   "run_id": "w3dp-fw-r04-20261108",
+   "seed": 202611064,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 49,
+   "plan": "plans/w1dp-fw-r05-20261108.json",
+   "plan_sha256": "5d869d732ead09aca83ebacf00b549ce8d7b25baa62aa5fc6b633abf655c465f",
+   "platform": "fiware",
+   "repetition": 5,
+   "run_id": "w1dp-fw-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 50,
+   "plan": "plans/w1dp-ex-r05-20261108.json",
+   "plan_sha256": "004530bcb261c1ea8619680682b69efecc167dc59d10979ec77bb711a203f766",
+   "platform": "edgex",
+   "repetition": 5,
+   "run_id": "w1dp-ex-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 51,
+   "plan": "plans/w1dp-tb-r05-20261108.json",
+   "plan_sha256": "8971dee86d461445ae2d963d0e5020560cdbe67da37c9bdcaef837a56fe142a1",
+   "platform": "thingsboard",
+   "repetition": 5,
+   "run_id": "w1dp-tb-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 52,
+   "plan": "plans/w2dp-ex-r05-20261108.json",
+   "plan_sha256": "3b8241f98c4e1f4f55f7759ca496be0e032cca8451c77431d92f48e53c80bebb",
+   "platform": "edgex",
+   "repetition": 5,
+   "run_id": "w2dp-ex-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 53,
+   "plan": "plans/w2dp-tb-r05-20261108.json",
+   "plan_sha256": "f8077bae02745daf66ab643bab6bbab1ce14be52ff74d8cdbcecdfc95e6b9b77",
+   "platform": "thingsboard",
+   "repetition": 5,
+   "run_id": "w2dp-tb-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 54,
+   "plan": "plans/w2dp-fw-r05-20261108.json",
+   "plan_sha256": "f763b2be8f404cfb75df44a8d7441a83fc44eb78147219e04747637483548951",
+   "platform": "fiware",
+   "repetition": 5,
+   "run_id": "w2dp-fw-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 55,
+   "plan": "plans/w3dp-tb-r05-20261108.json",
+   "plan_sha256": "b3cd3aa5286e1e23476c1a41fe7402f2ecd1e1d519e8fe38923ac1f5222ac49e",
+   "platform": "thingsboard",
+   "repetition": 5,
+   "run_id": "w3dp-tb-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 56,
+   "plan": "plans/w3dp-fw-r05-20261108.json",
+   "plan_sha256": "3814fdcacaac24da985849f9d28ec0b210afde5d2451d239c34e75b98bf57574",
+   "platform": "fiware",
+   "repetition": 5,
+   "run_id": "w3dp-fw-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 57,
+   "plan": "plans/w3dp-ex-r05-20261108.json",
+   "plan_sha256": "f2720fa7818b5253b2c76a565667dc04d52cab762a84706b81958b23a65ff5f7",
+   "platform": "edgex",
+   "repetition": 5,
+   "run_id": "w3dp-ex-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "orion",
+     "iot-agent"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 58,
+   "plan": "plans/w4dp-fw-r05-20261108.json",
+   "plan_sha256": "cbf6543943060e5eac9a3e35e6886b4465bde0de83e067fb48d9bddec7c0bbf2",
+   "platform": "fiware",
+   "repetition": 5,
+   "run_id": "w4dp-fw-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "core-data",
+     "device-rest"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 59,
+   "plan": "plans/w4dp-ex-r05-20261108.json",
+   "plan_sha256": "645bd9dd55e3da902c12c482a459e2a3f83b424e48b8c87bdbc4f68635b9fa94",
+   "platform": "edgex",
+   "repetition": 5,
+   "run_id": "w4dp-ex-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 1,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 60,
+   "plan": "plans/w4dp-tb-r05-20261108.json",
+   "plan_sha256": "791483917885382c5f96ccec66b58a88df3ddbfc27a93744606794afe4a8117d",
+   "platform": "thingsboard",
+   "repetition": 5,
+   "run_id": "w4dp-tb-r05-20261108",
+   "seed": 202611065,
+   "workload_id": "W4"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 61,
+   "plan": "plans/w1dp-tb-r06-20261108.json",
+   "plan_sha256": "346776291a459b2baa7438452ac2d1396986dc89ce578c7b8ee5b38cc51fe954",
+   "platform": "thingsboard",
+   "repetition": 6,
+   "run_id": "w1dp-tb-r06-20261108",
+   "seed": 202611066,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 62,
+   "plan": "plans/w1dp-tb-r07-20261108.json",
+   "plan_sha256": "30a8b831ab56e2af6b1a3350cfa912294bd3a9b4e990e915587604ba6aecfdf9",
+   "platform": "thingsboard",
+   "repetition": 7,
+   "run_id": "w1dp-tb-r07-20261108",
+   "seed": 202611067,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 63,
+   "plan": "plans/w2dp-tb-r06-20261108.json",
+   "plan_sha256": "a77dd77830f92c3619f13a65991d7c668520732e184862de6e8e1d342c330b46",
+   "platform": "thingsboard",
+   "repetition": 6,
+   "run_id": "w2dp-tb-r06-20261108",
+   "seed": 202611066,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 64,
+   "plan": "plans/w2dp-tb-r07-20261108.json",
+   "plan_sha256": "32e37600dd6729e62a31ec3c9afa5446182eca509841deed99eb46b09a379236",
+   "platform": "thingsboard",
+   "repetition": 7,
+   "run_id": "w2dp-tb-r07-20261108",
+   "seed": 202611067,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 65,
+   "plan": "plans/w3dp-tb-r06-20261108.json",
+   "plan_sha256": "fabdf99aab6a283fa715479f739e926fd133a5aa6d6234ece37f07326dd11a36",
+   "platform": "thingsboard",
+   "repetition": 6,
+   "run_id": "w3dp-tb-r06-20261108",
+   "seed": 202611066,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 66,
+   "plan": "plans/w3dp-tb-r07-20261108.json",
+   "plan_sha256": "1c3701669e401ed19907b1f3051806162aa59daf2b4301235f59065afb7c08a2",
+   "platform": "thingsboard",
+   "repetition": 7,
+   "run_id": "w3dp-tb-r07-20261108",
+   "seed": 202611067,
+   "workload_id": "W3"
   }
+ ],
+ "pool_policy_revision": {
+  "b0_impact": "none - the rule reproduces 150 at 25/s, so every B0 cell and every W2/W3/W4 cell is pool-identical",
+  "change": "generator pool is derived from rate x timeout with 10% headroom, rounded up to 50",
+  "decided_by": "owner instruction to raise the pool when the limit is a framework artifact rather than a platform limit",
+  "evidence": [
+   "ThingsBoard qualification w1-qual-tb-20261110c recorded implied_in_flight_at_p99 = 243 against a 150 pool",
+   "the same run needed ~11 VUs in measurement once warm, and dropped nothing there",
+   "FIWARE qualification w1-qual-fw-20261110c dropped only during a 30 s latency stall, not at steady state",
+   "B0 peak was 125 (ThingsBoard) and 16 (FIWARE) at 25/s, so the 150 cap never bound any B0 cell"
+  ],
+  "not_claimed": "This is not a platform capacity claim and does not authorize a throughput claim above the fixed points.",
+  "revision": "2026-11-10-generator-pool-v2",
+  "scope": "generator concurrency only; no platform-side resource or deployment setting changes",
+  "supersedes": "fixed 150/150 VUs per scenario (dispatch-integrity-v1)",
+  "w1_impact": "W1 50/s moves 150 -> 300; this is the pool W1 always required (rate x timeout = 250)"
+ },
+ "schema_version": 1,
+ "scope_sha256": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d",
+ "status": "PROPOSED_NOT_LAUNCH_CLEARED"
 }

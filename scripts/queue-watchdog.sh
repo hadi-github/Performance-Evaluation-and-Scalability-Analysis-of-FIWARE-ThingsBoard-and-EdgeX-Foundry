@@ -33,14 +33,14 @@ for _ in $(seq 1 60); do
   sleep 10
 done
 
-if pgrep -f 'drive-fixed-point-matrix\.py' >/dev/null 2>&1; then
+if pgrep -f '^python3 scripts/drive-fixed-point-matrix\.py' >/dev/null 2>&1; then
   echo "=== watchdog $(date -u +%FT%TZ): driver already running; nothing to do ===" >> "$log"
   exit 0
 fi
 
 # Fail closed on receipt drift: a stale tree must not be launched unattended.
 if ! IOTBENCH_ENV_FILE=/nonexistent python3 scripts/record-w-authorization.py \
-       --receipt-id owner-w-matrix3-20261116h --check >/tmp/opencode/watchdog-check.log 2>&1; then
+       --receipt-id owner-w-matrix3-20261117b --check >/tmp/opencode/watchdog-check.log 2>&1; then
   echo "=== watchdog $(date -u +%FT%TZ): receipt check FAILED; not starting ===" >> "$log"
   cat /tmp/opencode/watchdog-check.log >> "$log"
   exit 1

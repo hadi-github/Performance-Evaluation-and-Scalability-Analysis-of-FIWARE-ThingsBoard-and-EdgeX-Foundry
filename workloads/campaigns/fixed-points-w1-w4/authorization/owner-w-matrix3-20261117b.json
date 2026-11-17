@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "receipt_id": "owner-w-matrix3-20261117b",
+  "scope_label": "w-matrix-tb-completion-12x3",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "Stage and authorize 6 new TB run IDs in one receipt: Add r06 and r07 for the three incomplete ThingsBoard cells (W1/thingsboard, W2/thingsboard, W3/thingsboard - 6 IDs total) to run-matrix.json, mint a single updated authorization receipt covering them, verify --check passes, and run census-w-matrix.py to confirm W2/edgex is at 3/3 and only those 6 TB slots remain.",
+  "authorized_run_ids": [
+    "w1dp-tb-r06-20261108",
+    "w1dp-tb-r07-20261108",
+    "w2dp-tb-r06-20261108",
+    "w2dp-tb-r07-20261108",
+    "w3dp-tb-r06-20261108",
+    "w3dp-tb-r07-20261108"
+  ],
+  "counts_toward_proposed_attempts": true,
+  "attempt_kind": {
+    "w1dp-tb-r06-20261108": true,
+    "w1dp-tb-r07-20261108": true,
+    "w2dp-tb-r06-20261108": true,
+    "w2dp-tb-r07-20261108": true,
+    "w3dp-tb-r06-20261108": true,
+    "w3dp-tb-r07-20261108": true
+  },
+  "bindings_sha256": {
+    "scope": "258f5d3b5067d59b608d8fac83a756e747cbf5ed163651c22b17d56c15d32247",
+    "run_matrix": "05e1ce1c656e58960ebfdb1a55e03de16a4a6a4a66f43396d0eec22ad76e52f1",
+    "launcher": "33b94a31ba46a29cba05010baaac1f37f24455ed3908a4e84c6433879ba7c95d",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "c453526a709e2d48686f8683707c057f44083e3407dd3f9ac53eacf1343fe25d",
+    "variant_stager": "3985836616d033f22430b337aa2012dffe50366d5df81d5738168829f4c39a46",
+    "integrity": "34471e0ebfce4684401c84b14b2439ed3d14f82608dc9801bc3637eea1205f26",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "86d8683806e5ddaf78b2dfe84aeeb76beff81d46a1921f2064e67fe6e5915e2d",
+    "qualification_index_w1": "685c55022c81277eb979f94c2268ce89534914a14c3432a15859065f39423372",
+    "qualification_index_w2": "f671e0a41ddf3318fe7f59e9130961e028178c6c41f65cc5ac3730e610e5d645",
+    "qualification_index_w3": "590520dfb589391e3682846a3c7bdfc7e02a0624946d5f47270c07a4954c8035",
+    "qualification_index_w4": "f60402fa625dba32368e43f38edf0c37dadfafdde98667437bef230e0dfbcc32"
+  },
+  "authorized_plan_sha256": {
+    "w1dp-tb-r06-20261108": "346776291a459b2baa7438452ac2d1396986dc89ce578c7b8ee5b38cc51fe954",
+    "w1dp-tb-r07-20261108": "30a8b831ab56e2af6b1a3350cfa912294bd3a9b4e990e915587604ba6aecfdf9",
+    "w2dp-tb-r06-20261108": "a77dd77830f92c3619f13a65991d7c668520732e184862de6e8e1d342c330b46",
+    "w2dp-tb-r07-20261108": "32e37600dd6729e62a31ec3c9afa5446182eca509841deed99eb46b09a379236",
+    "w3dp-tb-r06-20261108": "fabdf99aab6a283fa715479f739e926fd133a5aa6d6234ece37f07326dd11a36",
+    "w3dp-tb-r07-20261108": "1c3701669e401ed19907b1f3051806162aa59daf2b4301235f59065afb7c08a2"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.15-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}

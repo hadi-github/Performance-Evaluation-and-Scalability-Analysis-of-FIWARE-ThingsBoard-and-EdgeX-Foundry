@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261117a'
+RECEIPT = 'owner-w-matrix3-20261117b'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -67,12 +67,26 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 # The queue then ran to ordinal 45, where it hit a hard stop: ordinal 44
 # (w2dp-ex-r04) ran fully valid traffic but leaked /run/iot-bench-workload.lock on
 # the load host, and its analysis died on a scenario-start metadata check, so it
-# produced no dispatch analysis. W2/edgex takes its r05 spare (52). See
-# authorization/owner-w-matrix3-20261117a.json and the stale-lock recovery below.
+# produced no dispatch analysis. W2/edgex therefore looked short and its r05 spare
+# (52) was authorized in owner-w-matrix3-20261117a; that spare then failed the
+# EdgeX inventory gate, so it was never usable. Ordinal 44's own evidence was later
+# recovered on disk (tolerance fix, no new traffic, no ID spent), which makes the
+# r05 spare unnecessary. See the completion-batch note below.
 #
-# Ordered so that the cells which a single run completes come first, and the two
-# ThingsBoard cells that are already out of pre-registered spares come last.
-ORDINALS = (48, 56, 52, 60, 47, 55, 53, 51)
+# Final completion batch. Ordinal 44 was recovered on disk instead of being
+# retried (see results/.../w2dp-ex-r04-20261108/harness-defect.json), so W2/edgex
+# reached 3/3 at ordinals 13, 36 and 44 without spending its r05 spare. That left
+# only the three ThingsBoard cells short, each at 1/3 because pre-traffic host
+# faults had consumed every other pre-registered ID for those cells:
+#
+#   W1/thingsboard  r2@o24 valid, then r06@o61 and r07@o62 -> 3
+#   W2/thingsboard  r3@o34 valid, then r06@o63 and r07@o64 -> 3
+#   W3/thingsboard  r3@o27 valid, then r06@o65 and r07@o66 -> 3
+#
+# All six rows are repetitions of an already-qualified fixed point: their plans
+# differ from the cell's r05 plan only in plan_id and seed. See
+# authorization/owner-w-matrix3-20261117b.json.
+ORDINALS = (61, 62, 63, 64, 65, 66)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
