@@ -1,0 +1,71 @@
+{
+ "adds_rows": [
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 30000,
+   "expected_warmup_messages": 15000,
+   "ordinal": 61,
+   "plan": "plans/w1dp-tb-r06-20261108.json",
+   "plan_sha256": "346776291a459b2baa7438452ac2d1396986dc89ce578c7b8ee5b38cc51fe954",
+   "platform": "thingsboard",
+   "repetition": 6,
+   "run_id": "w1dp-tb-r06-20261108",
+   "seed": 202611066,
+   "workload_id": "W1"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 62,
+   "plan": "plans/w2dp-tb-r06-20261108.json",
+   "plan_sha256": "a77dd77830f92c3619f13a65991d7c668520732e184862de6e8e1d342c330b46",
+   "platform": "thingsboard",
+   "repetition": 6,
+   "run_id": "w2dp-tb-r06-20261108",
+   "seed": 202611066,
+   "workload_id": "W2"
+  }
+ ],
+ "appends_seed": 202611066,
+ "authorization_required": true,
+ "note": "run-matrix.json and scope.json are hash-bound into the live receipt, and verify_tree_bindings() re-checks them on every launch. Apply only after the current queue drains, then record a new receipt naming both IDs.",
+ "prepared_against_receipt": "owner-w-matrix3-20261117a",
+ "prepared_bindings_sha256": {
+  "run_matrix": "312a68fdf423588397be7cf592d0c6d29636c4e3239e64fb5701707ee49b1d8a",
+  "scope": "70be4f5f5723600275619056888b3039c84a3f213f4257905520542d5ec3fc5d"
+ },
+ "purpose": "Add w1dp-tb-r06-20261108 and w2dp-tb-r06-20261108 so W1/thingsboard and W2/thingsboard reach three valid repetitions, giving a balanced 12x3 matrix.",
+ "schema_version": 1,
+ "scope_changes": {
+  "experimental_attempts_proposed": "60 -> 62",
+  "seed_by_repetition": "append 202611066 (6th entry)"
+ },
+ "why": "Each thingsboard cell had exactly five pre-registered IDs. Three of the five in W1/thingsboard and in W2/thingsboard were consumed by pre-traffic host failures, so neither cell can reach three valid repetitions without a sixth ID. r06 fills the third slot; it adds no fourth repetition anywhere, so the design stays balanced at three per cell."
+}
