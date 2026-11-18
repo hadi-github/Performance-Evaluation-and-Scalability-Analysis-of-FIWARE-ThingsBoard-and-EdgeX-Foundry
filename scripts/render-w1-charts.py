@@ -372,7 +372,7 @@ NOTES = {
     "W3": [
         ("ThingsBoard", "Payload gate PASS: 22 500/22 500 stored rows independently validated, every one exactly 1 024 hex chars of padding rebuilt from the seed. The `FAILURE_OR_BACKLOG` verdict is warm-up only \u2014 213 of 7 500 cold-start identities had not arrived by the cutoff, though all 7 500 reached history. The 600 s measurement was 15 000/15 000 with 0 unknown, p99 257.7 ms."),
         ("FIWARE", "PARTIAL: `VALID_PLATFORM_SUCCESS` on delivery \u2014 the only W cell in this batch with a clean two-phase record (22 500/22 500, 0 unknown, 0 missing, p99 407.3 ms). Payload gates 1b/2 and measured transport bytes are UNAVAILABLE, not passed: both active Orion subscriptions select only seq/run_id/scheduled_send_ms, so QuantumLeap has no `padding` column. Orion latest-state shows 1 000/1 000 entities holding 1 024-char padding \u2014 weak evidence that the platform ingests it, not per-message proof."),
-        ("EdgeX", "NOT YET MEASURED."),
+        ("EdgeX", "Measured, `VALID_PLATFORM_SUCCESS` with a clean two-phase record: 22 500/22 500 dispatched, acknowledged and persisted, 0 missing, 0 unknown, measurement p99 10.0 ms. Stored-payload gate PASS \u2014 all 22 500 rows carry 1 024 bytes of padding, checked per message rather than by sampling. Adapter body measured at 1 208 bytes; on-wire transport bytes remain UNAVAILABLE on every platform because this harness has no packet capture, so only the serialized body size is claimed."),
     ],
 }
 
