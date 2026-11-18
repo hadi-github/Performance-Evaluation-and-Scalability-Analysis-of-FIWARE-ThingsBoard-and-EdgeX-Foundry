@@ -15,10 +15,33 @@ W_ROOT = ROOT / 'workloads' / 'campaigns' / 'fixed-points-w1-w4'
 
 
 def load(script):
-    spec = importlib.util.spec_from_file_location(script.stem.replace('-', '_'), script)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+    """Load a campaign script against the documented defaults, not a host `.env`.
+
+    `iotbench_config` freezes `ENV_FILE` at *its* import, and `sys.modules` caches
+    it for the whole test process. So a script loaded after any module that already
+    imported `iotbench_config` with a real `.env` sees the developer's addresses,
+    and these shape checks then fail on `target` for reasons that have nothing to
+    do with the gate. Pin the env for the duration of the load and drop the cached
+    module so each load resolves the same way regardless of test order.
+    """
+    import os
+    import sys
+    saved = os.environ.get('IOTBENCH_ENV_FILE')
+    os.environ['IOTBENCH_ENV_FILE'] = '/nonexistent'
+    saved_mod = sys.modules.pop('iotbench_config', None)
+    try:
+        spec = importlib.util.spec_from_file_location(script.stem.replace('-', '_'), script)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    finally:
+        sys.modules.pop('iotbench_config', None)
+        if saved_mod is not None:
+            sys.modules['iotbench_config'] = saved_mod
+        if saved is None:
+            os.environ.pop('IOTBENCH_ENV_FILE', None)
+        else:
+            os.environ['IOTBENCH_ENV_FILE'] = saved
 
 
 stage = load(ROOT / 'scripts' / 'stage-w1-qualification.py')

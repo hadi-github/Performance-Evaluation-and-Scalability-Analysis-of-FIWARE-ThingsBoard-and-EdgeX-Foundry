@@ -127,7 +127,13 @@ class StagedPlanPoolTests(unittest.TestCase):
     def test_all_proposed_plans_use_the_rate_derived_pool(self):
         matrix = json.loads((W_ROOT / 'run-matrix.json').read_text())
         scope = json.loads((W_ROOT / 'scope.json').read_text())
-        self.assertEqual(len(matrix['experimental_runs']), 60)
+        # The frozen matrix started at 60 rows; owner-authorized completion IDs have
+        # since been appended (61-70) so the cells could reach three repetitions.
+        # Compare against the scope's own declared attempt count rather than a
+        # literal, so a deliberate authorization is not a test failure.
+        self.assertEqual(len(matrix['experimental_runs']),
+                         scope['experimental_attempts_proposed'])
+        self.assertGreaterEqual(len(matrix['experimental_runs']), 60)
         for row in matrix['experimental_runs']:
             plan = json.loads((W_ROOT / row['plan']).read_text())
             rate = scope['variants'][row['workload_id']]['total_messages_per_second']
@@ -144,8 +150,12 @@ class StagedPlanPoolTests(unittest.TestCase):
         matrix = json.loads((W_ROOT / 'run-matrix.json').read_text())
         big = [r['run_id'] for r in matrix['experimental_runs']
                if json.loads((W_ROOT / r['plan']).read_text())['vus']['max'] != 150]
-        self.assertEqual(len(big), 15)
+        # Every 50/s W1 row uses the larger pool; 25/s rows never do. The W1 count
+        # grows when W1 completion IDs are authorized, so assert the invariant that
+        # all such rows are W1 rather than a fixed number.
         self.assertTrue(all(r.startswith('w1dp-') for r in big), big)
+        w1 = [r['run_id'] for r in matrix['experimental_runs'] if r['run_id'].startswith('w1dp-')]
+        self.assertEqual(sorted(big), sorted(w1), big)
 
     def test_live_qualification_plans_use_the_rate_derived_pool(self):
         index = json.loads((W_ROOT / 'qualification' / 'index.json').read_text())

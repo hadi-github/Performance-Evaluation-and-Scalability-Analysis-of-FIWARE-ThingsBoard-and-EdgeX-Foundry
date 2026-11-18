@@ -167,15 +167,15 @@ not live deployment, qualification or experimental results.
 The staging text above describes the batch as it was reviewed. Since then the
 **release qualifications** for W1, W2 and most of W3 have run. These are
 qualifications: they use their own run IDs and seeds, and **none of them counts
-toward the 60 proposed attempts**. `execution_authorized` remains `false` and the
-matrix remains `PROPOSED_NOT_LAUNCH_CLEARED`.
+toward the proposed attempts**. Since 2026-11-18 the batch itself has also run in
+full — see the execution section below.
 
 | Workload | ThingsBoard | FIWARE | EdgeX |
 |---|---|---|---|
 | W1 (50/s, 1,000 devices) | `VALID` — 45,000/45,000, p99 347 ms | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` — 13,481/30,000 over the 5 s timeout, p99 ~35.3 s, harness clean | `VALID` — 45,000/45,000, p99 8.5 ms |
 | W2 (25/s, 2,000 devices) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` | `VALID` | `VALID` (retained inventory 13,192 confirmed) |
 | W3 (25/s, 1,000 devices, +1,024 B) | `INVALID_PLATFORM_FAILURE_OR_BACKLOG` (warm-up only; measurement 15,000/15,000 clean, p99 257.7 ms); payload gate **PASS** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 407.3 ms; stored-payload gate **UNAVAILABLE** | `VALID_PLATFORM_SUCCESS` — 22,500/22,500, p99 15.5 ms; stored-payload gate **PASS** (22,500/22,500) |
-| W4 (25/s, 1,000 devices, N=1) | not launched | not launched | not launched (1 of 5 repetitions admitted; see below) |
+| W4 (25/s, 1,000 devices, N=1) | no qualification run (batch measured — see execution section) | no qualification run (batch measured) | no qualification run (batch measured; 1 of 5 preregistered repetitions admitted) |
 
 Reading this table:
 
@@ -190,11 +190,13 @@ Reading this table:
 - **The W3 FIWARE stored-payload gate stays explicitly unavailable.** It must never
   be read as passed. Making it observable requires the documented subscription
   change, a new receipt and a comparability note.
-- **W4 has not been measured anywhere.** Its N=1 configuration is now implemented and
-  verified on all three platforms, but **only 1 of its 5 EdgeX repetitions fits under
-  the frozen 16,384-device discovery limit**. Retained EdgeX inventory is 15,192;
-  one further 1,000-device cohort reaches 16,192 and fits, the next would reach
-  17,192. EdgeX also refuses `DELETE`, so the inventory cannot be reclaimed. See
+- **W4 has since been measured on all three platforms** as part of the completed
+  12×3 batch. Its N=1 configuration was implemented and verified on all three
+  platforms before any attempt was authorized. Two of its five preregistered EdgeX
+  repetitions (r2, r5) do not fit under the frozen 16,384-device discovery limit, so
+  the cell rests on r1, r3 and r4. Retained EdgeX inventory was 15,192; one further
+  1,000-device cohort reaches 16,192 and fits, the next would reach 17,192. EdgeX
+  also refuses `DELETE`, so the inventory cannot be reclaimed. See
   [`research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md`](../research/findings/w4-edgex-inventory-blocks-four-repetitions-20261114.md).
 - **The W4 launch is blocked on infrastructure, not on the benchmark.** The first
   attempt (`w4dp-tb-r01-20261108`) was aborted twice **before any traffic** and then
@@ -227,7 +229,9 @@ record under [`research/findings/`](../research/README.md), not here.
 #### What each workload still needs
 
 W1 and W2 have run their qualifications on all three platforms. W3 has run on all
-three. W4's N=1 configuration is implemented and verified but has not run.
+three. W4's N=1 configuration is implemented and verified and has since been
+measured on all three platforms as part of the completed 12×3 batch (see the
+execution section above).
 
 - **W1** — measured on all three. ThingsBoard and EdgeX `VALID`; FIWARE
   `INVALID_PLATFORM_FAILURE_OR_BACKLOG`, accepted as a platform finding. Its former
@@ -243,13 +247,18 @@ three. W4's N=1 configuration is implemented and verified but has not run.
   transport/wire measurement remain unavailable by design: current FIWARE sink and
   history subscriptions do not retain padding, and no on-wire capture exists in this
   harness. Computed header bytes are not measured wire bytes.
-- **W4** — **not measured on any platform.** The N=1 deployment it requires is now
-  implemented: replica count is a launcher parameter defaulting to the previous
-  value, an explicit two-core pool `4-5` survives the N=1 mapping that would
-  otherwise pick a single core, and all three platforms were verified live at
-  exactly one replica per replicated service before any attempt was authorized. Its
-  five EdgeX repetitions are limited to one by the frozen device-discovery cap
-  described above.
+- **W4** — **measured on all three platforms.** ThingsBoard r3/r4/r5 (o29, o37,
+  o60) and FIWARE r1/r2/r3 (o11, o19, o30) and EdgeX r1/r3/r4 (o12, o28, o39).
+  EdgeX and FIWARE are `VALID_PLATFORM_SUCCESS`; ThingsBoard keeps its
+  measurement-phase delivery and is `VALID_PLATFORM_FAILURE_OR_BACKLOG`. The N=1
+  deployment it requires is implemented: replica count is a launcher parameter
+  defaulting to the previous value, an explicit two-core pool `4-5` survives the N=1
+  mapping that would otherwise pick a single core, and all three platforms were
+  verified live at exactly one replica per replicated service before any attempt was
+  authorized. Its preregistered EdgeX repetitions r2 (`w4dp-ex-r02`) and r5
+  (`w4dp-ex-r05`) were never run because of the frozen 16,384-device discovery cap
+  described above, so the three counted EdgeX repetitions are r1, r3 and r4.
+  Nothing was backfilled to reach three.
 
 "Measured" does not mean "cleared". No workload is released for the 60 proposed
 attempts, and a `VALID` qualification on one platform does not qualify the workload
@@ -260,6 +269,73 @@ B0 to clear them, delete history/devices or count qualification as repetitions.
 
 For the configuration table, rationale, evidence boundaries and comparison
 limits, see [workload methodology](methodology.md#8-workload-configurations-b0-and-the-separate-w1w4-batch).
+
+#### W1–W4 batch execution — balanced 12×3 matrix complete (2026-11-18)
+
+The separate batch has now **run in full**. All twelve workload × platform cells
+hold three usable repetitions — 36 attempts — with `capture_valid` and
+`measurement_valid` true and no harness defect. The census is
+`python3 scripts/census-w-matrix.py`, which exits 0 and reports no cell short.
+
+| Cell | Repetitions (rep@ordinal) | Verdicts |
+|---|---|---|
+| W1/thingsboard | r2@o24, r6@o61, r7@o62 | 3 × `VALID_PLATFORM_FAILURE_OR_BACKLOG` |
+| W1/fiware | r2@o22, r3@o33, r4@o41 | 3 × `VALID_PLATFORM_FAILURE_OR_BACKLOG` |
+| W1/edgex | r2@o23, r3@o31, r4@o42 | 3 × `VALID_PLATFORM_SUCCESS` |
+| W2/thingsboard | r3@o34, r6@o63, r9@o68 | 3 × `VALID_PLATFORM_FAILURE_OR_BACKLOG` |
+| W2/fiware | r1@o4, r2@o15, r3@o35 | 1 × failure-or-backlog, 2 × success |
+| W2/edgex | r2@o13, r3@o36, r4@o44 | 3 × `VALID_PLATFORM_SUCCESS` |
+| W3/thingsboard | r3@o27, r8@o69, r9@o70 | 3 × `VALID_PLATFORM_FAILURE_OR_BACKLOG` |
+| W3/fiware | r2@o17, r4@o48, r5@o56 | 3 × `VALID_PLATFORM_SUCCESS` |
+| W3/edgex | r1@o7, r2@o18, r3@o26 | 3 × `VALID_PLATFORM_SUCCESS` |
+| W4/thingsboard | r3@o29, r4@o37, r5@o60 | 3 × `VALID_PLATFORM_FAILURE_OR_BACKLOG` |
+| W4/fiware | r1@o11, r2@o19, r3@o30 | 3 × `VALID_PLATFORM_SUCCESS` |
+| W4/edgex | r1@o12, r3@o28, r4@o39 | 3 × `VALID_PLATFORM_SUCCESS` |
+
+What the matrix says, in the terms the batch was designed to answer:
+
+- **EdgeX is `VALID_PLATFORM_SUCCESS` in all twelve attempts** across W1–W4, with
+  measurement-phase p99 between 8.9 and 26.0 ms. It is the only platform with no
+  delivery failure in any cell.
+- **ThingsBoard delivered 100% of measurement identities in every counted run**
+  (30,000/30,000 for W1, 15,000/15,000 for W2–W4) yet is
+  `VALID_PLATFORM_FAILURE_OR_BACKLOG` in all twelve. The verdict is carried by
+  warm-up-phase cold-start loss, not measurement loss. Its measurement p99 is
+  223–605 ms.
+- **FIWARE succeeds in eight of twelve attempts.** Its failures are W1 at 50/s
+  (p99 1.7 s on the clean repetition, 61 s and 78 s on the two that also lost
+  history while `iot-agent` restarted) and one W2 repetition at 110 ms p99 with
+  perfect delivery. The W1 50/s failure is an accepted platform finding, not a
+  defect to re-run for a better number.
+- **W4's N=1 configuration is measured on all three platforms** and behaves like
+  the corresponding cells at N=2: EdgeX and FIWARE succeed, ThingsBoard keeps its
+  measurement-phase delivery and its warm-up interpretation.
+
+Two limits that must travel with these numbers:
+
+1. **The census bar and the aggregation bar are not the same, and they disagree on
+   three runs.** `aggregate-runs.py` additionally requires the SUT and generator
+   resource gates, `history_status == OK` and no post-run defect. Under that
+   stricter bar W1/fiware is 1/3 usable repetitions, W2/thingsboard 2/3 and
+   W2/fiware 2/3: `w1dp-fw-r03` (o33) and `w1dp-fw-r04` (o41) both restarted
+   `iot-agent` during measurement, and o63's cleanup check failed on a load-host SSH
+   fault, so its resource gate never ran. The 12×3 headline is a *census* count.
+   Any pooled latency claim must quote the stricter number. Nothing was loosened to
+   make cells reach three.
+2. **W1/FIWARE's two 60–80 s p99 repetitions are not clean measurements.** They lost
+   916 and 6,188 measurement identities while a SUT container restarted, so they
+   cannot be read as platform-only latency. Only o22 (1,674.9 ms, 0 missing) supports
+   a latency statement for W1/FIWARE.
+
+Ordinals 22 (`w1dp-fw-r02`) and 24 (`w1dp-tb-r02`) remain genuine
+`VALID_PLATFORM_FAILURE_OR_BACKLOG` platform results. Ordinal 21 is a bench defect
+(a missing ThingsBoard outbound rule node) and is excluded from repetitions while
+staying visible as a consumed ID.
+
+The `results/workload-batch-20261108/POSTPROCESS-FINDINGS.md` file is git-ignored
+and holds the eleven findings raised during and after the campaign, including the
+three load-host SSH incidents that consumed ordinals 64–67 without traffic.
+
 
 ## Historical qualification and decision record (through 2026-11-05)
 

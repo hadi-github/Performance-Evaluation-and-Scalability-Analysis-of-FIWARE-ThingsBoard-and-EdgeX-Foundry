@@ -16,6 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 # configured checkout and a bare clone exercised different code paths. Tests must
 # see the documented defaults deterministically.
 _saved_env_file = os.environ.get('IOTBENCH_ENV_FILE')
+import sys as _sys
+_saved_cfg = _sys.modules.pop('iotbench_config', None)
 os.environ['IOTBENCH_ENV_FILE'] = '/nonexistent'
 try:
     spec = importlib.util.spec_from_file_location(
@@ -23,6 +25,10 @@ try:
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 finally:
+    # Do not leave the stub-`.env` `iotbench_config` behind for later test modules.
+    _sys.modules.pop('iotbench_config', None)
+    if _saved_cfg is not None:
+        _sys.modules['iotbench_config'] = _saved_cfg
     if _saved_env_file is None:
         os.environ.pop('IOTBENCH_ENV_FILE', None)
     else:
