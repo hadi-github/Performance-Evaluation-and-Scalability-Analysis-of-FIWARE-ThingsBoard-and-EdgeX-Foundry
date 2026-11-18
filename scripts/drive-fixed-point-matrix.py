@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261117b'
+RECEIPT = 'owner-w-matrix3-20261117c'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -77,16 +77,28 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 # retried (see results/.../w2dp-ex-r04-20261108/harness-defect.json), so W2/edgex
 # reached 3/3 at ordinals 13, 36 and 44 without spending its r05 spare. That left
 # only the three ThingsBoard cells short, each at 1/3 because pre-traffic host
-# faults had consumed every other pre-registered ID for those cells:
+# faults had consumed every other pre-registered ID for those cells.
 #
-#   W1/thingsboard  r2@o24 valid, then r06@o61 and r07@o62 -> 3
-#   W2/thingsboard  r3@o34 valid, then r06@o63 and r07@o64 -> 3
-#   W3/thingsboard  r3@o27 valid, then r06@o65 and r07@o66 -> 3
+# The 2026-11-17 completion batch (owner-w-matrix3-20261117b) authorized r06/r07
+# for all three cells. What actually happened, recorded rather than assumed:
 #
-# All six rows are repetitions of an already-qualified fixed point: their plans
-# differ from the cell's r05 plan only in plan_id and seed. See
-# authorization/owner-w-matrix3-20261117b.json.
-ORDINALS = (61, 62, 63, 64, 65, 66)
+#   W1/thingsboard  r2@o24 valid, then r06@o61 and r07@o62 both valid -> 3/3 DONE
+#   W2/thingsboard  r3@o34 valid, then o63 and o64 both lost to host defects:
+#                   o63 ran complete, clean traffic (22,500/22,500 records,
+#                   15,000/15,000 measurement messages, 0 failures) and was then
+#                   recorded NOT_ASSESSED_NO_ANALYSIS because the workstation's
+#                   evidence fetch timed out; o64 was burned in 4.3 s by the
+#                   capture port o63's own aborted sink still held. o63 was
+#                   recovered on disk like ordinal 44 (no ID spent, no new
+#                   traffic), leaving this cell at 2/3 and needing one more.
+#   W3/thingsboard  r3@o27 valid, r06@o65 and r07@o66 still unspent.
+#
+# So this batch runs exactly three ordinals: W3's two authorized IDs, plus the one
+# new W2 ID (r08@o67) that its two host defects made necessary. Every row is a
+# repetition of an already-qualified fixed point: its plan differs from the cell's
+# r05/r07 plan only in plan_id and seed. See
+# authorization/owner-w-matrix3-20261117c.json.
+ORDINALS = (65, 66, 67)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {
@@ -109,6 +121,21 @@ HARD_STOP = (
     # which consumes the ordinal without sending any traffic. That is a host
     # fault, not a platform result: stop the whole run instead of marching on.
     'No space left on device',
+    # Transport failures to the load host are host faults too, and they arrive in
+    # bursts rather than one at a time. On 2026-11-18 a flaky SSH path to
+    # ramonavm1 (measured at ~4-8% of handshakes when opened back-to-back, 0% when
+    # paced, and 0/25 to the SUT) failed the staging `ssh` for ordinal 65, the
+    # `benchctl resolve` call for 66, and the pre-launch `remote_absent` probe for
+    # 67. None of the three sent a single message, yet all three were recorded
+    # terminal and every authorized ID for the batch was consumed. These strings
+    # stop the run after the first such fault instead.
+    'port 2238: Connection timed out',
+    'port 2238: No route to host',
+    'port 2238 closed',
+    'Connection reset by 2.188.205.118 port 2238',
+    'kex_exchange_identification',
+    'ssh ramonavm1 failed (255)',
+    'could not determine whether',
 )
 
 # Every evidence directory for a W run is ~90 MB; a fresh run peaks higher while
@@ -124,6 +151,42 @@ def disk_guard():
     if free < MIN_FREE_BYTES:
         return (f'workstation has {free / 1024 ** 3:.1f} GiB free, '
                 f'need {MIN_FREE_BYTES / 1024 ** 3:.0f} GiB for one run')
+    return None
+
+
+# A launch spends its ordinal the moment the launcher is entered, so a host fault
+# that stops the launcher before traffic still costs an ID. Probing the two SSH
+# paths a launch depends on is cheap and happens before any ordinal is touched.
+#
+# The fault this guards against is intermittent, not a hard outage: on 2026-11-18
+# the load-host path failed roughly one handshake in fifteen when opened
+# back-to-back, but never when paced 3 s apart, and never at all to the SUT. A
+# single failed handshake would therefore be a bad reason to stop the campaign,
+# while launching straight into one burns a run. So retry a few times and only
+# call it a fault when the path stays broken.
+PREFLIGHT_ATTEMPTS = 4
+PREFLIGHT_BACKOFF_S = 5
+
+
+def transport_guard():
+    """Return a problem description if a launch's SSH paths are unusable."""
+    import time
+    hosts = (('ramonavm1', 'load host'), ('ramonavm2', 'SUT'))
+    for alias, label in hosts:
+        last = ''
+        for attempt in range(PREFLIGHT_ATTEMPTS):
+            p = subprocess.run(
+                ['ssh', '-F', str(REPO / '.iotbench-ssh-config'),
+                 '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', alias, 'true'],
+                capture_output=True, text=True, timeout=60)
+            if p.returncode == 0:
+                break
+            lines = (p.stderr or '').strip().splitlines()
+            last = lines[-1] if lines else f'exit {p.returncode}'
+            if attempt + 1 < PREFLIGHT_ATTEMPTS:
+                time.sleep(PREFLIGHT_BACKOFF_S)
+        else:
+            return f'{label} ({alias}) SSH path is unusable after {PREFLIGHT_ATTEMPTS} tries: {last}'
     return None
 
 
@@ -292,6 +355,16 @@ def main():
         if problem:
             print(f'hard stop before ordinal {ordinal}: {problem}')
             append(args.log, {'event': 'hard-stop', 'reason': 'disk-space',
+                              'ordinal': ordinal, 'run_id': rid, 'detail': problem})
+            return 2
+
+        # Refuse to enter the launcher at all while a launch's SSH paths are
+        # broken: the launcher spends this ordinal on its first remote call, so a
+        # failed handshake there costs a run without sending any traffic.
+        problem = transport_guard()
+        if problem:
+            print(f'hard stop before ordinal {ordinal}: {problem}')
+            append(args.log, {'event': 'hard-stop', 'reason': 'ssh-transport',
                               'ordinal': ordinal, 'run_id': rid, 'detail': problem})
             return 2
 

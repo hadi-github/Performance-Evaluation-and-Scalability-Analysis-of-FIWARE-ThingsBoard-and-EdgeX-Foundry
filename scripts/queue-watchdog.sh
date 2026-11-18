@@ -40,7 +40,7 @@ fi
 
 # Fail closed on receipt drift: a stale tree must not be launched unattended.
 if ! IOTBENCH_ENV_FILE=/nonexistent python3 scripts/record-w-authorization.py \
-       --receipt-id owner-w-matrix3-20261117b --check >/tmp/opencode/watchdog-check.log 2>&1; then
+       --receipt-id owner-w-matrix3-20261117c --check >/tmp/opencode/watchdog-check.log 2>&1; then
   echo "=== watchdog $(date -u +%FT%TZ): receipt check FAILED; not starting ===" >> "$log"
   cat /tmp/opencode/watchdog-check.log >> "$log"
   exit 1
@@ -50,8 +50,14 @@ echo "=== watchdog $(date -u +%FT%TZ): arming the queue after a restart ===" >> 
 tmux new-session -d -s wmatrix -c "$REPO" \
   "python3 scripts/drive-fixed-point-matrix.py 2>&1 | tee -a $log; echo DRIVER_EXIT=\$? >> $log"
 
-tmux new-session -d -s wsuper -c "$REPO" \
-  "python3 scripts/supervise-fixed-point-queue.py 300 2>&1 | tee -a /tmp/opencode/wsuper.log"
+# The supervisor and sink guard are long-lived and survive a driver restart, so
+# re-arming must not fail on a session that is already doing its job.
+if ! tmux has-session -t wsuper 2>/dev/null; then
+  tmux new-session -d -s wsuper -c "$REPO" \
+    "python3 scripts/supervise-fixed-point-queue.py 300 2>&1 | tee -a /tmp/opencode/wsuper.log"
+fi
 
-tmux new-session -d -s tbsink -c "$REPO" \
-  "bash scripts/ensure-tb-sink-route.sh 20"
+if ! tmux has-session -t tbsink 2>/dev/null; then
+  tmux new-session -d -s tbsink -c "$REPO" \
+    "bash scripts/ensure-tb-sink-route.sh 20"
+fi

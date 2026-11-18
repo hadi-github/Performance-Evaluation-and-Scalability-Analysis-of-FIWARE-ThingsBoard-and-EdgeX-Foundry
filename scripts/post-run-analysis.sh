@@ -90,7 +90,25 @@ else
     edgex) remote_env="" ;;
   esac
   echo "exporting $platform history for $run_id from $sut" >&2
-  if ssh -o BatchMode=yes -o ConnectTimeout=10 "$sut" "env $remote_env bash -s '$platform' '$run_id'" \
+  # Honour the same transport as every other SSH path in the harness. A bare
+  # `ssh "$sut"` silently used the default port 22, but this deployment's sshd
+  # listens only on 2238, so the export failed deterministically with
+  # "connect to host <ip> port 22: Connection refused" and recorded
+  # EXPORT_FAILED. It looked like a transient network blip and was documented as
+  # harmless noise, which cost a run its history: the caller treats a failed
+  # export as an evidence failure and skips the re-analysis that depends on it.
+  #
+  # SSH_CONFIG names the generated config (which carries the real Host/Port);
+  # SSH_PORT_SUT and SSH_KEY are honoured too so an explicit deployment setting
+  # is never silently ignored. `-o BatchMode=yes` keeps this non-interactive.
+  ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
+  [[ -n "${SSH_CONFIG:-}" && -f "${SSH_CONFIG}" ]] && ssh_opts+=(-F "$SSH_CONFIG")
+  [[ -n "${SSH_KEY:-}" ]] && ssh_opts+=(-i "$SSH_KEY" -o IdentitiesOnly=yes)
+  # Only force a port when no config supplied one, so -F and -p cannot conflict.
+  if [[ -z "${SSH_CONFIG:-}" && -n "${SSH_PORT_SUT:-}" ]]; then
+    ssh_opts+=(-p "$SSH_PORT_SUT")
+  fi
+  if ssh "${ssh_opts[@]}" "$sut" "env $remote_env bash -s '$platform' '$run_id'" \
       < scripts/history-ids.sh > "$results/$run_id.history.ndjson.tmp" 2> "$results/$run_id.history.log"; then
     mv "$results/$run_id.history.ndjson.tmp" "$results/$run_id.history.ndjson"
     history="$results/$run_id.history.ndjson"

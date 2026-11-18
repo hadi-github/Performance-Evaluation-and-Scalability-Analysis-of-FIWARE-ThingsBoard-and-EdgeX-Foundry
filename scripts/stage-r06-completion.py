@@ -60,33 +60,31 @@ MATRIX = W_ROOT / 'run-matrix.json'
 SCOPE = W_ROOT / 'scope.json'
 PROPOSAL = W_ROOT / 'r06-completion-proposal.json'
 
-# The three cells that cannot reach three valid repetitions from the frozen
-# matrix, and the repetitions that fill their remaining slots.
+# The remaining gap after the 2026-11-17 completion batch.
 #
-# Each thingsboard cell was pre-registered with exactly five IDs. Pre-traffic
-# host failures consumed most of them, leaving a ceiling below three:
+# That batch added r06/r07 for all three thingsboard cells, but ordinals 63 and 64
+# were lost to host defects rather than platform results:
 #
-#   W1/thingsboard  usable r2@o24                     + r06, r07 -> 3
-#   W2/thingsboard  usable r3@o34                     + r06, r07 -> 3
-#   W3/thingsboard  usable r3@o27                     + r06, r07 -> 3
+#   o63 w2dp-tb-r06  traffic complete and clean (22,500/22,500, 0 explicit
+#                    failures), then the workstation's SSH fetch timed out and the
+#                    history export failed. Recovered on disk instead, like
+#                    ordinal 44: no ID spent.
+#   o64 w2dp-tb-r07  burned in 4.3 s by the dedicated capture port 18091, which
+#                    o63's own aborted sink still held. Never reached traffic.
 #
-# W2/edgex needed one more slot but was recovered on disk instead (ordinal 44,
-# re-analysed after the step-metadata tolerance fix), so it spends no new ID.
+# W2/thingsboard therefore stands at r3@o34 + r6@o63 = 2 reps after recovery and
+# needs exactly one more. r08 fills it. W3/thingsboard still has both of its
+# authorized IDs unspent (o65, o66), so it needs nothing here.
 TARGETS = (
-    ('W1', 'thingsboard', 6, 'w1dp-tb-r06-20261108'),
-    ('W1', 'thingsboard', 7, 'w1dp-tb-r07-20261108'),
-    ('W2', 'thingsboard', 6, 'w2dp-tb-r06-20261108'),
-    ('W2', 'thingsboard', 7, 'w2dp-tb-r07-20261108'),
-    ('W3', 'thingsboard', 6, 'w3dp-tb-r06-20261108'),
-    ('W3', 'thingsboard', 7, 'w3dp-tb-r07-20261108'),
+    ('W2', 'thingsboard', 8, 'w2dp-tb-r08-20261108'),
 )
 
 # The frozen scope only defines five seeds (`seed_by_repetition`) and the stager
-# indexes it as seeds[rep-1], so repetitions 6 and 7 would raise IndexError.
-# Seeds are reproducibility metadata, not benchmark parameters, so new values are
+# indexes it as seeds[rep-1], so later repetitions would raise IndexError. Seeds
+# are reproducibility metadata, not benchmark parameters, so new values are
 # appended rather than re-deriving the existing five, which must stay
 # byte-identical to what the 60 authorized runs used.
-NEW_SEEDS = {6: 202611066, 7: 202611067}
+NEW_SEEDS = {6: 202611066, 7: 202611067, 8: 202611068}
 
 
 def sha(path):
@@ -200,33 +198,36 @@ def prepare(receipt_id):
 
     proposal = {
         'schema_version': 1,
-        'purpose': ('Add r06/r07 for W1/thingsboard, W2/thingsboard and W3/thingsboard so '
-                    'each reaches three valid repetitions, giving a balanced 12x3 matrix. '
-                    'W2/edgex needed one more slot but was recovered on disk instead '
-                    '(ordinal 44), so it spends no new ID.'),
+        'purpose': ('Add w2dp-tb-r08-20261108 so W2/thingsboard reaches three valid '
+                    'repetitions (r3@o34, r6@o63 recovered on disk, r8@o67), giving a '
+                    'balanced 12x3 matrix. W3/thingsboard still has both of its authorized '
+                    'IDs unspent (o65, o66), so it needs no new ID here.'),
         'prepared_against_receipt': receipt_id,
         'prepared_bindings_sha256': {
             'scope': sha(SCOPE),
             'run_matrix': sha(MATRIX),
         },
-        'why': ('Each thingsboard cell had exactly five pre-registered IDs. Pre-traffic host '
-                'failures consumed most of them: W1/thingsboard spent r1,r3,r4,r5; '
-                'W2/thingsboard spent r2,r5; W3/thingsboard spent r1,r2,r4,r5. That leaves a '
-                'ceiling of one usable repetition per cell, so two further IDs each are '
-                'needed to reach three. r06 and r07 fill those slots; no cell gains a fourth '
+        'why': ('The 2026-11-17 completion batch authorized r06/r07 for all three '
+                'thingsboard cells. W1/thingsboard used them successfully (o61, o62). '
+                'W2/thingsboard lost both to host defects, not platform results: o63 ran '
+                'complete, clean traffic and was then lost to a workstation SSH fetch '
+                'timeout plus a history-export port bug, and o64 was burned in 4.3 s by the '
+                'capture port its own aborted predecessor still held. o63 was recovered on '
+                'disk with no new ID, leaving W2/thingsboard at 2 reps, so exactly one '
+                'further ID is needed. r08 fills that single slot; no cell gains a fourth '
                 'repetition, so the design stays balanced at three per cell.'),
         'adds_rows': rows,
         'appends_seeds': NEW_SEEDS,
         'scope_changes': {
             'seed_by_repetition': 'append ' + ', '.join(str(v) for v in sorted(NEW_SEEDS.values()))
-                                  + ' (6th, 7th entries)',
+                                  + ' (8th entry)',
             'experimental_attempts_proposed': f'{scope["experimental_attempts_proposed"]} -> '
                                               f'{scope["experimental_attempts_proposed"] + len(rows)}',
         },
         'authorization_required': True,
         'note': ('run-matrix.json and scope.json are hash-bound into the live receipt, and '
                  'verify_tree_bindings() re-checks them on every launch. Apply only while the '
-                 'queue is idle, then record a new receipt naming all six IDs.'),
+                 'queue is idle, then record a new receipt naming o65, o66 and o67.'),
     }
     PROPOSAL.write_text(json.dumps(proposal, indent=1, sort_keys=True) + '\n')
     print(f'  wrote {PROPOSAL.relative_to(REPO)}')
