@@ -40,7 +40,7 @@ fi
 
 # Fail closed on receipt drift: a stale tree must not be launched unattended.
 if ! IOTBENCH_ENV_FILE=/nonexistent python3 scripts/record-w-authorization.py \
-       --receipt-id owner-w-matrix3-20261117c --check >/tmp/opencode/watchdog-check.log 2>&1; then
+       --receipt-id owner-w-matrix3-20261118a --check >/tmp/opencode/watchdog-check.log 2>&1; then
   echo "=== watchdog $(date -u +%FT%TZ): receipt check FAILED; not starting ===" >> "$log"
   cat /tmp/opencode/watchdog-check.log >> "$log"
   exit 1

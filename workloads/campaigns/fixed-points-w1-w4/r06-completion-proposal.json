@@ -17,33 +17,86 @@
    "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
    "expected_measurement_messages": 15000,
    "expected_warmup_messages": 7500,
-   "ordinal": 67,
-   "plan": "plans/w2dp-tb-r08-20261108.json",
-   "plan_sha256": "3c463a6d959a5b91ffa9b93ebbc760c302308dd755b138dc01ab28e6ed91260c",
+   "ordinal": 68,
+   "plan": "plans/w2dp-tb-r09-20261108.json",
+   "plan_sha256": "26741b61c5dd512bdcc90099d8c525d29a7dfa8efc13f9513885d18536ea576b",
+   "platform": "thingsboard",
+   "repetition": 9,
+   "run_id": "w2dp-tb-r09-20261108",
+   "seed": 202611069,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 69,
+   "plan": "plans/w3dp-tb-r08-20261108.json",
+   "plan_sha256": "bbeb8f9daf83d383d1e27dea858959af437b83bfebe984e574b12a11e9251bca",
    "platform": "thingsboard",
    "repetition": 8,
-   "run_id": "w2dp-tb-r08-20261108",
+   "run_id": "w3dp-tb-r08-20261108",
    "seed": 202611068,
-   "workload_id": "W2"
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 70,
+   "plan": "plans/w3dp-tb-r09-20261108.json",
+   "plan_sha256": "ae0aedc9c26bb67c89f44d2c480563570aec324368bf0c3e7fd653579bfcd173",
+   "platform": "thingsboard",
+   "repetition": 9,
+   "run_id": "w3dp-tb-r09-20261108",
+   "seed": 202611069,
+   "workload_id": "W3"
   }
  ],
  "appends_seeds": {
   "6": 202611066,
   "7": 202611067,
-  "8": 202611068
+  "8": 202611068,
+  "9": 202611069
  },
  "authorization_required": true,
- "note": "run-matrix.json and scope.json are hash-bound into the live receipt, and verify_tree_bindings() re-checks them on every launch. Apply only while the queue is idle, then record a new receipt naming o65, o66 and o67.",
- "prepared_against_receipt": "owner-w-matrix3-20261117a",
+ "note": "run-matrix.json and scope.json are hash-bound into the live receipt, and verify_tree_bindings() re-checks them on every launch. Apply only while the queue is idle, then record a new receipt naming all three new IDs.",
+ "prepared_against_receipt": "owner-w-matrix3-20261117c",
  "prepared_bindings_sha256": {
-  "run_matrix": "05e1ce1c656e58960ebfdb1a55e03de16a4a6a4a66f43396d0eec22ad76e52f1",
-  "scope": "258f5d3b5067d59b608d8fac83a756e747cbf5ed163651c22b17d56c15d32247"
+  "run_matrix": "168b625ea287118b0c651e4580f3ebef2718d88c525c307288284ac14ee878e7",
+  "scope": "6b645aacdd7023d50d0ecbb934e751e7104f43d18339e7837243dac4c87bc110"
  },
- "purpose": "Add w2dp-tb-r08-20261108 so W2/thingsboard reaches three valid repetitions (r3@o34, r6@o63 recovered on disk, r8@o67), giving a balanced 12x3 matrix. W3/thingsboard still has both of its authorized IDs unspent (o65, o66), so it needs no new ID here.",
+ "purpose": "Add w2dp-tb-r09-20261108, w3dp-tb-r08-20261108 and w3dp-tb-r09-20261108 so W2/thingsboard reaches three valid repetitions (r3@o34, r6@o63, r9) and W3/thingsboard reaches three (r3@o27, r8, r9), giving a balanced 12x3 matrix. No cell gains a fourth valid repetition.",
  "schema_version": 1,
  "scope_changes": {
-  "experimental_attempts_proposed": "66 -> 67",
-  "seed_by_repetition": "append 202611066, 202611067, 202611068 (8th entry)"
+  "experimental_attempts_proposed": "67 -> 70",
+  "seed_by_repetition": "append 202611066, 202611067, 202611068, 202611069 (9th entry)"
  },
- "why": "The 2026-11-17 completion batch authorized r06/r07 for all three thingsboard cells. W1/thingsboard used them successfully (o61, o62). W2/thingsboard lost both to host defects, not platform results: o63 ran complete, clean traffic and was then lost to a workstation SSH fetch timeout plus a history-export port bug, and o64 was burned in 4.3 s by the capture port its own aborted predecessor still held. o63 was recovered on disk with no new ID, leaving W2/thingsboard at 2 reps, so exactly one further ID is needed. r08 fills that single slot; no cell gains a fourth repetition, so the design stays balanced at three per cell."
+ "why": "W2/thingsboard stands at 2 valid reps and W3/thingsboard at 1. Every pre-registered ID for both cells is spent, and what spent them was host faults rather than platform results: the early repetitions died on pre-traffic gates, o64 was burned by a capture port its own aborted predecessor still held, and on 2026-11-18 a flaky load-host SSH path consumed o65, o66 and o67 in three consecutive launches that never sent a single message (workload_launch_attempted false). Those remain burned and are never retried. These three IDs are new: one closes W2, two close W3. Each is a repetition of an already-qualified fixed point, so the design stays balanced at three valid reps per cell."
 }

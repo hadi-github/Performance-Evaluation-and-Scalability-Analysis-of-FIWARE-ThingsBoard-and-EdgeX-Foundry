@@ -1,0 +1,68 @@
+{
+ "adapter": "thingsboard",
+ "arrivals": {
+  "model": "constant"
+ },
+ "cleanup": false,
+ "connection": {
+  "keep_alive": true
+ },
+ "deviations": [
+  "Workload W3: only extra_logical_padding_bytes changes relative to B0; identities/plan labels differ by design.",
+  "N and application CPU budget are independent: CPU pool 4-5 (k=2) is fixed, including W4 N=1.",
+  "Existing deployed state, device cohorts and history are retained; not cold-start IID repetitions.",
+  "Application dispatch is not wire transmission. Logical padding is not actual wire byte count.",
+  "Generator VU pool is rate-derived (150 at 25/s), per the 2026-11-10 owner amendment; the pool is generator concurrency, not a platform capacity claim."
+ ],
+ "devices": 1000,
+ "health": {
+  "early_tolerance_ms": 2,
+  "max_core_busy": 0,
+  "min_achieved_ratio": 0.99,
+  "send_lag_p99_ms": 0,
+  "workload_policy": "dispatch-integrity-v1"
+ },
+ "payload": {
+  "encoding_id": "logical-json-ascii-v1",
+  "size_offset_bytes": 1024
+ },
+ "pilot_only": true,
+ "plan_id": "fixed-w3-thingsboard-r08-20261108",
+ "protocol_pilot_parameters": {
+  "drain_seconds_after_measurement": 900,
+  "late_observation_seconds": 30,
+  "measurement_seconds": 600,
+  "quiet_interval_seconds": 30,
+  "rate_per_second": 25,
+  "warmup_seconds": 300
+ },
+ "purpose": "W3 fixed-point experimental attempt proposal; separate from B0, diagnostics and qualification. NOT launch-cleared.",
+ "request_timeout_ms": 5000,
+ "schedule": {
+  "steps": [
+   {
+    "duration_s": 300,
+    "phase": "warmup",
+    "rate": 25,
+    "vus": 150
+   },
+   {
+    "duration_s": 600,
+    "phase": "measurement",
+    "rate": 25,
+    "vus": 150
+   }
+  ],
+  "type": "steps"
+ },
+ "schema_version": 1,
+ "seed": 202611068,
+ "target": {
+  "base_url": "http://87.107.191.107:8080"
+ },
+ "test_faults": {},
+ "vus": {
+  "max": 150,
+  "pre_allocated": 150
+ }
+}

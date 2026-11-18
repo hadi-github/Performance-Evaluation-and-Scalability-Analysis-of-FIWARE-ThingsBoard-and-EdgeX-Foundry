@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RECEIPT = 'owner-w-matrix3-20261117c'
+RECEIPT = 'owner-w-matrix3-20261118a'
 MATRIX = REPO / 'workloads/campaigns/fixed-points-w1-w4/run-matrix.json'
 LOG_DEFAULT = REPO / 'results/workload-batch-20261108/driver-log.jsonl'
 LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
@@ -90,15 +90,24 @@ LAUNCHER = [sys.executable, 'scripts/run-workload-campaign.py']
 #                   evidence fetch timed out; o64 was burned in 4.3 s by the
 #                   capture port o63's own aborted sink still held. o63 was
 #                   recovered on disk like ordinal 44 (no ID spent, no new
-#                   traffic), leaving this cell at 2/3 and needing one more.
+#                   traffic), leaving this cell at 2/3.
 #   W3/thingsboard  r3@o27 valid, r06@o65 and r07@o66 still unspent.
 #
-# So this batch runs exactly three ordinals: W3's two authorized IDs, plus the one
-# new W2 ID (r08@o67) that its two host defects made necessary. Every row is a
-# repetition of an already-qualified fixed point: its plan differs from the cell's
-# r05/r07 plan only in plan_id and seed. See
-# authorization/owner-w-matrix3-20261117c.json.
-ORDINALS = (65, 66, 67)
+# The 2026-11-18 re-arm (owner-w-matrix3-20261117c) then spent o65, o66 AND o67
+# without sending a single message: an intermittent SSH fault on the load host
+# failed the first remote call of three consecutive launches (measured ~4-8% of
+# handshakes under churn, 0% when paced, 0/25 to the SUT). HARD_STOP had no
+# transport pattern, so the driver recorded each failure as terminal and moved on,
+# turning one fault into three burned IDs. All three are spent and are never
+# retried; the transport signatures and the transport_guard() preflight below now
+# stop the run at the first such fault instead.
+#
+# So the final batch runs the three IDs the owner authorized on 2026-11-18: one to
+# close W2/thingsboard (2/3 -> 3/3) and two to close W3/thingsboard (1/3 -> 3/3).
+# Every row is a repetition of an already-qualified fixed point: its plan differs
+# from the cell's latest sibling only in plan_id and seed. See
+# authorization/owner-w-matrix3-20261118a.json.
+ORDINALS = (68, 69, 70)
 
 # Compose projects that publish the shared port 8404, per platform.
 PROJECTS = {

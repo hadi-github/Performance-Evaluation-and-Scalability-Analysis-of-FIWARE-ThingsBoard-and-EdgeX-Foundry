@@ -1702,6 +1702,84 @@
    "run_id": "w2dp-tb-r08-20261108",
    "seed": 202611068,
    "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 68,
+   "plan": "plans/w2dp-tb-r09-20261108.json",
+   "plan_sha256": "26741b61c5dd512bdcc90099d8c525d29a7dfa8efc13f9513885d18536ea576b",
+   "platform": "thingsboard",
+   "repetition": 9,
+   "run_id": "w2dp-tb-r09-20261108",
+   "seed": 202611069,
+   "workload_id": "W2"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 69,
+   "plan": "plans/w3dp-tb-r08-20261108.json",
+   "plan_sha256": "bbeb8f9daf83d383d1e27dea858959af437b83bfebe984e574b12a11e9251bca",
+   "platform": "thingsboard",
+   "repetition": 8,
+   "run_id": "w3dp-tb-r08-20261108",
+   "seed": 202611068,
+   "workload_id": "W3"
+  },
+  {
+   "deployment": {
+    "application_cpu_budget_k": 2,
+    "application_cpu_pool": "4-5",
+    "per_replica_memory_and_images": "unchanged from qualified B0; verify effective values before/after each run",
+    "replicas_per_replicated_service": 2,
+    "replicated_services": [
+     "tb-core",
+     "tb-rule-engine",
+     "tb-http-transport"
+    ],
+    "same_haproxy_ingress": true,
+    "supporting_tiers": "unchanged; retain actual resources and reused database state"
+   },
+   "execution_status": "BLOCKED_PENDING_VARIANT_RELEASE",
+   "expected_measurement_messages": 15000,
+   "expected_warmup_messages": 7500,
+   "ordinal": 70,
+   "plan": "plans/w3dp-tb-r09-20261108.json",
+   "plan_sha256": "ae0aedc9c26bb67c89f44d2c480563570aec324368bf0c3e7fd653579bfcd173",
+   "platform": "thingsboard",
+   "repetition": 9,
+   "run_id": "w3dp-tb-r09-20261108",
+   "seed": 202611069,
+   "workload_id": "W3"
   }
  ],
  "pool_policy_revision": {

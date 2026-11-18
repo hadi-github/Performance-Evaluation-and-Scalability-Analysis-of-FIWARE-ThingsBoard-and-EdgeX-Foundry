@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
-"""Extend the W matrix with a sixth repetition so W1/tb and W2/tb reach 3 reps.
+"""Extend the W matrix with the repetitions still needed for a balanced 12x3.
 
 Why this exists
 ---------------
-Each thingsboard cell was pre-registered with exactly five IDs. For W1/thingsboard
-and W2/thingsboard, three of those five are already spent on pre-traffic host
-failures, so those two cells can never reach three valid repetitions from the
-frozen matrix:
+Two thingsboard cells are still short of three valid repetitions, and the frozen
+matrix has no unspent IDs left for them:
 
-    W1/thingsboard  usable r2@o24            + unrun r5@o51  -> max 2
-    W2/thingsboard  usable r3@o34            + unrun r5@o53  -> max 2
+    W2/thingsboard  2 valid (r3@o34, r6@o63)   needs 1
+    W3/thingsboard  1 valid (r3@o27)           needs 2
 
-The owner chose a balanced 12x3 matrix, so this adds exactly two runs:
+Every remaining pre-registered ID for those cells is spent. What consumed them
+was host faults, not platform results: r2/r5 for W2 and r1/r2/r4/r5 for W3 all
+died on pre-traffic gates, o64 was burned in 4.3 s by a capture port its own
+aborted predecessor still held, and o65/o66/o67 were burned together on
+2026-11-18 when a flaky SSH path to the load host failed three consecutive
+launches before any of them sent a message (see POSTPROCESS-FINDINGS item 10).
 
-    w1dp-tb-r06-20261108   (W1/thingsboard, repetition 6)
-    w2dp-tb-r06-20261108   (W2/thingsboard, repetition 6)
+The owner chose a balanced 12x3 matrix, so this adds exactly three runs:
 
-r06 fills the *third* slot in each of those cells. It does not add a fourth
-repetition to any cell, so the finished design stays balanced at 3 reps per cell.
+    w2dp-tb-r09-20261108   (W2/thingsboard, repetition 9)
+    w3dp-tb-r08-20261108   (W3/thingsboard, repetition 8)
+    w3dp-tb-r09-20261108   (W3/thingsboard, repetition 9)
+
+Each fills one of the missing slots. No cell gains a fourth valid repetition, so
+the finished design stays balanced at three per cell.
 
 Why it cannot run mid-campaign
 ------------------------------
@@ -27,7 +33,7 @@ launch and switch. Editing either file while the queue is running makes every
 remaining launch fail closed with 'receipt has drifted from the tree'. So this
 script is deliberately two-phase:
 
-    --prepare   write the two plans and a proposal sidecar, touch nothing bound
+    --prepare   write the plans and a proposal sidecar, touch nothing bound
     --apply     extend run-matrix.json and scope.json, then require a new receipt
 
 `--apply` refuses while a driver or launcher is alive, and it refuses if either
@@ -35,13 +41,13 @@ bound file has drifted from the receipt it was prepared against.
 
 What it does NOT do
 -------------------
-It does not authorize anything. After `--apply` the two new IDs have no receipt,
-so the launcher will refuse them until a new receipt is recorded. That receipt is
+It does not authorize anything. After `--apply` the new IDs have no receipt, so
+the launcher will refuse them until a new receipt is recorded. That receipt is
 the owner's decision and is created separately, which is the intended gate.
 
 Usage:
     scripts/stage-r06-completion.py --prepare
-    scripts/stage-r06-completion.py --apply --receipt owner-w-matrix3-20261117a
+    scripts/stage-r06-completion.py --apply --receipt owner-w-matrix3-20261117c
     scripts/stage-r06-completion.py --check
 """
 import argparse
@@ -60,23 +66,23 @@ MATRIX = W_ROOT / 'run-matrix.json'
 SCOPE = W_ROOT / 'scope.json'
 PROPOSAL = W_ROOT / 'r06-completion-proposal.json'
 
-# The remaining gap after the 2026-11-17 completion batch.
+# The remaining gap after the 2026-11-18 re-arm burned ordinals 65-67.
 #
-# That batch added r06/r07 for all three thingsboard cells, but ordinals 63 and 64
-# were lost to host defects rather than platform results:
+# That batch authorized o65/o66/o67 for W3's two remaining IDs and one new W2 ID.
+# All three were lost before any message was sent, to an intermittent SSH fault on
+# the load host (0 traffic, workload_launch_attempted false). W1/thingsboard had
+# already completed via o61 and o62, and W2's o63 was recovered on disk, so what is
+# actually left is:
 #
-#   o63 w2dp-tb-r06  traffic complete and clean (22,500/22,500, 0 explicit
-#                    failures), then the workstation's SSH fetch timed out and the
-#                    history export failed. Recovered on disk instead, like
-#                    ordinal 44: no ID spent.
-#   o64 w2dp-tb-r07  burned in 4.3 s by the dedicated capture port 18091, which
-#                    o63's own aborted sink still held. Never reached traffic.
+#   W2/thingsboard  r3@o34 + r6@o63                     + r09 -> 3
+#   W3/thingsboard  r3@o27                              + r08, r09 -> 3
 #
-# W2/thingsboard therefore stands at r3@o34 + r6@o63 = 2 reps after recovery and
-# needs exactly one more. r08 fills it. W3/thingsboard still has both of its
-# authorized IDs unspent (o65, o66), so it needs nothing here.
+# Each new row is a repetition of an already-qualified fixed point, so it fills a
+# missing slot rather than adding a fourth.
 TARGETS = (
-    ('W2', 'thingsboard', 8, 'w2dp-tb-r08-20261108'),
+    ('W2', 'thingsboard', 9, 'w2dp-tb-r09-20261108'),
+    ('W3', 'thingsboard', 8, 'w3dp-tb-r08-20261108'),
+    ('W3', 'thingsboard', 9, 'w3dp-tb-r09-20261108'),
 )
 
 # The frozen scope only defines five seeds (`seed_by_repetition`) and the stager
@@ -84,7 +90,7 @@ TARGETS = (
 # are reproducibility metadata, not benchmark parameters, so new values are
 # appended rather than re-deriving the existing five, which must stay
 # byte-identical to what the 60 authorized runs used.
-NEW_SEEDS = {6: 202611066, 7: 202611067, 8: 202611068}
+NEW_SEEDS = {6: 202611066, 7: 202611067, 8: 202611068, 9: 202611069}
 
 
 def sha(path):
@@ -198,36 +204,38 @@ def prepare(receipt_id):
 
     proposal = {
         'schema_version': 1,
-        'purpose': ('Add w2dp-tb-r08-20261108 so W2/thingsboard reaches three valid '
-                    'repetitions (r3@o34, r6@o63 recovered on disk, r8@o67), giving a '
-                    'balanced 12x3 matrix. W3/thingsboard still has both of its authorized '
-                    'IDs unspent (o65, o66), so it needs no new ID here.'),
+        'purpose': ('Add w2dp-tb-r09-20261108, w3dp-tb-r08-20261108 and '
+                    'w3dp-tb-r09-20261108 so W2/thingsboard reaches three valid '
+                    'repetitions (r3@o34, r6@o63, r9) and W3/thingsboard reaches three '
+                    '(r3@o27, r8, r9), giving a balanced 12x3 matrix. No cell gains a '
+                    'fourth valid repetition.'),
         'prepared_against_receipt': receipt_id,
         'prepared_bindings_sha256': {
             'scope': sha(SCOPE),
             'run_matrix': sha(MATRIX),
         },
-        'why': ('The 2026-11-17 completion batch authorized r06/r07 for all three '
-                'thingsboard cells. W1/thingsboard used them successfully (o61, o62). '
-                'W2/thingsboard lost both to host defects, not platform results: o63 ran '
-                'complete, clean traffic and was then lost to a workstation SSH fetch '
-                'timeout plus a history-export port bug, and o64 was burned in 4.3 s by the '
-                'capture port its own aborted predecessor still held. o63 was recovered on '
-                'disk with no new ID, leaving W2/thingsboard at 2 reps, so exactly one '
-                'further ID is needed. r08 fills that single slot; no cell gains a fourth '
-                'repetition, so the design stays balanced at three per cell.'),
+        'why': ('W2/thingsboard stands at 2 valid reps and W3/thingsboard at 1. Every '
+                'pre-registered ID for both cells is spent, and what spent them was host '
+                'faults rather than platform results: the early repetitions died on '
+                'pre-traffic gates, o64 was burned by a capture port its own aborted '
+                'predecessor still held, and on 2026-11-18 a flaky load-host SSH path '
+                'consumed o65, o66 and o67 in three consecutive launches that never sent a '
+                'single message (workload_launch_attempted false). Those remain burned and '
+                'are never retried. These three IDs are new: one closes W2, two close W3. '
+                'Each is a repetition of an already-qualified fixed point, so the design '
+                'stays balanced at three valid reps per cell.'),
         'adds_rows': rows,
         'appends_seeds': NEW_SEEDS,
         'scope_changes': {
             'seed_by_repetition': 'append ' + ', '.join(str(v) for v in sorted(NEW_SEEDS.values()))
-                                  + ' (8th entry)',
+                                  + ' (9th entry)',
             'experimental_attempts_proposed': f'{scope["experimental_attempts_proposed"]} -> '
                                               f'{scope["experimental_attempts_proposed"] + len(rows)}',
         },
         'authorization_required': True,
         'note': ('run-matrix.json and scope.json are hash-bound into the live receipt, and '
                  'verify_tree_bindings() re-checks them on every launch. Apply only while the '
-                 'queue is idle, then record a new receipt naming o65, o66 and o67.'),
+                 'queue is idle, then record a new receipt naming all three new IDs.'),
     }
     PROPOSAL.write_text(json.dumps(proposal, indent=1, sort_keys=True) + '\n')
     print(f'  wrote {PROPOSAL.relative_to(REPO)}')

@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "receipt_id": "owner-w-matrix3-20261118a",
+  "scope_label": "w-matrix-tb-completion-12x3-final3",
+  "recorded_by": "agent",
+  "owner_instruction_verbatim": "Authorize 3 new IDs (Recommended): Mint a receipt for w3dp-tb-r08, w3dp-tb-r09 and w2dp-tb-r09 (ordinals 68-70) and re-arm. The transport guard now prevents a repeat of the triple-burn, and I'd run one ordinal first to confirm the SSH path holds before committing the other two.",
+  "authorized_run_ids": [
+    "w2dp-tb-r09-20261108",
+    "w3dp-tb-r08-20261108",
+    "w3dp-tb-r09-20261108"
+  ],
+  "counts_toward_proposed_attempts": true,
+  "attempt_kind": {
+    "w2dp-tb-r09-20261108": true,
+    "w3dp-tb-r08-20261108": true,
+    "w3dp-tb-r09-20261108": true
+  },
+  "bindings_sha256": {
+    "scope": "d32e27c9ea1847a79d9f2560f3339dd84324f0e5cd7f7ab9b0e69fe4ce3b0746",
+    "run_matrix": "6b9a76e9ac5eda33578b95b2ba234e3e95e1fbb29c97aa07ff05253f764d826b",
+    "launcher": "33b94a31ba46a29cba05010baaac1f37f24455ed3908a4e84c6433879ba7c95d",
+    "aggregator": "0c388a79e5fa3749bc09998e51d203f9672954a5ed6590b98db9e17bdbfb8c50",
+    "qualification_stager": "c453526a709e2d48686f8683707c057f44083e3407dd3f9ac53eacf1343fe25d",
+    "variant_stager": "3985836616d033f22430b337aa2012dffe50366d5df81d5738168829f4c39a46",
+    "integrity": "34471e0ebfce4684401c84b14b2439ed3d14f82608dc9801bc3637eea1205f26",
+    "pool_policy": "5923ea5dee69399773a78f0db02bec6f96c511349087f0538aff0b2112fe9145",
+    "b0_launcher": "86d8683806e5ddaf78b2dfe84aeeb76beff81d46a1921f2064e67fe6e5915e2d",
+    "qualification_index_w1": "685c55022c81277eb979f94c2268ce89534914a14c3432a15859065f39423372",
+    "qualification_index_w2": "f671e0a41ddf3318fe7f59e9130961e028178c6c41f65cc5ac3730e610e5d645",
+    "qualification_index_w3": "590520dfb589391e3682846a3c7bdfc7e02a0624946d5f47270c07a4954c8035",
+    "qualification_index_w4": "f60402fa625dba32368e43f38edf0c37dadfafdde98667437bef230e0dfbcc32"
+  },
+  "authorized_plan_sha256": {
+    "w2dp-tb-r09-20261108": "26741b61c5dd512bdcc90099d8c525d29a7dfa8efc13f9513885d18536ea576b",
+    "w3dp-tb-r08-20261108": "bbeb8f9daf83d383d1e27dea858959af437b83bfebe984e574b12a11e9251bca",
+    "w3dp-tb-r09-20261108": "ae0aedc9c26bb67c89f44d2c480563570aec324368bf0c3e7fd653579bfcd173"
+  },
+  "environment": {
+    "hostname_platform": "Linux-7.2.15-artix1-1-x86_64-with-glibc2.44"
+  },
+  "limits": [
+    "Authorizes exactly the listed run IDs. No wildcard, no substitute ID.",
+    "An attempt that fails is preserved; this receipt is not a retry licence.",
+    "Does not authorize EdgeX while its readiness blocker is open.",
+    "Does not authorize W3 FIWARE, whose padding evidence path does not exist.",
+    "The generator VU pool is rate-derived under the separately recorded 2026-11-10 owner amendment (run-matrix.json pool_policy_revision); this receipt does not widen it beyond that rule ({25: 150, 50: 300, 100: 550})."
+  ]
+}

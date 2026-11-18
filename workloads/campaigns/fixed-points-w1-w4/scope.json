@@ -41,7 +41,7 @@
  },
  "endpoint": "application_dispatch_to_first_complete_body_sink_receipt",
  "execution_authorized": false,
- "experimental_attempts_proposed": 67,
+ "experimental_attempts_proposed": 70,
  "latency_method": "offline per-message first-receipt join; nearest-rank conditional percentiles plus missing denominators",
  "proposed_attempts_per_workload_platform": 5,
  "qualification_policy": "Separate IDs/evidence for diagnostics and qualifications; no such runs count toward the proposed 60 experimental attempts.",
@@ -58,7 +58,8 @@
   202611065,
   202611066,
   202611067,
-  202611068
+  202611068,
+  202611069
  ],
  "shared": {
   "GOGC": "400",
