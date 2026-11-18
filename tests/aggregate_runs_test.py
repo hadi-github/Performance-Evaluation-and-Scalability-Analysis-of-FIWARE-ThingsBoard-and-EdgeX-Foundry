@@ -79,6 +79,52 @@ class AggregateTests(unittest.TestCase):
             (run/'records.ndjson').write_text('{"rec":"msg"}\n')
             self.assertNotEqual(self.run_tool(d,'--force').returncode,0)
 
+    def test_harness_defect_is_excluded_but_stays_a_consumed_id(self):
+        with tempfile.TemporaryDirectory() as d:
+            # Three genuine repetitions plus one bench-defect run in the same cell.
+            for i in (1, 2, 3):
+                rid = f"disp-tb-r0{i}-20261106"
+                self.write_run(d, rid, analysis(rid, 10 * i),
+                               {"platform": "thingsboard", "run_id": rid, "finish": "stopped"})
+            bad = "disp-tb-r04-20261106"
+            self.write_run(d, bad, analysis(bad, 99),
+                           {"platform": "thingsboard", "run_id": bad, "finish": "stopped"})
+            (pathlib.Path(d) / bad / "harness-defect.json").write_text(json.dumps({
+                'run_id': bad, 'platform_finding': False,
+                'outcome': 'HARNESS_DEFECT_EXCLUDE_FROM_REPETITIONS',
+                'defect': {'component': 'thingsboard root rule chain',
+                           'missing_rule_node': 'bench sink'},
+                'references': {'defect_narrative': 'HARNESS-DEFECT.md'}}))
+            p = self.run_tool(d)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            with (pathlib.Path(d) / 'runs.csv').open() as f:
+                rows = {r['run_id']: r for r in csv.DictReader(f) if r['phase'] == 'measurement'}
+            self.assertEqual(rows[bad]['campaign_qualified'], 'False')
+            self.assertEqual(rows[bad]['harness_defect'], 'True')
+            self.assertIn('bench sink', rows[bad]['harness_defect_reason'])
+            for i in (1, 2, 3):
+                self.assertEqual(rows[f"disp-tb-r0{i}-20261106"]['campaign_qualified'], 'True')
+            text = (pathlib.Path(d) / 'summary.md').read_text()
+            self.assertIn(bad, text)                      # still a consumed ID
+            self.assertIn('Excluded from the repetition set', text)
+            self.assertIn('across 3 latency-assessed run(s)', text)
+            self.assertNotIn('Target is five', text)
+
+    def test_resolved_harness_defect_is_not_excluded(self):
+        with tempfile.TemporaryDirectory() as d:
+            rid = "disp-ex-r04-20261106"
+            self.write_run(d, rid, analysis(rid, 20),
+                           {"platform": "edgex", "run_id": rid, "finish": "stopped"})
+            (pathlib.Path(d) / rid / "harness-defect.json").write_text(json.dumps({
+                'run_id': rid, 'platform_finding': None,
+                'outcome': 'HARNESS_DEFECT_RESOLVED_RECOVERED'}))
+            p = self.run_tool(d)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            with (pathlib.Path(d) / 'runs.csv').open() as f:
+                row = next(csv.DictReader(f))
+            self.assertEqual(row['harness_defect'], 'False')
+            self.assertEqual(row['campaign_qualified'], 'True')
+
     def write_run(self, root, run_id, data=None, result=None):
         d = pathlib.Path(root) / run_id
         d.mkdir(parents=True)

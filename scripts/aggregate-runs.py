@@ -29,7 +29,43 @@ FIELDS = [
     "history_status", "workload_valid", "workload_findings",
     "resource_qualified", "sut_resource_qualified", "post_run_defect", "campaign_qualified", "run_result_finish",
     "recovery_classification", "workload_lock_retained", "setup_planned_messages", "setup_offered_messages",
+    "harness_defect", "harness_defect_reason",
 ]
+
+
+def harness_defect_of(evidence_dir):
+    """Return the exclusion reason for a run the bench, not the platform, broke.
+
+    `w4dp-tb-r02-20261108` carries `VALID_PLATFORM_FAILURE_OR_BACKLOG` in its
+    run-result, but ThingsBoard ingested all 22,500 messages and the missing hop
+    was our own outbound rule-chain node. Keeping it in the W4/thingsboard set
+    would inflate that cell to four runs and mix a harness artefact into a
+    platform comparison, so it is flagged here and kept out of every repetition
+    set and pooled statistic. It stays visible in the CSV as a consumed ID.
+
+    A resolved defect (one that was recovered on disk, e.g. `w2dp-ex-r04`) is
+    deliberately NOT excluded: its evidence was re-analysed and is a real
+    platform result.
+    """
+    sidecar = pathlib.Path(evidence_dir) / "harness-defect.json"
+    if not sidecar.is_file():
+        return None
+    defect = json.loads(sidecar.read_text())
+    if defect.get("platform_finding") is not False:
+        return None
+    if defect.get("outcome") != "HARNESS_DEFECT_EXCLUDE_FROM_REPETITIONS":
+        return None
+    detail = defect.get("defect") if isinstance(defect.get("defect"), dict) else {}
+    parts = [defect.get("outcome")]
+    if detail.get("component"):
+        parts.append("component " + detail["component"])
+    if detail.get("missing_rule_node"):
+        parts.append("missing rule node " + detail["missing_rule_node"])
+    narrative = (defect.get("references") or {}).get("defect_narrative")
+    if narrative:
+        parts.append("narrative " + narrative)
+    return "; ".join(parts)
+
 
 
 WORKLOAD_BY_PREFIX = {"w1dp": "W1", "w2dp": "W2", "w3dp": "W3", "w4dp": "W4"}
@@ -114,13 +150,15 @@ def load_run(analysis_path):
     sink = a.get("sink") or {}
     anomalies = sink.get("platform_anomalies") or {}
     platform = platform_of(run_id,result)
+    defect_reason = harness_defect_of(analysis_path.parent)
     post_ok = result.get('post_run_defect') is not True
     if platform == 'edgex': post_ok = post_ok and result.get('post_run_check_qualified') is True
     qualified = (a.get('measurement_valid') is True and a.get('capture_valid') is True and
                  a.get('latency_assessed') is True and a.get('generator_resource_qualified') is True and
                  load.get('valid') is True and result.get('sut_resource_qualified') is True and
                  a.get('history_assessed') is True and a.get('history_status') == 'OK' and
-                 result.get('history_retrieved') is True and post_ok)
+                 result.get('history_retrieved') is True and post_ok and
+                 defect_reason is None)
     base = {
         "platform": platform_of(run_id, result),
         "run_id": run_id,
@@ -137,6 +175,8 @@ def load_run(analysis_path):
         "sut_resource_qualified": result.get('sut_resource_qualified'),
         "post_run_defect": result.get('post_run_defect'),
         "campaign_qualified": qualified,
+        "harness_defect": defect_reason is not None,
+        "harness_defect_reason": defect_reason,
         "run_result_finish": result.get("finish"),
         "workload_lock_retained": result.get('workload_lock_retained'),
         "duplicates_extra": sink.get("duplicate_extra_receipts"),
@@ -179,6 +219,7 @@ def load_results_only(root):
         if (result_path.parent / (result_path.parent.name + ".dispatch-analysis.json")).exists():
             continue
         result = json.loads(result_path.read_text())
+        defect_reason = harness_defect_of(result_path.parent)
         row = {field: None for field in FIELDS}
         row.update({
             "platform": result.get("platform"),
@@ -193,6 +234,8 @@ def load_results_only(root):
             "run_result_finish": result.get("finish"),
             "workload_lock_retained": result.get('workload_lock_retained'),
             "campaign_qualified": False,
+            "harness_defect": defect_reason is not None,
+            "harness_defect_reason": defect_reason,
         })
         recovery_path=result_path.parent/'recovery-result.json'
         if recovery_path.is_file():
@@ -260,10 +303,17 @@ def summarize(rows):
         if measured:
             lines.append(f"Measurement-phase dispatch p99 across {len(measured)} latency-assessed run(s): "
                          f"min {measured[0]:.3f} ms, median {statistics.median(measured):.3f} ms, "
-                         f"max {measured[-1]:.3f} ms. Target is five independent repetitions; "
-                         f"missing repetitions are not replaced.")
+                         f"max {measured[-1]:.3f} ms. Target is three independent repetitions; "
+                         f"a cell short of three is a reported gap and is never backfilled silently.")
         else:
             lines.append("No campaign-qualified ordinary measurement phase; diagnostic latency remains in the matrix, but no ordinary replicate percentile is reported.")
+        excluded = {row['run_id'] for row in rows
+                    if row["platform"] == platform and row.get("workload_id") == workload
+                    and row.get("harness_defect") is True}
+        if excluded:
+            lines.append("")
+            lines.append("Excluded from the repetition set and every pooled statistic as a bench defect "
+                         "(kept in `runs.csv` as a consumed ID): " + ", ".join(sorted(excluded)) + ".")
         invalid = [row["run_id"] for row in rows if row["platform"] == platform and row["phase"] == "measurement"
                    and row["measurement_valid"] is False]
         if invalid:
