@@ -1,0 +1,3 @@
+# Local Claude settings may contain credentials. Never stage them.
+settings.json
+settings.local.json
